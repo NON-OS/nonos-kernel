@@ -40,10 +40,10 @@ pub struct Persisted {
 /// then url, title and `i64` starred time each), the tab groups section (a
 /// `u16` count, then id, colour and name each), four reader setting bytes:
 /// theme, size, width and whether the reading time shows, and the
-/// appearance byte (0 Light, 1 Dark), then the search section: a byte (0 the
-/// default engine, 1 a custom template) and the template, empty for the
-/// default. Each is appended after the last, so a record written before it
-/// still reads.
+/// appearance byte (0 Light, 1 Dark, 2 System), then the search section: a
+/// byte (0 the default engine, 1 a custom template) and the template, empty
+/// for the default. Each is appended after the last, so a record written
+/// before it still reads. An older build reads the System byte as Dark.
 pub fn encode(p: &Persisted) -> Vec<u8> {
     let mut out = Vec::new();
     out.extend_from_slice(&MAGIC);

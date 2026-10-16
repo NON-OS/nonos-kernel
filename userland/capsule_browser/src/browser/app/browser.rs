@@ -17,7 +17,6 @@
 use alloc::string::String;
 
 use crate::browser::paint::tokens;
-use crate::browser::shell::kept::Appearance;
 use crate::browser::shell::search::template;
 use crate::browser::shell::store::load;
 use crate::browser::shell::Shell;
@@ -25,13 +24,15 @@ use crate::browser::tabs::Tabs;
 
 /* `tabs` are the pages; `shell` the window around them. `cursor` is the
  * next tab out of view to step; `acc` and `strip` the titlebar strip's
- * size and contents at its last paint (`strip::strip_print`). */
+ * size and contents at its last paint (`strip::strip_print`); `theme` the
+ * palette's key when the tabs were last marked for it (`tokens::key`). */
 pub struct Browser {
     pub(super) tabs: Tabs,
     pub(super) shell: Shell,
     pub(super) cursor: usize,
     pub(super) acc: (i32, i32),
     pub(super) strip: u64,
+    pub(super) theme: u64,
 }
 
 impl Browser {
@@ -40,9 +41,9 @@ impl Browser {
     pub fn new() -> Self {
         let mut shell = Shell::default();
         shell.apply(load());
-        tokens::set_dark(shell.appearance == Appearance::Dark);
+        tokens::set_mode(shell.appearance);
         let mut tabs = Tabs::new();
         tabs.active_mut().ui.search = String::from(template(shell.search.as_deref()));
-        Browser { tabs, shell, cursor: 0, acc: (0, 0), strip: 0 }
+        Browser { tabs, shell, cursor: 0, acc: (0, 0), strip: 0, theme: tokens::key() }
     }
 }

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::browser::net::mixnet;
-use crate::browser::paint::tokens::is_dark;
+use crate::browser::paint::tokens::mode;
 use crate::browser::settings::NETWORKS;
 use crate::browser::shell::kept::MAX_SIZE;
 use crate::browser::shell::types::DlState;
@@ -42,7 +42,7 @@ pub fn look(state: &State, shell: &Shell, c: Control) -> Look {
     let can = |on: bool| if on { Look::Plain } else { Look::Dim };
     let r = &shell.reader;
     match c {
-        Control::Appearance(i) => pick((i == 1) == is_dark()),
+        Control::Appearance(i) => pick(i == mode() as u8),
         Control::Network(i) => pick(NETWORKS.get(i as usize) == Some(&mixnet::chosen())),
         Control::Search(i) => pick((i == 1) == shell.search.is_some()),
         Control::ReaderTheme(i) => pick(i == r.theme),

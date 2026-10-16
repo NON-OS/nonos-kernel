@@ -24,14 +24,26 @@ impl Browser {
     /* An event that switched the appearance changed every tab's chrome, so
      * each is marked whole: the tab in view repaints under the new palette
      * now, and any other when it is shown. The strip follows on its own,
-     * as the appearance is part of what it shows. */
-    pub(super) fn retheme(&mut self, was_dark: bool, out: EventOutcome) -> EventOutcome {
-        if tokens::is_dark() == was_dark {
-            return out;
+     * as the palette's key is part of what it shows. */
+    pub(super) fn retheme(&mut self, out: EventOutcome) -> EventOutcome {
+        match self.rethemed() {
+            true => EventOutcome::Repaint,
+            false => out,
         }
+    }
+
+    /* Whether the palette's key moved since the tabs were last marked for
+     * it, marking each whole when it did. Under System a theme chosen in
+     * Settings arrives with no event, so the tick asks this too. */
+    pub(super) fn rethemed(&mut self) -> bool {
+        let key = tokens::key();
+        if key == self.theme {
+            return false;
+        }
+        self.theme = key;
         for s in self.tabs.list.iter_mut() {
             s.mark(Change::Full);
         }
-        EventOutcome::Repaint
+        true
     }
 }

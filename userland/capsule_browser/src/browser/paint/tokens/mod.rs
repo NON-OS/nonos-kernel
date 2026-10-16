@@ -21,9 +21,10 @@
 mod dark;
 mod light;
 mod palette;
+pub mod system;
 mod tables;
 
 pub use dark::DARK;
 pub use light::LIGHT;
-pub use palette::{is_dark, palette, set_dark, Palette};
+pub use palette::{key, mode, palette, set_mode, Palette};
 pub use tables::{ON_FRAME, READER_THEMES, TILES, TILE_INK};

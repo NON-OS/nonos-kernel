@@ -20,7 +20,7 @@ use alloc::string::String;
 use crate::browser::shell::Shell;
 use crate::browser::ui::settings_geom::Control;
 
-const APPEARANCE: [&str; 2] = ["Light", "Dark"];
+const APPEARANCE: [&str; 3] = ["Light", "Dark", "System"];
 const NETWORKS: [&str; 3] = ["Mixnet (Nym)", "Anyone", "Direct"];
 const ENGINES: [&str; 2] = ["DuckDuckGo", "Custom"];
 const THEMES: [&str; 3] = ["Light", "Sepia", "Dark"];

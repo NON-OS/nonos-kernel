@@ -16,11 +16,16 @@
 
 use core::sync::atomic::{AtomicU8, Ordering};
 
-use super::{DARK, LIGHT};
+use nonos_toolkit::theme::{roles, snapshot};
+
+use super::{system, DARK, LIGHT};
+use crate::browser::shell::kept::Appearance;
 
 /// The chrome's colours under one appearance. Text tokens (`ink`, `ink2`,
 /// `muted`) read on every ground the chrome draws (`ground`, `surface`,
-/// `sidebar`, `field`), and `on_accent` reads on `accent`.
+/// `sidebar`, `field`), and `on_accent` reads on `accent`. Every token is
+/// opaque but `shadow`, so a painter may fill with any of the others.
+#[derive(Clone, Copy)]
 pub struct Palette {
     pub ground: u32,
     pub surface: u32,
@@ -44,24 +49,37 @@ pub struct Palette {
     pub warn_soft: u32,
 }
 
-/* One theme for the whole process: every window and tab paints under it.
- * It starts dark, the default, so a frame drawn before the saved choice is
- * read is already dark. */
-static THEME: AtomicU8 = AtomicU8::new(1);
+/* One appearance for the whole process: every window and tab paints under
+ * it. It starts on System, the default, so a frame drawn before the saved
+ * choice is read already follows the OS theme. */
+static MODE: AtomicU8 = AtomicU8::new(Appearance::System as u8);
 
-/// The palette the chrome paints with now.
-pub fn palette() -> &'static Palette {
-    match is_dark() {
-        true => &DARK,
-        false => &LIGHT,
+/// The palette the chrome paints with now. System is worked out from the OS
+/// theme's roles on every call, so a change made in Settings shows on the
+/// next paint.
+pub fn palette() -> Palette {
+    match mode() {
+        Appearance::Light => LIGHT,
+        Appearance::Dark => DARK,
+        Appearance::System => system::from_roles(&roles()),
     }
 }
 
-/// Puts the dark palette in force, or the light one.
-pub fn set_dark(dark: bool) {
-    THEME.store(dark as u8, Ordering::Relaxed);
+/// Puts the appearance `a` in force.
+pub fn set_mode(a: Appearance) {
+    MODE.store(a as u8, Ordering::Relaxed);
 }
 
-pub fn is_dark() -> bool {
-    THEME.load(Ordering::Relaxed) != 0
+/// The appearance in force.
+pub fn mode() -> Appearance {
+    Appearance::from_byte(MODE.load(Ordering::Relaxed))
+}
+
+/// What the palette in force is worked out from: the appearance, and under
+/// System the OS theme's revision, which moves only when Settings changes the
+/// theme. While the key holds still, so does every colour `palette` gives.
+pub fn key() -> u64 {
+    let a = mode();
+    let revision = if a == Appearance::System { snapshot().revision } else { 0 };
+    (a as u64) << 32 | revision as u64
 }

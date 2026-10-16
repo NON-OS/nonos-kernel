@@ -25,7 +25,8 @@ pub enum Row {
     Size(&'static str),
 }
 
-const APPEARANCE: &[Row] = &[Row::Options("Theme", &[C::Appearance(0), C::Appearance(1)])];
+const APPEARANCE: &[Row] =
+    &[Row::Options("Theme", &[C::Appearance(2), C::Appearance(0), C::Appearance(1)])];
 const NETWORK: &[Row] = &[
     Row::Options("Route", &[C::Network(0), C::Network(1), C::Network(2)]),
     Row::Text("Now", Line::Route),

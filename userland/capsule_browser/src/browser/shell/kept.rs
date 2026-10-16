@@ -38,22 +38,25 @@ pub struct ReaderPrefs {
 
 pub const MAX_SIZE: u8 = 4;
 
-/// The browser's own chrome, Dark by default or Light. Web pages keep their
-/// own colours and the reader its own themes.
+/// The browser's own chrome: System by default, which follows the theme
+/// chosen in Settings, or the fixed Light or Dark. Web pages keep their own
+/// colours and the reader its own themes.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Appearance {
     Light = 0,
-    #[default]
     Dark = 1,
+    #[default]
+    System = 2,
 }
 
 impl Appearance {
     /// The appearance a record's byte names; one this build does not know
-    /// reads as the default, Dark.
+    /// reads as the default, System.
     pub fn from_byte(b: u8) -> Appearance {
         match b {
             0 => Appearance::Light,
-            _ => Appearance::Dark,
+            1 => Appearance::Dark,
+            _ => Appearance::System,
         }
     }
 }

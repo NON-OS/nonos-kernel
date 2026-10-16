@@ -27,7 +27,7 @@ pub(super) fn act(tabs: &mut Tabs, shell: &mut Shell, ctl: Control) {
     match ctl {
         Control::Appearance(i) => {
             shell.appearance = Appearance::from_byte(i);
-            tokens::set_dark(shell.appearance == Appearance::Dark);
+            tokens::set_mode(shell.appearance);
         }
         Control::Network(i) => return super::net_act::choose(tabs, i),
         Control::ProxySet => return super::net_act::set_proxy(tabs, shell),

@@ -26,7 +26,7 @@ use super::print::fold;
  * repaint, so a change here asks for one. */
 pub(super) fn strip_print(tabs: &Tabs) -> u64 {
     let mut h = fold(fold(0xcbf2_9ce4_8422_2325, tabs.list.len() as u64), tabs.active as u64);
-    h = fold(h, tokens::is_dark() as u64);
+    h = fold(h, tokens::key());
     for s in tabs.list.iter() {
         h = fold(fold(h, s.loading() as u64), s.view as u64);
         h = label(s).bytes().fold(h, |h, b| fold(h, b as u64));

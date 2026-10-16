@@ -29,7 +29,7 @@ use crate::browser::shell::types::Bookmark;
 /// newer build. Entries past their caps are skipped and a non-UTF-8 one is
 /// dropped. The reader settings are read as written; the window holds them
 /// to its choices when it takes them on. A record that ends after them,
-/// written before the appearance was kept, reads as Dark; one written before
+/// written before the appearance was kept, reads as System; one written before
 /// the search template was kept, or holding one this build refuses, searches
 /// the default engine.
 pub fn decode(b: &[u8]) -> Persisted {
@@ -60,7 +60,7 @@ fn read(c: &mut Cursor) -> Option<Persisted> {
     }
     let r = c.bytes(4)?;
     let reader = ReaderPrefs { theme: r[0], size: r[1], width: r[2], show_time: r[3] != 0 };
-    let appearance = c.u8().map_or(Appearance::Dark, Appearance::from_byte);
+    let appearance = c.u8().map_or(Appearance::System, Appearance::from_byte);
     let search = custom_search(c);
     Some(Persisted { bookmarks, groups, reader, appearance, search })
 }

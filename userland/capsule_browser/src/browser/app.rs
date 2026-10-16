@@ -18,7 +18,6 @@ use nonos_app_skeleton::{App, AppManifest, EventOutcome, InputEvent, PaintBuffer
 use nonos_toolkit::decorations::Rect;
 
 use super::manifest::manifest;
-use super::paint::tokens;
 
 mod accessory;
 mod browser;
@@ -44,9 +43,8 @@ impl App for Browser {
         manifest()
     }
     fn on_event(&mut self, event: InputEvent) -> EventOutcome {
-        let dark = tokens::is_dark();
         let out = self.route(event);
-        self.retheme(dark, out)
+        self.retheme(out)
     }
     fn paint(&mut self, fb: &mut PaintBuffer) {
         self.shell.cards = cards::cards(&self.tabs);
@@ -54,7 +52,8 @@ impl App for Browser {
     }
     fn on_tick(&mut self) -> bool {
         let shown = tick_tabs::tick_tabs(&mut self.tabs, &mut self.shell, &mut self.cursor);
-        shown || self.strip_moved()
+        let themed = self.rethemed();
+        shown || themed || self.strip_moved()
     }
 
     fn tick_interval_ms(&self) -> i64 {
