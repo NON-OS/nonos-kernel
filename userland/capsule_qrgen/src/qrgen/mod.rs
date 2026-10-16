@@ -20,6 +20,5 @@ mod draw;
 mod event;
 mod manifest;
 mod paint;
-mod theme;
 
 pub use app::QrGen;

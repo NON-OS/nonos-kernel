@@ -73,6 +73,7 @@ name = "nonos_qrgen"
 version = "0.1.0"
 dependencies = [
  "nonos_app_skeleton",
+ "nonos_toolkit",
  "nonos_userland_libc",
  "qrcode",
 ]

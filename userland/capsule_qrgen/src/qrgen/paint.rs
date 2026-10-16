@@ -15,24 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::code::{Matrix, PAYLOAD};
-use super::draw::draw_matrix;
-use super::theme;
+use super::draw::{draw_matrix, MARGIN};
 
 const TITLE_Y: i32 = 20;
 const PAYLOAD_Y: i32 = 48;
 const MATRIX_TOP: u32 = 76;
 
 pub fn paint(fb: &mut PaintBuffer, matrix: Option<&Matrix>) {
-    fb.clear(theme::BG);
-    fb.fill_rect(0, 0, fb.width, 4, theme::ACCENT);
-    fb.text_ttf(theme::MARGIN, TITLE_Y, "qr generator", theme::ACCENT, 19.0);
-    fb.text_ttf(theme::MARGIN, PAYLOAD_Y, PAYLOAD, theme::TEXT, 14.0);
+    let r = roles();
+    fb.clear(r.bg.argb());
+    fb.fill_rect(0, 0, fb.width, 4, r.accent.argb());
+    fb.text_ttf(MARGIN, TITLE_Y, "qr generator", r.accent.argb(), 19.0);
+    fb.text_ttf(MARGIN, PAYLOAD_Y, PAYLOAD, r.text.argb(), 14.0);
     let Some(matrix) = matrix else {
-        fb.text_ttf(theme::MARGIN, MATRIX_TOP as i32, "encode failed", theme::FAIL, 15.0);
+        fb.text_ttf(MARGIN, MATRIX_TOP as i32, "encode failed", r.danger.argb(), 15.0);
         return;
     };
     let bottom = draw_matrix(fb, matrix, MATRIX_TOP);
-    fb.text_ttf(theme::MARGIN, bottom as i32 + 12, "esc closes this window", theme::DIM, 13.0);
+    fb.text_ttf(MARGIN, bottom as i32 + 12, "esc closes this window", r.quiet.argb(), 13.0);
 }
