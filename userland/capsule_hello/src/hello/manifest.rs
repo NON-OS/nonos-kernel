@@ -27,7 +27,7 @@ pub fn manifest() -> AppManifest {
         initial_x: 360,
         initial_y: 240,
         width: 360,
-        height: 180,
+        height: 220,
         input_kind_mask: INPUT_KEY_DOWN_BIT,
     }
 }

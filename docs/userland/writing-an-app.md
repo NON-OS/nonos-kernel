@@ -4,7 +4,7 @@ Write a windowed app [capsule](../overview/glossary.md#capsule) on `nonos_app_sk
 
 ## What you build
 
-`capsule_hello` opens a 360 by 180 window titled `Hello NONOS` (`userland/capsule_hello/src/hello/manifest.rs:22-33`, `manifest`), draws four lines of text (`userland/capsule_hello/src/hello/paint.rs:24-31`, `paint`) and closes on `Esc` (`userland/capsule_hello/src/hello/event.rs:19-24`, `on_event`). Every path below is hello's copy; a new app adds the same pieces under its own name. This page covers the program and its tests, and [Shipping an app](shipping-an-app.md) covers the rest, from the declaration to the Launchpad.
+`capsule_hello` opens a 360 by 220 window titled `Hello NONOS` (`userland/capsule_hello/src/hello/manifest.rs:22-33`, `manifest`), draws four labels (`userland/capsule_hello/src/hello/paint.rs:27-45`, `paint`) and closes on `Esc` (`userland/capsule_hello/src/hello/event.rs:19-24`, `on_event`). Every path below is hello's copy; a new app adds the same pieces under its own name. This page covers the program and its tests, and [Shipping an app](shipping-an-app.md) covers the rest, from the declaration to the Launchpad.
 
 | Piece | Where | What it is | Page |
 |---|---|---|---|
@@ -34,7 +34,7 @@ Use this page for a program with its own window.
 
 Put the crate directly under `userland/`, named `capsule_<name>` like the others. The build runs `cargo` in the crate's directory with `--target ../x86_64-nonos-user.json`, so the crate must sit one level down (`nonos-mk/capsule.mk:186-198`, `USERLAND_LIBC`).
 
-hello's `Cargo.toml` names one binary, `hello`, and two dependencies, `nonos_libc` and `nonos_app_skeleton`, and builds its release with `panic = "abort"` (`userland/capsule_hello/Cargo.toml:15-28`, `nonos_app_skeleton`). Its whole program is one call:
+hello's `Cargo.toml` names one binary, `hello`, and three dependencies, `nonos_libc`, `nonos_app_skeleton` and `nonos_toolkit` for its widgets and colours, and builds its release with `panic = "abort"` (`userland/capsule_hello/Cargo.toml:15-29`, `nonos_toolkit`). Its whole program is one call:
 
 ```rust
 #![no_std]
@@ -91,7 +91,7 @@ AppManifest {
     initial_x: 360,
     initial_y: 240,
     width: 360,
-    height: 180,
+    height: 220,
     input_kind_mask: INPUT_KEY_DOWN_BIT,
 }
 ```
@@ -117,18 +117,37 @@ pub fn on_event(event: InputEvent) -> EventOutcome {
 
 ### Painting
 
-`paint` gets a `PaintBuffer` over the window's pixels, 32-bit ARGB words with a stride, a width and a height (`userland/toolkit/src/paint/buffer.rs:17-22`, `PaintBuffer`). The toolkit gives it `clear`, `fill_rect`, `text`, `text_scaled`, rounded panels, lines and circles, and TrueType text through `text_ttf` (`userland/toolkit/src/paint/text_ttf.rs:24`, `text_ttf`). hello draws an accent bar and four lines:
+`paint` gets a `PaintBuffer` over the window's pixels, 32-bit ARGB words with a stride, a width and a height (`userland/toolkit/src/paint/buffer.rs:17-22`, `PaintBuffer`). An app draws on it with the toolkit's shared widgets and takes its colours from the theme's roles, so the screen follows the theme chosen in Settings and the display's scale without code of its own.
+
+- The widgets are in `nonos_toolkit::widgets`: `Label`, `Card`, `Row`, `Button`, `Switch`, `Slider`, `Field`, `Tabs` and the rest, each built with `new` and builder calls, measured with `size` and drawn with `draw` into a `Rect` (`userland/toolkit/src/widgets/mod.rs:21-61`, `Label`). [The widget list](design-system/widget-list.md) says what each one is for.
+- The colours are `nonos_toolkit::theme::roles()`: the ground `bg`, `surface`, `text`, `muted`, `accent` and the other roles, with the text roles checked to read on every ground in every scheme. [Colours](design-system/colours.md) lists them. An app names a role, never an ARGB value; `scripts/check_ui_literals.py` fails on a new one in a migrated app's drawing code.
+- The sizes are `nonos_toolkit::design::size`: the spacing scale `SPACE` and the shared heights and radii, scaled with `scale().px`. [Sizes](design-system/sizes.md) lists them.
+
+hello paints its ground and an accent bar, then stacks four labels from the top, each as tall as its own line:
 
 ```rust
 pub fn paint(fb: &mut PaintBuffer) {
-    fb.clear(BG);
-    fb.fill_rect(0, 0, 360, 4, ACCENT);
-    fb.text_scaled(24, 40, b"hello, NONOS", ACCENT, 2);
-    fb.text(24, 88, b"a signed, attested capsule", TEXT);
-    fb.text(24, 110, b"built from the quickstart", TEXT);
-    fb.text(24, 148, b"press Esc to close", DIM);
+    let (r, s) = (roles(), scale());
+    let space = |gap: u16| s.px(u32::from(gap));
+    fb.clear(r.bg.argb());
+    fb.fill_rect(0, 0, fb.width, space(SPACE.xs), r.accent.argb());
+    let lines = [
+        Label::new("hello, NONOS").role(TextRole::Headline).ink(Ink::Accent),
+        Label::new("a signed, attested capsule"),
+        Label::new("built from the quickstart"),
+        Label::new("press Esc to close").ink(Ink::Quiet),
+    ];
+    let (x, w) = (space(SPACE.xl), fb.width.saturating_sub(space(SPACE.xl) * 2));
+    let mut y = x;
+    for label in lines {
+        let h = label.size().1;
+        label.draw(fb, Rect { x, y, w, h });
+        y += h + space(SPACE.sm);
+    }
 }
 ```
+
+The skeleton reads the chosen theme from the policy store at most once a second and repaints the whole window when it changes (`userland/app_skeleton/src/runner/theme_follow.rs:44-64`, `follow`), so `paint` needs no theme handling. A widget the toolkit lacks is added to the shared list, not kept in the app: a folder under `userland/toolkit/src/widgets/` and its two lines in `mod.rs`, as [Widgets](design-system/widgets.md) describes.
 
 ## 3. How a window opens
 
@@ -181,7 +200,7 @@ fn esc_closes_and_other_keys_do_nothing() {
 }
 ```
 
-At this commit `proofs-apps_proofs` passes with 252 tests, and `proofs-desktop_proofs`, which mounts and tests the launcher table, with 230. A crate of your own goes directly under `userland/` with a name ending in `_proofs` and a committed `Cargo.lock`, or the flake does not run it (`tools/nix/checks.nix:20-21`, `proofDirs`). [Tests and proofs](../contributing/tests-and-proofs.md) covers the rest, from regenerating `inputs.json` to passing clippy.
+At this commit `proofs-apps_proofs` passes with 252 tests, and `proofs-desktop_proofs`, which mounts and tests the launcher table and the shell's colours, with 237. A crate of your own goes directly under `userland/` with a name ending in `_proofs` and a committed `Cargo.lock`, or the flake does not run it (`tools/nix/checks.nix:20-21`, `proofDirs`). [Tests and proofs](../contributing/tests-and-proofs.md) covers the rest, from regenerating `inputs.json` to passing clippy.
 
 ## 5. Into the image
 

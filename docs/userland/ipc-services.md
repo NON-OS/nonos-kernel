@@ -69,6 +69,7 @@ A reply carries the same header, and its payload starts with a signed 32-bit sta
 | `input_router` | 4320 | `capsule_input_router` | `0x4E495253` |
 | `net.core` | 4480 | `capsule_net_core` | one per protocol family |
 | `net.sockets` | 4460 | `capsule_net_sockets` | `0x4E534B54` |
+| `toolkit` | 4610 | `toolkit` | `0x4E4F544B` |
 
 The ports are the service endpoints in each capsule's `Capsule.mk`, as collected in `tools/nix/capsules.json`. Each capsule also owns a [reply inbox](../overview/glossary.md#reply-inbox) on the next port.
 
@@ -105,6 +106,12 @@ The three desktop services share the common header.
 - `compositor` (magic `NCMP`): health check, scene submit, damage commit, focus set, input subscribe, cursor update, scene remove and display info, 1 to 8 (`userland/compositor/src/protocol/ops.rs:17-24`, `OP_DISPLAY_INFO`). Its receive buffer holds a payload of at most 256 bytes (`userland/compositor/src/protocol/limits.rs:17`, `IPC_PAYLOAD_MAX`), and the frame length must match the header exactly (`userland/compositor/src/protocol/decode.rs:48-55`, `payload_len`).
 - `wm` (magic `NWMP`): window open, close, move, resize, focus, raise, minimize, restore and maximize, lifecycle subscribe, the topmost and focus queries, and focus routing, 1 to 14 (`userland/capsule_wm/src/protocol/ops.rs:17-30`, `OP_WINDOW_MAXIMIZE`). Lifecycle notices go out under a second magic, `NWMV` (`userland/capsule_wm/src/protocol/notify.rs:21`, `NOTIFY_MAGIC`).
 - `input_router` (magic `NIRS`): health check, subscribe, grab request and grab release (`userland/capsule_input_router/src/protocol/ops.rs:17-20`, `OP_GRAB_RELEASE`). Input it delivers carries the magic `NINP` (`userland/capsule_input_router/src/protocol/delivery.rs:23`, `DELIVERY_MAGIC`).
+
+### toolkit
+
+The theme and component service, built from `userland/toolkit` with magic `NOTK` (`userland/toolkit/src/protocol/header.rs:19`, `MAGIC`). Operations: health check 0, theme apply 1, animation tick 2, component render 3 and theme get 4; anything else gets `E_BAD_OP` (`userland/toolkit/src/server/dispatch.rs:25-34`, `dispatch`). Theme get answers with the background, surface, accent, text and border colours and the theme's revision, 24 bytes (`userland/toolkit/src/server/dispatch.rs:36-48`, `theme_get`).
+
+No app calls it to draw or to learn the theme. Each app reads the chosen theme from the `policy` store itself, at most once a second, and works its colours out in its own process (`userland/app_skeleton/src/runner/theme_follow.rs:44-64`, `follow`); the desktop shell does the same in its own loop. An app built on `nonos_app_skeleton` still looks the service up at start and waits for it (`userland/app_skeleton/src/discover/require.rs:39-43`, `require_peers`).
 
 ### net.core
 

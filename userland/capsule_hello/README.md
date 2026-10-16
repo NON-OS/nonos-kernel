@@ -3,8 +3,8 @@
 ## Role
 
 `capsule_hello` is the minimal window app on `nonos_app_skeleton`: a 360 by
-180 window titled "Hello NONOS" that draws a few lines of text and closes on
-Esc. It is the reference app for the docs quickstart guide, and the smallest
+220 window titled "Hello NONOS" that draws four labels from the toolkit's shared
+widgets, in the colours of the theme chosen in Settings, and closes on Esc. It is the reference app for the docs quickstart guide, and the smallest
 example of the skeleton's window path. How an app capsule is structured is in
 [docs/handbook/desktop/app-model.md](../../docs/handbook/desktop/app-model.md).
 
