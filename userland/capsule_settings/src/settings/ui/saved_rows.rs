@@ -7,6 +7,7 @@
 //! record could not be read.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{Rect, Row, Scrolled, State as Look};
 
 use crate::settings::state::State;
@@ -15,7 +16,6 @@ use super::bytes::as_str;
 use super::control_geom::right_edge;
 use super::metrics::BODY_PX;
 use super::text;
-use super::theme::OK;
 
 /// One saved network at `at`, in content coordinates, through the toolkit
 /// row; "Connected" stays in the room the row leaves at its right end.
@@ -37,6 +37,6 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, index: usize, scroll: u32, at:
     line.draw(&mut Scrolled::new(fb, scroll), at);
     if joined {
         let top = text::centred_top(0, at.h, BODY_PX) + at.y as i32 - scroll as i32;
-        text::right(fb, right_edge(at.x, at.w), top, "Connected", OK, BODY_PX);
+        text::right(fb, right_edge(at.x, at.w), top, "Connected", roles().ok.argb(), BODY_PX);
     }
 }

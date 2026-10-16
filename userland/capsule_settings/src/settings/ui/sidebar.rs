@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{NavItem, Rect};
 
 use crate::settings::section::{Section, SECTIONS};
@@ -23,11 +24,11 @@ use crate::settings::section_text::nav;
 use super::icon_table::icon;
 use super::metrics::{NAV_H, SIDEBAR_W};
 use super::nav_geom::{row_w, row_x, row_y};
-use super::theme::{SIDEBAR_BG, SIDEBAR_LINE};
 
 pub fn paint(fb: &mut PaintBuffer, active: Section, h: u32) {
-    fb.fill_rect(0, 0, SIDEBAR_W, h, SIDEBAR_BG);
-    fb.fill_rect(SIDEBAR_W - 1, 0, 1, h, SIDEBAR_LINE);
+    let r = roles();
+    fb.fill_rect(0, 0, SIDEBAR_W, h, r.sunken.argb());
+    fb.fill_rect(SIDEBAR_W - 1, 0, 1, h, r.border.argb());
     for (i, section) in SECTIONS.iter().enumerate() {
         paint_row(fb, *section, row_y(i), *section == active);
     }

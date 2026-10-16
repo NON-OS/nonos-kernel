@@ -15,14 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::settings::state::{searching, view_h, State};
 use crate::settings::ui::metrics::SIDEBAR_W;
-use crate::settings::ui::theme::WINDOW_BG;
 use crate::settings::ui::{pane, results_pane, sidebar, status_bar};
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
-    fb.clear(WINDOW_BG);
+    fb.clear(roles().bg.argb());
     sidebar::paint(fb, state.section, state.win_h);
     let pane_w = state.win_w.saturating_sub(SIDEBAR_W);
     let pane_h = view_h(state);

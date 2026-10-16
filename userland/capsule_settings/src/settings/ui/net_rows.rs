@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 use nonos_toolkit::widgets::{Rect, Row, Scrolled, State as Look};
 
 use crate::settings::state::wifi_pending::Work;
@@ -25,7 +26,6 @@ use super::control_geom::right_edge;
 use super::metrics::BODY_PX;
 use super::net_signal::draw_bars;
 use super::text;
-use super::theme::{OK, SUBLABEL_FG};
 use super::valbuf::ValBuf;
 use crate::wifi::ScanStats;
 
@@ -34,6 +34,7 @@ use crate::wifi::ScanStats;
 /// leaves at its right end. The list is empty until a scan runs, and an empty
 /// list says so rather than drawing nothing.
 pub fn paint(fb: &mut PaintBuffer, state: &State, index: usize, scroll: u32, at: Rect) {
+    let r = roles();
     let screen_y = at.y as i32 - scroll as i32;
     let right = right_edge(at.x, at.w);
     let top = text::centred_top(0, at.h, BODY_PX) + screen_y;
@@ -48,7 +49,7 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, index: usize, scroll: u32, at:
         };
         let room = text::width(fb, "Scan", BODY_PX);
         Row::new(label).trailing(room).draw(&mut Scrolled::new(fb, scroll), at);
-        text::right(fb, right, top, "Scan", SUBLABEL_FG, BODY_PX);
+        text::right(fb, right, top, "Scan", r.muted.argb(), BODY_PX);
         return;
     }
     let i = index.min(state.wifi_network_count - 1);
@@ -66,7 +67,7 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, index: usize, scroll: u32, at:
     line.draw(&mut Scrolled::new(fb, scroll), at);
     draw_bars(fb, right, screen_y + (at.h / 2) as i32, net.signal);
     if joined {
-        text::right(fb, right - CONNECTED_AT, top, "Connected", OK, BODY_PX);
+        text::right(fb, right - CONNECTED_AT, top, "Connected", r.ok.argb(), BODY_PX);
     }
 }
 

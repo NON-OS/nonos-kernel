@@ -16,6 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_policy_proto::Field;
+use nonos_toolkit::theme::roles;
 
 use crate::settings::qwen_tier::shown;
 use crate::settings::state::{current_field, FieldValue, State};
@@ -25,7 +26,6 @@ use super::control_str::paint_plain;
 use super::control_value::{number_text, string_text};
 use super::metrics::BODY_PX;
 use super::text;
-use super::theme::{ACCENT, IDLE, VALUE_FG};
 
 pub fn paint_number(
     fb: &mut PaintBuffer,
@@ -51,11 +51,12 @@ pub fn paint_string(
 ) {
     let editing = state.editing && current_field(state) == Some(field);
     let top = text::centred_top(0, row_h, BODY_PX) + screen_y;
-    let fg = if editing { ACCENT } else { VALUE_FG };
+    let r = roles();
+    let fg = if editing { r.accent.argb() } else { r.text_2.argb() };
     match string_text(state, value, editing) {
         /* The tier's name, and with nothing set the tier qwen runs then. */
         Some(b) if field == Field::QwenTier => text::right(fb, right, top, as_str(shown(b)), fg, BODY_PX),
         Some(b) => text::right(fb, right, top, as_str(b), fg, BODY_PX),
-        None => text::right(fb, right, top, "--", IDLE, BODY_PX),
+        None => text::right(fb, right, top, "--", r.muted.argb(), BODY_PX),
     };
 }

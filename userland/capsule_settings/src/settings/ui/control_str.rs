@@ -16,6 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_policy_proto::Field;
+use nonos_toolkit::theme::roles;
 
 use crate::settings::state::FieldValue;
 
@@ -23,11 +24,10 @@ use super::chevron;
 use super::control_value::choice_text;
 use super::metrics::BODY_PX;
 use super::text;
-use super::theme::{IDLE, VALUE_FG};
 
 pub fn paint_plain(fb: &mut PaintBuffer, s: &str, right: u32, screen_y: i32, row_h: u32) {
     let top = text::centred_top(0, row_h, BODY_PX) + screen_y;
-    text::right(fb, right, top, s, VALUE_FG, BODY_PX);
+    text::right(fb, right, top, s, roles().text_2.argb(), BODY_PX);
 }
 
 pub fn paint_bool_text(
@@ -54,7 +54,7 @@ pub fn paint_choice(
     row_h: u32,
 ) {
     let cy = screen_y + (row_h / 2) as i32;
-    chevron::draw(fb, right, cy, IDLE);
+    chevron::draw(fb, right, cy, roles().muted.argb());
     match choice_text(field, value) {
         Some(v) => paint_plain(fb, v.as_str(), right - 17, screen_y, row_h),
         None => paint_plain(fb, "--", right - 17, screen_y, row_h),

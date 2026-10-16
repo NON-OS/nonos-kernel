@@ -15,13 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::{roles, Roles};
 
 use crate::settings::state::{State, StatusKind};
 
 use super::bytes::as_str;
 use super::metrics::{BODY_PX, PANE_PAD_X, SIDEBAR_W};
 use super::text;
-use super::theme::{CARD_BORDER, OK, SIDEBAR_BG, WARN};
 
 const BAR_H: u32 = 34;
 
@@ -40,21 +40,22 @@ pub fn paint(fb: &mut PaintBuffer, state: &State) {
     if h == 0 {
         return;
     }
+    let r = roles();
     let y = state.win_h.saturating_sub(h);
-    fb.fill_rect(SIDEBAR_W, y, state.win_w.saturating_sub(SIDEBAR_W), h, SIDEBAR_BG);
-    fb.fill_rect(SIDEBAR_W, y, state.win_w.saturating_sub(SIDEBAR_W), 1, CARD_BORDER);
-    let (fg, msg) = message(state);
+    fb.fill_rect(SIDEBAR_W, y, state.win_w.saturating_sub(SIDEBAR_W), h, r.sunken.argb());
+    fb.fill_rect(SIDEBAR_W, y, state.win_w.saturating_sub(SIDEBAR_W), 1, r.border.argb());
+    let (fg, msg) = message(state, r);
     let top = text::centred_top(y, h, BODY_PX);
     text::left(fb, SIDEBAR_W + PANE_PAD_X, top, msg, fg, BODY_PX);
 }
 
-fn message(state: &State) -> (u32, &str) {
+fn message(state: &State, r: Roles) -> (u32, &str) {
     if !state.policy_ready {
-        return (WARN, "Policy service unavailable - values shown are not stored");
+        return (r.warn.argb(), "Policy service unavailable - values shown are not stored");
     }
     let fg = match state.status.kind {
-        StatusKind::Error => WARN,
-        _ => OK,
+        StatusKind::Error => r.warn,
+        _ => r.ok,
     };
-    (fg, as_str(state.status.as_slice()))
+    (fg.argb(), as_str(state.status.as_slice()))
 }
