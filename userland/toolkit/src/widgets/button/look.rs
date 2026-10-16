@@ -42,7 +42,7 @@ impl Button<'_> {
         match self.kind {
             Kind::Primary => look(Some(r.accent), None, r.on_accent),
             Kind::Secondary => look(Some(r.raised), Some(r.border_strong), r.text),
-            Kind::Plain => look(None, None, r.accent),
+            Kind::Plain => look(None, None, r.accent_text),
             Kind::Danger if self.state.selected => {
                 let reads = at_least(r.bg.argb(), r.danger.argb(), BODY);
                 look(Some(r.danger), None, if reads { r.bg } else { r.text })

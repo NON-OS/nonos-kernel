@@ -19,22 +19,21 @@
 use super::Button;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
-use crate::theme::derive::mix;
-use crate::theme::{roles, Opaque};
+use crate::theme::roles;
 use crate::widgets::rect::contains;
 use crate::widgets::{draw, text, Surface};
 
 impl Button<'_> {
     /// Paints the body, the hover wash, the outline, the label and the focus
-    /// ring. Pressed darkens the fill towards `bg`; a `Plain` button, which
-    /// has no fill, gets `surface` darkened the same way, so it reads as
-    /// held. Disabled ignores the other states.
+    /// ring. Pressed moves the fill away from the label's ink; a `Plain`
+    /// button, which has no fill, gets `surface` moved the same way, so it
+    /// reads as held. Disabled ignores the other states.
     pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (p, r, s, st) = (self.parts(at), roles(), scale(), self.state);
         let (live, look) = (!st.disabled, self.look());
         let fill = if live && st.pressed {
             let base = look.fill.unwrap_or(r.surface);
-            Some(Opaque::new(mix(base.argb(), r.bg.argb(), 32)))
+            Some(draw::pressed(base, look.ink))
         } else {
             look.fill
         };

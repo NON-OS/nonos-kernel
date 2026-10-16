@@ -19,8 +19,7 @@
 use super::NavItem;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
-use crate::theme::derive::mix;
-use crate::theme::{roles, Opaque};
+use crate::theme::roles;
 use crate::widgets::rect::contains;
 use crate::widgets::{draw, text, Surface};
 
@@ -28,7 +27,7 @@ impl NavItem<'_> {
     /// Paints the body, any icon, the label and the focus ring. Active fills
     /// with `accent_wash`, outlines in `accent_edge` and labels in
     /// `accent_text`. Otherwise the label is muted, pressed fills with
-    /// `surface` darkened towards `bg` and hovered adds `hover_wash` over
+    /// `surface` held away from the label's ink and hovered adds `hover_wash` over
     /// that. Disabled draws the label in `disabled` and nothing else. The
     /// icon takes the label's ink.
     pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
@@ -39,7 +38,7 @@ impl NavItem<'_> {
             draw::outline(fb, p.body, p.radius, s.hair(), r.accent_edge);
         }
         if live && !self.active && st.pressed {
-            let held = Opaque::new(mix(r.surface.argb(), r.bg.argb(), 32));
+            let held = draw::pressed(r.surface, r.muted);
             draw::round(fb, p.body, p.radius, held);
         }
         if live && !self.active && st.hovered {

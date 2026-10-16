@@ -24,13 +24,14 @@ use crate::widgets::{draw, Surface, Tone};
 
 impl Progress {
     /// Paints the track, then the fill in the tone's colour, or `accent`
-    /// for `Plain`. Disabled fills in `disabled`.
+    /// for `Plain` and `Accent`, since a fill takes the raw accent. Disabled
+    /// fills in `disabled`.
     pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (p, r) = (self.parts(at), roles());
         let track = Opaque::new(mix(r.surface.argb(), r.text.argb(), 38));
         let ink = match (self.state.disabled, self.tone) {
             (true, _) => r.disabled,
-            (false, Tone::Plain) => r.accent,
+            (false, Tone::Plain | Tone::Accent) => r.accent,
             (false, tone) => tone.colour(&r),
         };
         draw::round(fb, p.track, p.radius, track);

@@ -44,7 +44,7 @@ impl Switch {
         } else {
             (tint(r.surface, r.text, 30), tint(r.surface, r.text, 46), tint(r.text, r.bg, 110))
         };
-        let fill = if live && st.pressed { tint(track, r.bg, 32) } else { track };
+        let fill = if live && st.pressed { draw::pressed(track, knob) } else { track };
         draw::round(fb, p.track, p.radius, fill);
         if live && st.hovered {
             draw::round(fb, p.track, p.radius, r.hover_wash);

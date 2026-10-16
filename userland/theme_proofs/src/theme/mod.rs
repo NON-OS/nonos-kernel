@@ -32,6 +32,8 @@ pub mod derive;
 pub mod legible;
 #[path = "../../../toolkit/src/theme/legible_walk.rs"]
 pub mod legible_walk;
+#[path = "../../../toolkit/src/theme/lift.rs"]
+pub mod lift;
 #[path = "../../../toolkit/src/theme/linear.rs"]
 pub mod linear;
 #[path = "../../../toolkit/src/theme/palette.rs"]
@@ -44,3 +46,5 @@ pub mod schemes;
 pub mod select;
 #[path = "../../../toolkit/src/theme/store/mod.rs"]
 pub mod store;
+#[path = "../../../toolkit/src/theme/wash_walk.rs"]
+pub mod wash_walk;

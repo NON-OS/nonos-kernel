@@ -46,3 +46,11 @@ pub fn with_alpha(colour: u32, alpha: u8) -> u32 {
 pub fn opaque(colour: u32) -> u32 {
     colour | 0xFF00_0000
 }
+
+/// `fill` moved `t`/255 of the way away from `ink`: towards black when the
+/// ink is the lighter of the two, towards white when it is the darker. A held
+/// control takes this, so pressing it only ever raises its ink's contrast.
+pub fn away(fill: u32, ink: u32, t: u8) -> u32 {
+    let lighter = super::contrast::luminance(ink) > super::contrast::luminance(fill);
+    mix(fill, if lighter { 0xFF00_0000 } else { 0xFFFF_FFFF }, t)
+}

@@ -19,32 +19,25 @@
 use super::super::colour::{Opaque, Translucent};
 use super::super::contrast::{BODY, LARGE};
 use super::super::derive::{mix, with_alpha};
-use super::super::legible::{MUTED_TARGET, QUIET_TARGET};
+use super::super::legible::{ACCENT_TEXT_TARGET, MUTED_TARGET, QUIET_TARGET, VALUE_TARGET};
 use super::super::legible_walk::walk_on;
-use super::super::store::{snapshot, Theme};
+use super::super::store::Theme;
 use super::fixed::fixed;
+use super::grounds::{flat_grounds, state_grounds, StateGrounds};
 use super::light::is_light;
 use super::on_accent::on_accent;
 use super::status::status;
 use super::table::Roles;
-
-const BLACK: u32 = 0xFF00_0000;
-/// How far `text_2` steps towards the ground when the scheme can spare it.
-const VALUE_TARGET: u8 = 36;
-
-/// The roles for the theme in force in this process.
-pub fn roles() -> Roles {
-    from_theme(&snapshot())
-}
 
 /// The roles a theme's seeds work out to. Pure, so the proofs can check every
 /// scheme.
 pub fn from_theme(t: &Theme) -> Roles {
     let (bg, surface, accent) = (t.background_argb, t.surface_argb, t.accent_argb);
     let (text, border) = (t.text_argb, t.border_argb);
-    let f = fixed(is_light(bg, text));
-    let (sunken, raised) = (mix(bg, BLACK, 12), mix(surface, accent, 11));
-    let grounds = [bg, sunken, surface, raised];
+    let light = is_light(bg, text);
+    let f = fixed(light);
+    let flat @ [_, sunken, _, raised] = flat_grounds(bg, surface, accent);
+    let StateGrounds { accent_wash, hover_wash, all: grounds } = state_grounds(flat, accent, text);
     Roles {
         bg: Opaque::new(bg),
         sunken: Opaque::new(sunken),
@@ -60,15 +53,15 @@ pub fn from_theme(t: &Theme) -> Roles {
         quiet: Opaque::new(walk_on(text, bg, &grounds, QUIET_TARGET, LARGE)),
         disabled: Opaque::new(mix(border, text, 57)),
         accent: Opaque::new(accent),
-        accent_text: Opaque::new(mix(accent, text, 146)),
+        accent_text: Opaque::new(walk_on(text, accent, &grounds, ACCENT_TEXT_TARGET, BODY)),
         on_accent: Opaque::new(on_accent(accent, bg, text)),
-        accent_wash: Translucent::new(with_alpha(accent, 0x20)),
+        accent_wash: Translucent::new(accent_wash),
         accent_edge: Translucent::new(with_alpha(accent, 0x59)),
         focus_ring: Translucent::new(with_alpha(accent, 0x80)),
-        hover_wash: Translucent::new(with_alpha(text, 0x14)),
-        ok: status(f.ok, text, &grounds),
-        warn: status(f.warn, text, &grounds),
-        danger: status(f.danger, text, &grounds),
+        hover_wash: Translucent::new(hover_wash),
+        ok: status(f.ok, light, &grounds),
+        warn: status(f.warn, light, &grounds),
+        danger: status(f.danger, light, &grounds),
         warn_soft: f.warn_soft,
         shadow: f.shadow,
         scrim: f.scrim,

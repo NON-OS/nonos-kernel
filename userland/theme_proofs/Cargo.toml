@@ -16,6 +16,8 @@ path = "src/lib.rs"
 [dependencies]
 # The theme name list, so the scheme table cannot be a different length.
 nonos_policy_proto = { path = "../policy_proto" }
+# The roles cache's lock, for the theme source mounted by path.
+spin = "0.9"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

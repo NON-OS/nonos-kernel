@@ -18,16 +18,17 @@
 
 use super::super::colour::Opaque;
 use super::super::contrast::BODY;
-use super::super::legible_walk::walk_on;
+use super::super::lift::lift;
 
 /*
  * A status colour carries its meaning in its hue: a reader who has learned that
  * red failed should not have to relearn it when the theme changes. A fixed value
  * cannot also read everywhere. The house red is 4.6:1 on Aurora's ground but
  * 2.5:1 on Dracula's lighter surface, and the dark-tuned green is 1.6:1 on the
- * light theme. So each starts at its fixed value and steps towards the theme's
- * text only as far as the body floor on all four grounds asks.
+ * light theme. So each starts at its fixed value and is lifted, brighter on a
+ * dark scheme and darker on a `light` one, only as far as the body floor on
+ * every state ground asks, keeping its hue on the way.
  */
-pub(super) fn status(seed: Opaque, text: u32, grounds: &[u32]) -> Opaque {
-    Opaque::new(walk_on(text, seed.argb(), grounds, u8::MAX, BODY))
+pub(super) fn status(seed: Opaque, light: bool, grounds: &[u32]) -> Opaque {
+    Opaque::new(lift(seed.argb(), light, grounds, BODY))
 }

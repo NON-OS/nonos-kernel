@@ -19,7 +19,7 @@
 use crate::theme::{Opaque, Roles};
 
 /// What an app names instead of a colour. Each variant is the theme role of
-/// the same name.
+/// the same name, but for `Accent`, which is `accent_text`: the accent as text.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Ink {
     Text,
@@ -40,7 +40,7 @@ impl Ink {
             Ink::Text2 => r.text_2,
             Ink::Muted => r.muted,
             Ink::Quiet => r.quiet,
-            Ink::Accent => r.accent,
+            Ink::Accent => r.accent_text,
             Ink::Ok => r.ok,
             Ink::Warn => r.warn,
             Ink::Danger => r.danger,
@@ -48,8 +48,9 @@ impl Ink {
     }
 }
 
-/// The status a pill or bar shows. Plain is the muted role; the rest are the
-/// theme roles of the same name.
+/// The status a pill or bar shows. Plain is the muted role and Accent is
+/// `accent_text`, since a pill draws it as text and a dot; the rest are the
+/// theme roles of the same name. A bar fills in the raw accent instead.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum Tone {
     #[default]
@@ -65,7 +66,7 @@ impl Tone {
     pub fn colour(self, r: &Roles) -> Opaque {
         match self {
             Tone::Plain => r.muted,
-            Tone::Accent => r.accent,
+            Tone::Accent => r.accent_text,
             Tone::Ok => r.ok,
             Tone::Warn => r.warn,
             Tone::Danger => r.danger,

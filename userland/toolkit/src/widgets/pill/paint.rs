@@ -19,8 +19,7 @@
 use super::Pill;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
-use crate::theme::derive::mix;
-use crate::theme::{roles, Opaque};
+use crate::theme::roles;
 use crate::widgets::rect::contains;
 use crate::widgets::{draw, text, Surface, Tone};
 
@@ -28,16 +27,12 @@ impl Pill<'_> {
     /// Paints the `raised` body, its outline, the dot, the label and the
     /// focus ring. Selected adds `accent_wash` over the body and outlines in
     /// `accent_edge`, else the outline is `border_strong`; hovered adds
-    /// `hover_wash`; pressed darkens the body towards `bg`. Disabled draws
+    /// `hover_wash`; pressed moves the body away from the label. Disabled draws
     /// the outline, dot and label in `disabled` and ignores the other states.
     pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (p, r, s, st) = (self.parts(at), roles(), scale(), self.state);
         let live = !st.disabled;
-        let fill = if live && st.pressed {
-            Opaque::new(mix(r.raised.argb(), r.bg.argb(), 32))
-        } else {
-            r.raised
-        };
+        let fill = if live && st.pressed { draw::pressed(r.raised, r.text) } else { r.raised };
         draw::round(fb, p.body, p.radius, fill);
         if live && st.selected {
             draw::round(fb, p.body, p.radius, r.accent_wash);

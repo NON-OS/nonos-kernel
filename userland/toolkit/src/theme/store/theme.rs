@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::super::legible::{muted, quiet, MUTED_TARGET, QUIET_TARGET};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Theme {
     pub background_argb: u32,
     pub surface_argb: u32,

@@ -21,12 +21,14 @@ pub mod contrast;
 pub mod derive;
 pub mod legible;
 mod legible_walk;
+mod lift;
 pub mod linear;
 pub mod palette;
 mod roles;
 pub mod schemes;
 pub mod select;
 pub mod store;
+mod wash_walk;
 
 pub use apply::apply;
 pub use colour::{Opaque, Translucent};

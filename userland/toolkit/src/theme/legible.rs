@@ -27,6 +27,13 @@ pub const MUTED_TARGET: u8 = 86;
 /// And the quietest text, half way down.
 pub const QUIET_TARGET: u8 = 128;
 
+/// How far a value beside its label, `text_2`, steps towards the ground.
+pub const VALUE_TARGET: u8 = 36;
+
+/// How far `accent_text` steps from the text towards the accent: where the
+/// scheme can take it, the same colour as `mix(accent, text, 146)`.
+pub const ACCENT_TEXT_TARGET: u8 = 109;
+
 /// Secondary labels, captions, anything scanned past. Holds the body text floor
 /// against both backgrounds.
 pub fn muted(text: u32, bg: u32, surface: u32, target: u8) -> u32 {

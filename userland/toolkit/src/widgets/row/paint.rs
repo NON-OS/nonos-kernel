@@ -20,7 +20,6 @@ use super::{chevron, Row};
 use crate::decorations::Rect;
 use crate::design::scale::scale;
 use crate::design::size::CONTROL_RADIUS;
-use crate::theme::derive::mix;
 use crate::theme::{roles, Opaque};
 use crate::widgets::rect::{contains, inset};
 use crate::widgets::{draw, text, Surface};
@@ -33,7 +32,7 @@ impl Row<'_> {
         let (p, r, s, st) = (self.parts(at), roles(), scale(), self.state);
         let live = !st.disabled;
         if live && st.pressed {
-            draw::fill(fb, p.body, Opaque::new(mix(r.surface.argb(), r.bg.argb(), 32)));
+            draw::fill(fb, p.body, draw::pressed(r.surface, r.text));
         }
         if live && st.selected {
             draw::blend(fb, p.body, r.accent_wash);

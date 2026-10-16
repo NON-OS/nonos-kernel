@@ -19,6 +19,8 @@
 
 mod colour;
 mod painters;
+mod press;
 
 pub use colour::Paint;
 pub use painters::{blend, dot, fill, icon, outline, round, text};
+pub use press::pressed;

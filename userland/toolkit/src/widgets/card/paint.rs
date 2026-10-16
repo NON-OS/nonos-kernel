@@ -21,8 +21,7 @@ use super::Card;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
 use crate::design::size::CARD_RADIUS;
-use crate::theme::derive::mix;
-use crate::theme::{roles, Opaque};
+use crate::theme::roles;
 use crate::widgets::rect::contains;
 use crate::widgets::{draw, text, Surface};
 
@@ -43,8 +42,8 @@ impl Card<'_> {
     pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (p, r, s, st) = (self.parts(at), roles(), scale(), self.state);
         let (radius, hair, live) = (s.px(CARD_RADIUS), s.hair(), !st.disabled);
-        let pressed = Opaque::new(mix(r.surface.argb(), r.bg.argb(), 32));
-        let fill = if live && st.pressed { pressed } else { r.surface };
+        let held = draw::pressed(r.surface, r.text);
+        let fill = if live && st.pressed { held } else { r.surface };
         draw::round(fb, p.body, radius, fill);
         if live && st.hovered {
             draw::round(fb, p.body, radius, r.hover_wash);

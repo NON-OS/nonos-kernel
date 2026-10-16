@@ -38,7 +38,7 @@ impl Slider {
         let face = if !live {
             r.disabled
         } else if st.pressed {
-            Opaque::new(mix(r.on_accent.argb(), r.bg.argb(), 32))
+            draw::pressed(r.on_accent, r.accent)
         } else {
             r.on_accent
         };

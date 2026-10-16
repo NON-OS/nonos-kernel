@@ -38,7 +38,7 @@ impl<'a> Field<'a> {
         Field { text, placeholder: "", icon: None, caret: None, state: State::default() }
     }
 
-    /// The icon drawn before the text, in `quiet`.
+    /// The icon drawn before the text, in `muted`.
     pub fn icon(mut self, id: IconId) -> Self {
         self.icon = Some(id);
         self

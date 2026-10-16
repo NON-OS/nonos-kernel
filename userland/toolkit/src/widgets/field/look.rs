@@ -34,12 +34,12 @@ impl Field<'_> {
     /// A `raised` body with a hairline `border_strong` edge. Focused swaps
     /// the edge for `accent` at two hairlines, which is the focus mark;
     /// hovered and not focused adds `hover_wash`. Text inks in `text`, the
-    /// placeholder and the icon in `quiet`. Disabled draws edge, ink and icon
+    /// placeholder in `quiet` and the icon in `muted`. Disabled draws edge, ink and icon
     /// in `disabled` and ignores the other states.
     pub(super) fn look(&self) -> Look {
         let (r, hair, st) = (roles(), scale().hair(), self.state);
         let ink = if self.text.is_empty() { r.quiet } else { r.text };
-        let icon = if st.disabled { r.disabled } else { r.quiet };
+        let icon = if st.disabled { r.disabled } else { r.muted };
         let look = |wash, edge, edge_w, ink| Look { fill: r.raised, wash, edge, edge_w, ink, icon };
         if st.disabled {
             return look(None, r.disabled, hair, r.disabled);

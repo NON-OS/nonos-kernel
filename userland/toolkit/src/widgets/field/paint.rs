@@ -24,7 +24,7 @@ use crate::widgets::{draw, text, Surface};
 
 impl Field<'_> {
     /// Paints the body, any hover wash, the edge, any icon, the shown text
-    /// and, while focused, the caret in `accent`.
+    /// and, while focused, the caret in `accent_text`.
     pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (p, look) = (self.parts(at), self.look());
         draw::round(fb, p.body, p.radius, look.fill);
@@ -37,7 +37,7 @@ impl Field<'_> {
         }
         text::left(fb, p.text.x, p.top, &p.shown, look.ink, p.px);
         if let Some(c) = p.caret {
-            draw::fill(fb, c, roles().accent);
+            draw::fill(fb, c, roles().accent_text);
         }
     }
 

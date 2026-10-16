@@ -4465,12 +4465,14 @@
    "userland/toolkit/src/theme/derive.rs",
    "userland/toolkit/src/theme/legible.rs",
    "userland/toolkit/src/theme/legible_walk.rs",
+   "userland/toolkit/src/theme/lift.rs",
    "userland/toolkit/src/theme/linear.rs",
    "userland/toolkit/src/theme/palette.rs",
    "userland/toolkit/src/theme/roles",
    "userland/toolkit/src/theme/schemes",
    "userland/toolkit/src/theme/select.rs",
-   "userland/toolkit/src/theme/store"
+   "userland/toolkit/src/theme/store",
+   "userland/toolkit/src/theme/wash_walk.rs"
   ],
   "md": [],
   "signed": []

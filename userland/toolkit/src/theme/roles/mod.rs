@@ -16,12 +16,15 @@
 
 //! The named colours a widget draws with, worked out from the theme in force.
 
+mod cache;
 mod fixed;
 mod from_theme;
+mod grounds;
 mod light;
 mod on_accent;
 mod status;
 mod table;
 
-pub use from_theme::{from_theme, roles};
+pub use cache::roles;
+pub use from_theme::from_theme;
 pub use table::Roles;
