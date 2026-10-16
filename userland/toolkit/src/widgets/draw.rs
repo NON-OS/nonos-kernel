@@ -18,8 +18,8 @@
 //! through the raw path.
 
 use crate::decorations::Rect;
-use crate::paint::PaintBuffer;
 use crate::theme::{Opaque, Translucent};
+use crate::widgets::surface::Surface;
 
 /// A theme colour a blending painter accepts.
 pub trait Paint: Copy {
@@ -41,32 +41,32 @@ impl Paint for Translucent {
 
 /// Writes `c` over `at` without blending. Opaque only, since the raw path
 /// would copy any alpha straight into the buffer.
-pub fn fill(fb: &mut PaintBuffer, at: Rect, c: Opaque) {
-    fb.fill_rect(at.x, at.y, at.w, at.h, c.argb());
+pub fn fill(fb: &mut impl Surface, at: Rect, c: Opaque) {
+    Surface::fill_rect(fb, at.x, at.y, at.w, at.h, c.argb());
 }
 
 /// Blends `c` over `at`.
-pub fn blend<C: Paint>(fb: &mut PaintBuffer, at: Rect, c: C) {
-    fb.blend_rect(at.x, at.y, at.w, at.h, c.argb());
+pub fn blend<C: Paint>(fb: &mut impl Surface, at: Rect, c: C) {
+    Surface::blend_rect(fb, at.x, at.y, at.w, at.h, c.argb());
 }
 
 /// Blends a filled rounded rect with corner `radius`.
-pub fn round<C: Paint>(fb: &mut PaintBuffer, at: Rect, radius: u32, c: C) {
-    fb.fill_round(at.x, at.y, at.w, at.h, radius, c.argb());
+pub fn round<C: Paint>(fb: &mut impl Surface, at: Rect, radius: u32, c: C) {
+    Surface::fill_round(fb, at.x, at.y, at.w, at.h, radius, c.argb());
 }
 
 /// Blends a rounded outline `width` thick with corner `radius`.
-pub fn outline<C: Paint>(fb: &mut PaintBuffer, at: Rect, radius: u32, width: u32, c: C) {
-    fb.stroke_round(at.x, at.y, at.w, at.h, radius, width, c.argb());
+pub fn outline<C: Paint>(fb: &mut impl Surface, at: Rect, radius: u32, width: u32, c: C) {
+    Surface::stroke_round(fb, at.x, at.y, at.w, at.h, radius, width, c.argb());
 }
 
 /// Blends a filled circle of radius `r` centred on `cx`, `cy`.
-pub fn dot<C: Paint>(fb: &mut PaintBuffer, cx: u32, cy: u32, r: u32, c: C) {
-    fb.circle(cx, cy, r, c.argb());
+pub fn dot<C: Paint>(fb: &mut impl Surface, cx: u32, cy: u32, r: u32, c: C) {
+    Surface::circle(fb, cx, cy, r, c.argb());
 }
 
 /// Draws `s` in the body face at `px`, with `top` the top of the line box.
 /// Returns the pen x after the last glyph, so runs can be chained.
-pub fn text(fb: &mut PaintBuffer, x: i32, top: i32, s: &str, ink: Opaque, px: f32) -> i32 {
-    fb.text_ttf(x, top, s, ink.argb(), px)
+pub fn text(fb: &mut impl Surface, x: i32, top: i32, s: &str, ink: Opaque, px: f32) -> i32 {
+    Surface::text_ttf(fb, x, top, s, ink.argb(), px)
 }

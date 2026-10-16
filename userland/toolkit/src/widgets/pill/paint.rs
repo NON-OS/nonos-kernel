@@ -19,11 +19,10 @@
 use super::Pill;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
-use crate::paint::PaintBuffer;
 use crate::theme::derive::mix;
 use crate::theme::{roles, Opaque};
 use crate::widgets::rect::contains;
-use crate::widgets::{draw, text, Tone};
+use crate::widgets::{draw, text, Surface, Tone};
 
 impl Pill<'_> {
     /// Paints the `raised` body, its outline, the dot, the label and the
@@ -31,7 +30,7 @@ impl Pill<'_> {
     /// `accent_edge`, else the outline is `border_strong`; hovered adds
     /// `hover_wash`; pressed darkens the body towards `bg`. Disabled draws
     /// the outline, dot and label in `disabled` and ignores the other states.
-    pub fn draw(&self, fb: &mut PaintBuffer, at: Rect) {
+    pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (p, r, s, st) = (self.parts(at), roles(), scale(), self.state);
         let live = !st.disabled;
         let fill = if live && st.pressed {
@@ -65,6 +64,8 @@ impl Pill<'_> {
     }
 
     /// Whether the point lies on the pill's body.
+    /// `at` and the point use `draw`'s coordinates: content coordinates when
+    /// drawn through `Scrolled`, so pass the pointer's y plus the scroll.
     pub fn hit(&self, at: Rect, x: i32, y: i32) -> bool {
         contains(self.parts(at).body, x, y)
     }

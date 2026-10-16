@@ -18,15 +18,14 @@
 
 use super::Scrollbar;
 use crate::decorations::Rect;
-use crate::paint::PaintBuffer;
 use crate::theme::roles;
-use crate::widgets::draw;
 use crate::widgets::rect::{contains, share};
+use crate::widgets::{draw, Surface};
 
 impl Scrollbar {
     /// Paints the track in `border` and the thumb over it in `muted`, `text_2`
     /// when hovered and `text` when pressed. Disabled, or content that fits, draws nothing.
-    pub fn draw(&self, fb: &mut PaintBuffer, at: Rect) {
+    pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (r, st) = (roles(), self.state);
         let Some(p) = self.parts(at) else {
             return;
@@ -49,6 +48,8 @@ impl Scrollbar {
     /// puts the thumb's centre at `y`, clamped to 0..=most, so a click jumps
     /// there and a drag follows the pointer. A thumb that fills `at` has no
     /// travel and gives 0.
+    /// `at` and the point use `draw`'s coordinates: content coordinates when
+    /// drawn through `Scrolled`, so pass the pointer's y plus the scroll.
     pub fn hit(&self, at: Rect, x: i32, y: i32) -> Option<u32> {
         let p = self.parts(at)?;
         if !contains(at, x, y) {

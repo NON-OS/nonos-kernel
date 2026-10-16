@@ -19,18 +19,17 @@
 use super::Slider;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
-use crate::paint::PaintBuffer;
 use crate::theme::derive::mix;
 use crate::theme::{roles, Opaque};
-use crate::widgets::draw;
 use crate::widgets::rect::{contains, share};
+use crate::widgets::{draw, Surface};
 
 impl Slider {
     /// Paints the track, the accent fill up to the knob, and the knob with
     /// its accent outline. Hover, press and focus mark the knob, the part
     /// that is dragged. Disabled draws the fill and knob in `disabled` and
     /// ignores the other states.
-    pub fn draw(&self, fb: &mut PaintBuffer, at: Rect) {
+    pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (p, r, s, st) = (self.parts(at), roles(), scale(), self.state);
         let live = !st.disabled;
         let (radius, hair, (cx, cy)) = (p.track.h / 2, s.hair(), p.dot);
@@ -57,6 +56,8 @@ impl Slider {
 
     /// None outside the slider's box; inside, the value under `x`, rounded
     /// to the nearest and clamped to 0..=max, from the knob's travel.
+    /// `at` and the point use `draw`'s coordinates: content coordinates when
+    /// drawn through `Scrolled`, so pass the pointer's y plus the scroll.
     pub fn hit(&self, at: Rect, x: i32, y: i32) -> Option<u32> {
         let p = self.parts(at);
         if !contains(p.body, x, y) {

@@ -22,9 +22,8 @@ use crate::design::scale::scale;
 use crate::design::size::LINE_GAP;
 use crate::design::text_role::TextRole;
 use crate::font::ttf::line_height;
-use crate::paint::PaintBuffer;
 use crate::theme::roles;
-use crate::widgets::text;
+use crate::widgets::{text, Surface};
 
 /// The placed lines of a section header, in drawing pixels.
 struct Lines {
@@ -44,7 +43,7 @@ impl SectionHeader<'_> {
 
     /// Paints the lines left-aligned at `at.x`, stacked and centred down
     /// `at`, each cut with an ellipsis to `at.w`.
-    pub fn draw(&self, fb: &mut PaintBuffer, at: Rect) {
+    pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (l, r) = (self.lines(at), roles());
         let off = self.state.disabled;
         let (ink, note_ink) = if off { (r.disabled, r.disabled) } else { (r.text, r.muted) };

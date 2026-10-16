@@ -18,15 +18,14 @@
 
 use super::Progress;
 use crate::decorations::Rect;
-use crate::paint::PaintBuffer;
 use crate::theme::derive::mix;
 use crate::theme::{roles, Opaque};
-use crate::widgets::{draw, Tone};
+use crate::widgets::{draw, Surface, Tone};
 
 impl Progress {
     /// Paints the track, then the fill in the tone's colour, or `accent`
     /// for `Plain`. Disabled fills in `disabled`.
-    pub fn draw(&self, fb: &mut PaintBuffer, at: Rect) {
+    pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (p, r) = (self.parts(at), roles());
         let track = Opaque::new(mix(r.surface.argb(), r.text.argb(), 38));
         let ink = match (self.state.disabled, self.tone) {

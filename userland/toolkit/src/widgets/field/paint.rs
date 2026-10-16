@@ -18,15 +18,14 @@
 
 use super::Field;
 use crate::decorations::Rect;
-use crate::paint::PaintBuffer;
 use crate::theme::roles;
 use crate::widgets::rect::contains;
-use crate::widgets::{draw, text};
+use crate::widgets::{draw, text, Surface};
 
 impl Field<'_> {
     /// Paints the body, any hover wash, the edge, the shown text and, while
     /// focused, the caret in `accent`.
-    pub fn draw(&self, fb: &mut PaintBuffer, at: Rect) {
+    pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (p, look) = (self.parts(at), self.look());
         draw::round(fb, p.body, p.radius, look.fill);
         if let Some(c) = look.wash {
@@ -40,6 +39,8 @@ impl Field<'_> {
     }
 
     /// Whether the point lies on the body.
+    /// `at` and the point use `draw`'s coordinates: content coordinates when
+    /// drawn through `Scrolled`, so pass the pointer's y plus the scroll.
     pub fn hit(&self, at: Rect, x: i32, y: i32) -> bool {
         contains(self.parts(at).body, x, y)
     }

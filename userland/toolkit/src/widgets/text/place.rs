@@ -18,19 +18,19 @@
 
 use super::measure::width;
 use crate::decorations::Rect;
-use crate::paint::PaintBuffer;
 use crate::theme::Opaque;
 use crate::widgets::draw;
+use crate::widgets::surface::Surface;
 
 /// Draws `s` with its left edge at `x` and `top` the top of the line box.
 /// Returns the pen x after the last glyph, so runs can be chained.
-pub fn left(fb: &mut PaintBuffer, x: u32, top: i32, s: &str, ink: Opaque, px: f32) -> i32 {
+pub fn left(fb: &mut impl Surface, x: u32, top: i32, s: &str, ink: Opaque, px: f32) -> i32 {
     draw::text(fb, i32::try_from(x).unwrap_or(i32::MAX), top, s, ink, px)
 }
 
 /// Draws `s` so its measured width ends at `right_x`, with `top` the top of
 /// the line box. Returns the x it drew at, clamped at zero.
-pub fn right(fb: &mut PaintBuffer, right_x: u32, top: i32, s: &str, ink: Opaque, px: f32) -> u32 {
+pub fn right(fb: &mut impl Surface, right_x: u32, top: i32, s: &str, ink: Opaque, px: f32) -> u32 {
     let x = right_x.saturating_sub(width(s, px));
     draw::text(fb, i32::try_from(x).unwrap_or(i32::MAX), top, s, ink, px);
     x
@@ -39,7 +39,7 @@ pub fn right(fb: &mut PaintBuffer, right_x: u32, top: i32, s: &str, ink: Opaque,
 /// Draws `s` centred horizontally in `area`, with `top` the top of the line
 /// box. A run wider than `area` starts at its left edge. Returns the x it drew
 /// at.
-pub fn centre(fb: &mut PaintBuffer, area: Rect, top: i32, s: &str, ink: Opaque, px: f32) -> u32 {
+pub fn centre(fb: &mut impl Surface, area: Rect, top: i32, s: &str, ink: Opaque, px: f32) -> u32 {
     let w = width(s, px).min(area.w);
     let x = area.x.saturating_add((area.w - w) / 2);
     draw::text(fb, i32::try_from(x).unwrap_or(i32::MAX), top, s, ink, px);

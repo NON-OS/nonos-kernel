@@ -20,9 +20,8 @@ use super::{Align, Label};
 use crate::decorations::Rect;
 use crate::design::scale::scale;
 use crate::font::ttf::line_height;
-use crate::paint::PaintBuffer;
 use crate::theme::roles;
-use crate::widgets::text;
+use crate::widgets::{text, Surface};
 
 impl Label<'_> {
     /// The width of the whole text and the line height, in drawing pixels.
@@ -32,7 +31,7 @@ impl Label<'_> {
     }
 
     /// Paints the text on one line inside `at`, cut with an ellipsis to fit.
-    pub fn draw(&self, fb: &mut PaintBuffer, at: Rect) {
+    pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (px, _) = self.metrics();
         let r = roles();
         let ink = if self.state.disabled { r.disabled } else { self.ink.colour(&r) };

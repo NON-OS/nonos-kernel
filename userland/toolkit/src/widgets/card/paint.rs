@@ -21,11 +21,10 @@ use super::Card;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
 use crate::design::size::CARD_RADIUS;
-use crate::paint::PaintBuffer;
 use crate::theme::derive::mix;
 use crate::theme::{roles, Opaque};
 use crate::widgets::rect::contains;
-use crate::widgets::{draw, text};
+use crate::widgets::{draw, text, Surface};
 
 impl Card<'_> {
     /// No width of its own and the head height: a card fills the Rect it is
@@ -41,7 +40,7 @@ impl Card<'_> {
     }
 
     /// Paints the body, its outline, the state washes and the head text.
-    pub fn draw(&self, fb: &mut PaintBuffer, at: Rect) {
+    pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (p, r, s, st) = (self.parts(at), roles(), scale(), self.state);
         let (radius, hair, live) = (s.px(CARD_RADIUS), s.hair(), !st.disabled);
         let pressed = Opaque::new(mix(r.surface.argb(), r.bg.argb(), 32));
@@ -68,6 +67,8 @@ impl Card<'_> {
     }
 
     /// Whether the point lies on the card.
+    /// `at` and the point use `draw`'s coordinates: content coordinates when
+    /// drawn through `Scrolled`, so pass the pointer's y plus the scroll.
     pub fn hit(&self, at: Rect, x: i32, y: i32) -> bool {
         contains(self.parts(at).body, x, y)
     }

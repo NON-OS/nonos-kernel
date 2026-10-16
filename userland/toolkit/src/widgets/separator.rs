@@ -19,10 +19,9 @@
 
 use crate::decorations::Rect;
 use crate::design::scale::scale;
-use crate::paint::PaintBuffer;
 use crate::theme::roles;
-use crate::widgets::draw;
 use crate::widgets::rect::centre;
+use crate::widgets::{draw, Surface};
 
 /// A hairline across its box. It is not clickable, so it has no hit test.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -49,7 +48,7 @@ impl Separator {
     }
 
     /// Blends a hairline across `at`, centred down it.
-    pub fn draw(&self, fb: &mut PaintBuffer, at: Rect) {
+    pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let r = roles();
         let line = self.line(at);
         if self.soft {

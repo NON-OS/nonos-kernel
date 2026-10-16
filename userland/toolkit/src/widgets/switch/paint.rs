@@ -19,11 +19,10 @@
 use super::Switch;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
-use crate::paint::PaintBuffer;
 use crate::theme::derive::mix;
 use crate::theme::{roles, Opaque};
-use crate::widgets::draw;
 use crate::widgets::rect::contains;
+use crate::widgets::{draw, Surface};
 
 /// `a` moved `t`/255 of the way towards `b`.
 fn tint(a: Opaque, b: Opaque, t: u8) -> Opaque {
@@ -34,7 +33,7 @@ impl Switch {
     /// Paints the track, the hover wash, the border, the knob and the focus
     /// ring. Disabled draws the track and knob in disabled tints and ignores
     /// the other states.
-    pub fn draw(&self, fb: &mut PaintBuffer, at: Rect) {
+    pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (p, r, s, st) = (self.parts(at), roles(), scale(), self.state);
         let live = !st.disabled;
         let (track, border, knob) = if !live {
@@ -58,6 +57,8 @@ impl Switch {
     }
 
     /// Whether the point lies on the track.
+    /// `at` and the point use `draw`'s coordinates: content coordinates when
+    /// drawn through `Scrolled`, so pass the pointer's y plus the scroll.
     pub fn hit(&self, at: Rect, x: i32, y: i32) -> bool {
         contains(self.parts(at).track, x, y)
     }

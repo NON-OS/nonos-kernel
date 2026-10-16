@@ -19,13 +19,12 @@
 
 use crate::decorations::Rect;
 use crate::design::scale::scale;
-use crate::paint::PaintBuffer;
 use crate::theme::Opaque;
-use crate::widgets::draw;
+use crate::widgets::{draw, Surface};
 
 /// Fills a ">" centred in the square `at`: two strokes a double hairline
 /// thick, stepped one pixel at a time, meeting at a point on the right.
-pub(super) fn paint(fb: &mut PaintBuffer, at: Rect, ink: Opaque) {
+pub(super) fn paint(fb: &mut impl Surface, at: Rect, ink: Opaque) {
     let t = scale().hair().saturating_mul(2).min(at.w);
     let reach = at.w.saturating_sub(t) / 2;
     let tall = reach.saturating_mul(2);

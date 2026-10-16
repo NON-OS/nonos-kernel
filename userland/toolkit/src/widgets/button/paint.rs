@@ -19,18 +19,17 @@
 use super::Button;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
-use crate::paint::PaintBuffer;
 use crate::theme::derive::mix;
 use crate::theme::{roles, Opaque};
 use crate::widgets::rect::contains;
-use crate::widgets::{draw, text};
+use crate::widgets::{draw, text, Surface};
 
 impl Button<'_> {
     /// Paints the body, the hover wash, the outline, the label and the focus
     /// ring. Pressed darkens the fill towards `bg`; a `Plain` button, which
     /// has no fill, gets `surface` darkened the same way, so it reads as
     /// held. Disabled ignores the other states.
-    pub fn draw(&self, fb: &mut PaintBuffer, at: Rect) {
+    pub fn draw(&self, fb: &mut impl Surface, at: Rect) {
         let (p, r, s, st) = (self.parts(at), roles(), scale(), self.state);
         let (live, look) = (!st.disabled, self.look());
         let fill = if live && st.pressed {
@@ -56,6 +55,8 @@ impl Button<'_> {
     }
 
     /// Whether the point lies on the body.
+    /// `at` and the point use `draw`'s coordinates: content coordinates when
+    /// drawn through `Scrolled`, so pass the pointer's y plus the scroll.
     pub fn hit(&self, at: Rect, x: i32, y: i32) -> bool {
         contains(self.parts(at).body, x, y)
     }
