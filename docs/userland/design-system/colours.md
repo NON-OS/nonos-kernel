@@ -38,7 +38,7 @@ Widgets draw with roles. They never use a seed or a literal directly. `theme::ro
 | `accent_edge` | translucent | active outline | `with_alpha(accent, 0x59)` |
 | `focus_ring` | translucent | keyboard focus | `with_alpha(accent, 0x80)` |
 | `hover_wash` | translucent | hovered row | `with_alpha(text, 0x14)` |
-| `ok`, `warn`, `danger` | opaque | status | fixed, from `theme/palette.rs` |
+| `ok`, `warn`, `danger` | opaque | status | the hue from `theme/palette.rs`, stepped towards `text` to clear 4.5:1 |
 | `warn_soft` | opaque | warning banner | fixed: dark `0xFF3A2A0C`, light `0xFFFEF3C7` |
 | `shadow` | translucent | drop shadow | fixed: dark `0x60000000`, light `0x30101828` |
 | `scrim` | translucent | backing behind a label on the wallpaper | fixed: `0x8C060A0E` |
@@ -60,8 +60,8 @@ the dock-tile hole bug out of the widgets. Existing `paint` signatures do not ch
 
 `theme_proofs` checks every scheme, Light and high contrast included:
 
-- 4.5:1 for `text`, `text_2` and `muted` on `bg`, `surface`, `sunken` and `raised`, and for
-  `on_accent` on `accent`.
+- 4.5:1 for `text`, `text_2`, `muted`, `ok`, `warn` and `danger` on `bg`, `surface`, `sunken`
+  and `raised`, and for `on_accent` on `accent`.
 - 3:1 for `quiet` on all four grounds, since a placeholder sits on `raised`, and for `accent` on `bg`.
 - `disabled`, borders and washes carry no floor. They are not read as text.
 
