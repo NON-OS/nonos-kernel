@@ -45,7 +45,7 @@ impl Switch {
         let (w, h) = self.size();
         let track = centre(Rect { w: w.min(at.w), ..at }, w, h);
         let gap = scale().px(KNOB_INSET);
-        let knob_r = track.h.saturating_sub(gap.saturating_mul(2)) / 2;
+        let knob_r = track.h.min(track.w).saturating_sub(gap.saturating_mul(2)) / 2;
         let reach = gap.saturating_add(knob_r);
         let knob_x = if self.on {
             track.x.saturating_add(track.w.saturating_sub(reach))

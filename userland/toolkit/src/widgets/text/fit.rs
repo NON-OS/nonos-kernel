@@ -31,15 +31,14 @@ pub fn truncate_by(s: &str, max_w: i32, measure: impl Fn(&str) -> i32) -> String
     if measure(s) <= max_w {
         return String::from(s);
     }
-    let room = max_w.saturating_sub(measure(ELLIPSIS));
-    if room < 0 {
+    if measure(ELLIPSIS) > max_w {
         return String::new();
     }
     let ends: Vec<usize> = s.char_indices().map(|(i, c)| i + c.len_utf8()).collect();
     let (mut lo, mut hi) = (0usize, ends.len());
     while lo < hi {
         let mid = (lo + hi).div_ceil(2);
-        if measure(&s[..ends[mid - 1]]) <= room {
+        if measure(&[&s[..ends[mid - 1]], ELLIPSIS].concat()) <= max_w {
             lo = mid;
         } else {
             hi = mid - 1;

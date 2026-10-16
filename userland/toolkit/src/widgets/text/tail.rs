@@ -32,15 +32,14 @@ pub fn tail_by(s: &str, max_w: i32, measure: impl Fn(&str) -> i32) -> String {
     if measure(s) <= max_w {
         return String::from(s);
     }
-    let room = max_w.saturating_sub(measure(ELLIPSIS));
-    if room < 0 {
+    if measure(ELLIPSIS) > max_w {
         return String::new();
     }
     let starts: Vec<usize> = s.char_indices().map(|(i, _)| i).collect();
     let (mut lo, mut hi) = (0usize, starts.len());
     while lo < hi {
         let mid = (lo + hi) / 2;
-        if measure(&s[starts[mid]..]) <= room {
+        if measure(&[ELLIPSIS, &s[starts[mid]..]].concat()) <= max_w {
             hi = mid;
         } else {
             lo = mid + 1;

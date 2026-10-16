@@ -21,26 +21,22 @@ use alloc::vec::Vec;
 use crate::paint::measure_ttf;
 
 /// Byte ranges of `text` broken into lines no wider than `max_w`, breaking
-/// at whitespace. A word wider than `max_w` takes a line of its own. Line
-/// width is the sum of its words and the spaces between them.
+/// at whitespace. A word wider than `max_w` takes a line of its own. A line
+/// is measured whole, from its first word to its last, as it is drawn.
 pub fn wrap_by(text: &str, max_w: i32, measure: impl Fn(&str) -> i32) -> Vec<(usize, usize)> {
-    let space = measure(" ");
     let mut lines = Vec::new();
-    let mut line: Option<(usize, usize, i32)> = None;
+    let mut line: Option<(usize, usize)> = None;
     for (start, end) in words(text) {
-        let w = measure(&text[start..end]);
         line = match line {
-            Some((s, _, lw)) if lw.saturating_add(space).saturating_add(w) <= max_w => {
-                Some((s, end, lw.saturating_add(space).saturating_add(w)))
+            Some((s, _)) if measure(&text[s..end]) <= max_w => Some((s, end)),
+            Some(done) => {
+                lines.push(done);
+                Some((start, end))
             }
-            Some((s, e, _)) => {
-                lines.push((s, e));
-                Some((start, end, w))
-            }
-            None => Some((start, end, w)),
+            None => Some((start, end)),
         };
     }
-    lines.extend(line.map(|(s, e, _)| (s, e)));
+    lines.extend(line);
     lines
 }
 
