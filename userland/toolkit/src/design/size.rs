@@ -43,6 +43,8 @@ pub const LINE_GAP: u32 = 2;
 pub const NAV_H: u32 = 38;
 /// Height of a field or button.
 pub const CONTROL_H: u32 = 36;
+/// Preferred width of a one-line text or search field.
+pub const FIELD_W: u32 = 236;
 /// Height of a tab strip.
 pub const TABS_H: u32 = 32;
 /// Height of a pill.
