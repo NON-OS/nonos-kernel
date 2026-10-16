@@ -45,8 +45,6 @@ pub mod results_head;
 pub mod results_pane;
 pub mod results_row;
 pub mod row;
-pub mod row_focus;
-pub mod row_label;
 pub mod saved_rows;
 pub mod scroll;
 pub mod search_field;

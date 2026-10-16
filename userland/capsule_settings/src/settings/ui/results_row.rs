@@ -16,34 +16,25 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_policy_proto::{label_of, Field};
+use nonos_toolkit::widgets::{Ink, Rect, Row, Scrolled, State as Look};
 
 use crate::settings::section::Section;
 use crate::settings::section_text::nav;
 
 use super::bytes::as_str;
-use super::chevron;
-use super::control_geom::right_edge;
-use super::metrics::{BODY_PX, CARD_PAD_X, CARD_RADIUS, ROW_H};
-use super::text;
-use super::theme::{FOCUS_RING, LABEL_FG, ROW_HOVER_BG, SUBLABEL_FG};
 
+/// One search result at `at`, in content coordinates, through the toolkit
+/// row: the setting, the section that holds it and a chevron, since choosing
+/// it goes there. `selected` is the keyboard cursor.
 pub fn paint(
     fb: &mut PaintBuffer,
     field: Field,
     section: Section,
-    card_x: u32,
-    card_w: u32,
-    screen_y: i32,
+    scroll: u32,
+    at: Rect,
     selected: bool,
 ) {
-    if selected && screen_y >= 0 {
-        let y = screen_y as u32;
-        fb.blend_rect(card_x + 1, y, card_w - 2, ROW_H, ROW_HOVER_BG);
-        fb.stroke_round(card_x + 1, y, card_w - 2, ROW_H, CARD_RADIUS / 2, 1, FOCUS_RING);
-    }
-    let top = text::centred_top(0, ROW_H, BODY_PX) + screen_y;
-    text::left(fb, card_x + CARD_PAD_X, top, as_str(label_of(field)), LABEL_FG, BODY_PX);
-    let right = right_edge(card_x, card_w);
-    chevron::draw(fb, right, screen_y + (ROW_H / 2) as i32, SUBLABEL_FG);
-    text::right(fb, right.saturating_sub(16), top, nav(section), SUBLABEL_FG, BODY_PX);
+    let look = Look { focused: selected, hovered: selected, ..Look::default() };
+    let line = Row::new(as_str(label_of(field))).value(nav(section)).value_ink(Ink::Muted);
+    line.chevron().state(look).draw(&mut Scrolled::new(fb, scroll), at);
 }

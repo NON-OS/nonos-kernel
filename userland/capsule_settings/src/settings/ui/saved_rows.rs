@@ -7,41 +7,36 @@
 //! record could not be read.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{Rect, Row, Scrolled, State as Look};
 
 use crate::settings::state::State;
 
 use super::bytes::as_str;
 use super::control_geom::right_edge;
 use super::metrics::BODY_PX;
-use super::row_focus;
-use super::row_label;
 use super::text;
 use super::theme::OK;
 
-pub fn paint(
-    fb: &mut PaintBuffer,
-    state: &State,
-    index: usize,
-    card_x: u32,
-    card_w: u32,
-    screen_y: i32,
-    row_h: u32,
-) {
+/// One saved network at `at`, in content coordinates, through the toolkit
+/// row; "Connected" stays in the room the row leaves at its right end.
+pub fn paint(fb: &mut PaintBuffer, state: &State, index: usize, scroll: u32, at: Rect) {
     let w = &state.wifi;
     if w.saved_count == 0 {
         let why = w.saved_err.map_or("None saved", |e| e.text());
-        row_label::paint(fb, card_x, screen_y, row_h, why, None);
+        Row::new(why).draw(&mut Scrolled::new(fb, scroll), at);
         return;
     }
     let i = index.min(w.saved_count - 1);
-    if state.wifi_cursor == state.wifi_network_count + i {
-        row_focus::paint(fb, card_x, card_w, screen_y, row_h);
-    }
+    let selected = state.wifi_cursor == state.wifi_network_count + i;
+    let look = Look { focused: selected, hovered: selected, ..Look::default() };
     let net = w.saved[i];
     let note = if net.secured { "Passphrase sealed" } else { "Open network" };
-    row_label::paint(fb, card_x, screen_y, row_h, as_str(net.ssid()), Some(note));
-    if w.joined() == Some(net.ssid()) {
-        let top = text::centred_top(0, row_h, BODY_PX) + screen_y;
-        text::right(fb, right_edge(card_x, card_w), top, "Connected", OK, BODY_PX);
+    let joined = w.joined() == Some(net.ssid());
+    let room = if joined { text::width(fb, "Connected", BODY_PX) } else { 0 };
+    let line = Row::new(as_str(net.ssid())).note(note).trailing(room).state(look);
+    line.draw(&mut Scrolled::new(fb, scroll), at);
+    if joined {
+        let top = text::centred_top(0, at.h, BODY_PX) + at.y as i32 - scroll as i32;
+        text::right(fb, right_edge(at.x, at.w), top, "Connected", OK, BODY_PX);
     }
 }

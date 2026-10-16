@@ -27,9 +27,7 @@ pub const TITLE_FG: u32 = 0xFFEAF4F8;
 pub const SUBTITLE_FG: u32 = 0xFF93A7B2;
 
 pub const CARD_BORDER: u32 = 0xFF16262F;
-pub const ROW_HOVER_BG: u32 = 0x14FFFFFF;
 
-pub const LABEL_FG: u32 = 0xFFDBE8EE;
 pub const SUBLABEL_FG: u32 = 0xFF6D818C;
 pub const VALUE_FG: u32 = 0xFFCDDDE5;
 
@@ -41,8 +39,6 @@ pub const IDLE: u32 = 0xFF7A8E99;
 pub const PILL_BG: u32 = 0xFF14232C;
 pub const PILL_BORDER: u32 = 0xFF1D323D;
 pub const TRACK_BG: u32 = 0xFF25373F;
-
-pub const FOCUS_RING: u32 = 0x8035C4E2;
 
 pub const SEARCH_BG: u32 = 0xFF16232B;
 pub const SEARCH_BORDER: u32 = 0xFF24363F;

@@ -60,10 +60,8 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, scroll: u32, view_w: u32, view
             let selected = field_index == cursor;
             field_index += 1;
             if !offscreen {
-                if selected {
-                    super::row_focus::paint(fb, card_x, card_w, sy, h);
-                }
-                wallpaper_row::paint(fb, state, i, card_x, card_w, sy, h);
+                let at = Rect { x: card_x, y, w: card_w, h };
+                wallpaper_row::paint(fb, state, i, scroll, at, selected);
                 row::hairline(fb, scroll, card_x, card_w, y, h);
             }
             return;
@@ -78,11 +76,11 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, scroll: u32, view_w: u32, view
             }
             Item::CardHead(bi) => card::paint_pill(fb, state, &blocks[bi], card_x, sy, card_w),
             Item::Network(i) => {
-                net_rows::paint(fb, state, i, card_x, card_w, sy, h);
+                net_rows::paint(fb, state, i, scroll, Rect { x: card_x, y, w: card_w, h });
                 row::hairline(fb, scroll, card_x, card_w, y, h);
             }
             Item::Saved(i) => {
-                saved_rows::paint(fb, state, i, card_x, card_w, sy, h);
+                saved_rows::paint(fb, state, i, scroll, Rect { x: card_x, y, w: card_w, h });
                 row::hairline(fb, scroll, card_x, card_w, y, h);
             }
             Item::Row(..) | Item::Wallpaper(_) => {}

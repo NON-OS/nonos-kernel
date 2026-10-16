@@ -52,7 +52,8 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, scroll: u32, view_w: u32, view
             continue;
         }
         let Some((section, _, field)) = results::at(query, i) else { continue };
-        results_row::paint(fb, field, section, card_x, card_w, sy, i == state.search_cursor);
+        let at = Rect { x: card_x, y: row_y(i), w: card_w, h: ROW_H };
+        results_row::paint(fb, field, section, scroll, at, i == state.search_cursor);
         if i + 1 < n {
             row::hairline(fb, scroll, card_x, card_w, row_y(i), ROW_H);
         }

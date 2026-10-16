@@ -37,7 +37,6 @@ pub const PANE_PAD_TOP: u32 = 24;
 pub const HEAD_ICON: u32 = 30;
 pub const HEAD_H: u32 = 72;
 
-pub const CARD_RADIUS: u32 = 10;
 pub const CARD_GAP: u32 = 16;
 pub const CARD_PAD_X: u32 = 16;
 pub const CARD_HEAD_H: u32 = 48;
