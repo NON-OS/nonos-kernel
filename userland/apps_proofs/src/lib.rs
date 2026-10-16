@@ -348,6 +348,8 @@ pub mod audio_ui {
     pub mod metrics;
     #[path = "."]
     pub mod shell {
+        #[path = "../../capsule_audio_player/src/ui/shell/ground.rs"]
+        pub mod ground;
         #[path = "../../capsule_audio_player/src/ui/shell/rail_geom.rs"]
         pub mod rail_geom;
     }
@@ -399,6 +401,8 @@ mod audio_tags_tests;
 
 #[cfg(test)]
 mod audio_rail_tests;
+#[cfg(test)]
+mod audio_ground_tests;
 #[cfg(test)]
 mod audio_step_tests;
 #[cfg(test)]

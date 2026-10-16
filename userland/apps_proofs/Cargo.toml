@@ -22,3 +22,6 @@ nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
 # The audio player's bar tells an output fault from a track's by the audio
 # service's own sentences.
 nonos_audio_proto = { path = "../audio_proto" }
+# The audio player's window ground mixes its glows with the toolkit's colour
+# derivation.
+nonos_toolkit = { path = "../toolkit", default-features = false }

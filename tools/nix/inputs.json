@@ -613,6 +613,7 @@
    "userland/capsule_audio_player/src/ui/geometry.rs",
    "userland/capsule_audio_player/src/ui/metrics.rs",
    "userland/capsule_audio_player/src/ui/search_key.rs",
+   "userland/capsule_audio_player/src/ui/shell/ground.rs",
    "userland/capsule_audio_player/src/ui/shell/rail_geom.rs",
    "userland/capsule_audio_player/src/ui/shortcut.rs",
    "userland/capsule_audio_player/src/volume.rs",

@@ -42,13 +42,15 @@ fn seeds() -> [u32; 3] {
     [r.bg.argb(), r.surface.argb(), r.accent.argb()]
 }
 
-fn radial(base: u32, tint: u32, dx: i64, dy: i64, rx: i64, ry: i64, peak: u32) -> u32 {
+/// `tint` over `base` inside the ellipse of radii `rx` by `ry`, strongest at
+/// its centre, where it reaches `peak` percent, and gone at its rim.
+pub(crate) fn radial(base: u32, tint: u32, dx: i64, dy: i64, rx: i64, ry: i64, peak: u32) -> u32 {
     let d = (dx * dx * 10_000 / (rx * rx)) + (dy * dy * 10_000 / (ry * ry));
     if d >= 10_000 {
         return base;
     }
-    let fall = (10_000 - d) as u32;
-    mix(base, tint, (fall * peak / 10_000 / 100) as u8)
+    let fall = (10_000 - d) as u64;
+    mix(base, tint, (fall * peak as u64 * 255 / 10_000 / 100).min(255) as u8)
 }
 
 impl Ground {
