@@ -15,9 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-
-use crate::calc::theme::WIN;
+use nonos_toolkit::theme::roles;
 
 pub fn paint(fb: &mut PaintBuffer) {
-    fb.clear(WIN);
+    fb.clear(roles().bg.argb());
 }

@@ -33,7 +33,6 @@ mod paste;
 mod prog;
 mod sci;
 mod state;
-mod theme;
 mod ui;
 mod unary;
 

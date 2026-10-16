@@ -16,38 +16,39 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::theme::roles;
 
 use super::bits_num::NUM;
+use super::button::lit;
 use crate::calc::hit::Hit;
 use crate::calc::prog::BITS;
 use crate::calc::state::State;
-use crate::calc::theme::{CYAN, FAINT, KEY, KEY_HI, LINE, LINE_3};
 use crate::calc::ui::bits_geom::{cell, BIT_H, LABEL_H};
 use crate::calc::ui::metrics::{PX_MONO, R_KEY};
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let win_w = fb.width as i32;
-    let lh = line_height(PX_MONO).max(1);
+    let (r, lh) = (roles(), line_height(PX_MONO).max(1));
     for bit in 0..BITS {
         let (x, y, w, h) = cell(win_w, bit);
         if w <= 0 || x < 0 || y < 0 {
             return;
         }
         let set = state.prog & (1i64 << bit) != 0;
-        let (bg, ink) = if set { (KEY_HI, CYAN) } else { (KEY, FAINT) };
+        let (bg, ink) = if set { (lit(), r.accent) } else { (r.raised.argb(), r.muted) };
         let (ux, uy, uw, uh) = (x as u32, y as u32, w as u32, h as u32);
         let radius = R_KEY as u32;
         fb.fill_round(ux, uy, uw, uh, radius, bg);
-        fb.stroke_round(ux, uy, uw, uh, radius, 1, LINE);
+        fb.stroke_round(ux, uy, uw, uh, radius, 1, r.border.argb());
         if state.hover == Some(Hit::Bit(bit)) {
-            fb.blend_rect(ux, uy, uw, uh, LINE);
-            fb.stroke_round(ux, uy, uw, uh, radius, 1, LINE_3);
+            fb.blend_rect(ux, uy, uw, uh, r.hover_wash.argb());
+            fb.stroke_round(ux, uy, uw, uh, radius, 1, r.accent_edge.argb());
         }
         let glyph = if set { "1" } else { "0" };
         let gx = x + (w - fb.measure_ttf_mono(glyph, PX_MONO)) / 2;
-        fb.text_ttf_mono(gx, y + (h - lh) / 2, glyph, ink, PX_MONO);
+        fb.text_ttf_mono(gx, y + (h - lh) / 2, glyph, ink.argb(), PX_MONO);
         let name = NUM[bit as usize];
         let nx = x + (w - fb.measure_ttf_mono(name, PX_MONO)) / 2;
-        fb.text_ttf_mono(nx, y + BIT_H + (LABEL_H - lh) / 2, name, FAINT, PX_MONO);
+        fb.text_ttf_mono(nx, y + BIT_H + (LABEL_H - lh) / 2, name, r.quiet.argb(), PX_MONO);
     }
 }

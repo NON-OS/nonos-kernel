@@ -30,7 +30,6 @@ pub const NAV_LABEL_GAP: i32 = 12;
 pub const PANE_PAD: i32 = 18;
 pub const READOUT_H: i32 = 112;
 pub const KEY_GAP: i32 = 10;
-pub const R_PANEL: i32 = 11;
 pub const R_KEY: i32 = 9;
 
 pub const PX_RESULT: f32 = 56.0;

@@ -17,14 +17,15 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::icons;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Card, Rect};
 
 use crate::calc::hit::Hit;
 use crate::calc::mode::MODES;
 use crate::calc::state::State;
-use crate::calc::theme;
 use crate::calc::ui::metrics::{
     BRAND_H, BRAND_TOP, NAV_H, NAV_ICON, NAV_LABEL_GAP, NAV_RADIUS, PANE_PAD, PX_TITLE,
-    RAIL_CARD_W, RAIL_PAD_X, RAIL_X, R_PANEL,
+    RAIL_CARD_W, RAIL_PAD_X, RAIL_X,
 };
 use crate::calc::ui::icon_table::icon;
 use crate::calc::ui::nav_geom::{row_w, row_x, row_y};
@@ -37,41 +38,26 @@ fn centered_top(top: i32, box_h: i32, px: f32) -> i32 {
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let h = fb.height;
-    let card_h = (h as i32 - PANE_PAD * 2).max(0) as u32;
-    fb.fill_round(
-        RAIL_X as u32,
-        PANE_PAD as u32,
-        RAIL_CARD_W as u32,
-        card_h,
-        R_PANEL as u32,
-        theme::PANEL,
-    );
-    fb.stroke_round(
-        RAIL_X as u32,
-        PANE_PAD as u32,
-        RAIL_CARD_W as u32,
-        card_h,
-        R_PANEL as u32,
-        1,
-        theme::LINE_2,
-    );
+    let (card_h, r) = ((h as i32 - PANE_PAD * 2).max(0) as u32, roles());
+    let (x, y) = (RAIL_X as u32, PANE_PAD as u32);
+    Card::new().draw(fb, Rect { x, y, w: RAIL_CARD_W as u32, h: card_h });
     fb.text_ttf(
         row_x(),
         centered_top(BRAND_TOP, BRAND_H, PX_TITLE),
         BRAND,
-        theme::CYAN,
+        r.accent.argb(),
         PX_TITLE,
     );
     for (i, mode) in MODES.iter().enumerate() {
         let (x, y, w) = (row_x() as u32, row_y(i) as u32, row_w() as u32);
         let active = state.mode == *mode;
         if active {
-            fb.fill_round(x, y, w, NAV_H as u32, NAV_RADIUS as u32, theme::GLOW);
-            fb.stroke_round(x, y, w, NAV_H as u32, NAV_RADIUS as u32, 1, theme::LINE_3);
+            fb.fill_round(x, y, w, NAV_H as u32, NAV_RADIUS as u32, r.accent_wash.argb());
+            fb.stroke_round(x, y, w, NAV_H as u32, NAV_RADIUS as u32, 1, r.accent_edge.argb());
         } else if state.hover == Some(Hit::Rail(*mode)) {
-            fb.blend_rect(x, y, w, NAV_H as u32, theme::LINE);
+            fb.blend_rect(x, y, w, NAV_H as u32, r.hover_wash.argb());
         }
-        let ink = if active { theme::CYAN } else { theme::DIM };
+        let ink = if active { r.accent.argb() } else { r.muted.argb() };
         let icon_y = row_y(i) + (NAV_H - NAV_ICON) / 2;
         icons::draw(
             fb,

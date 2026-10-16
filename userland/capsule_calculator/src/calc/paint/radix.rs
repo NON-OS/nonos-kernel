@@ -15,11 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Card, Rect};
 
 use crate::calc::prog::{write, BASES, RADIX_MAX};
 use crate::calc::state::State;
-use crate::calc::theme;
-use crate::calc::ui::metrics::{PX_MONO, R_PANEL};
+use crate::calc::ui::metrics::PX_MONO;
 use crate::calc::ui::radix_geom::{origin, row_y, size, PAD};
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
@@ -28,20 +29,17 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
     if w <= 0 || h <= 0 {
         return;
     }
-    fb.panel(x as u32, y as u32, w as u32, h as u32, R_PANEL as u32, theme::PANEL, theme::LINE_2);
+    Card::new().draw(fb, Rect { x: x as u32, y: y as u32, w: w as u32, h: h as u32 });
+    let r = roles();
     let mut buf = [0u8; RADIX_MAX];
     for (i, base) in BASES.iter().enumerate() {
         let active = state.base == *base;
-        let (tag, ink) = if active {
-            (theme::CYAN, theme::CYAN)
-        } else {
-            (theme::FAINT, theme::DIM)
-        };
+        let (tag, ink) = if active { (r.accent, r.accent) } else { (r.muted, r.text_2) };
         let ty = row_y(i);
-        fb.text_ttf_mono(x + PAD, ty, base.label(), tag, PX_MONO);
+        fb.text_ttf_mono(x + PAD, ty, base.label(), tag.argb(), PX_MONO);
         let n = write(state.prog, *base, &mut buf);
         let text = core::str::from_utf8(&buf[..n]).unwrap_or("");
         let tx = x + w - PAD - fb.measure_ttf_mono(text, PX_MONO);
-        fb.text_ttf_mono(tx, ty, text, ink, PX_MONO);
+        fb.text_ttf_mono(tx, ty, text, ink.argb(), PX_MONO);
     }
 }

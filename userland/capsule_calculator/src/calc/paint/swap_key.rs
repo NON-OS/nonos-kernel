@@ -16,10 +16,11 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::theme::roles;
 
+use super::button::lit;
 use crate::calc::hit::Hit;
 use crate::calc::state::State;
-use crate::calc::theme::{CYAN, KEY_HI, LINE, LINE_3};
 use crate::calc::ui::convert_geom::swap;
 use crate::calc::ui::convert_hit::ConvertHit;
 use crate::calc::ui::metrics::{PX_KEY, R_KEY};
@@ -32,14 +33,14 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
         return;
     }
     let (ux, uy, uw, uh) = (x as u32, y as u32, w as u32, h as u32);
-    let radius = R_KEY as u32;
-    fb.fill_round(ux, uy, uw, uh, radius, KEY_HI);
-    fb.stroke_round(ux, uy, uw, uh, radius, 1, LINE);
+    let (radius, r) = (R_KEY as u32, roles());
+    fb.fill_round(ux, uy, uw, uh, radius, lit());
+    fb.stroke_round(ux, uy, uw, uh, radius, 1, r.border.argb());
     if state.hover == Some(Hit::Convert(ConvertHit::Swap)) {
-        fb.blend_rect(ux, uy, uw, uh, LINE);
-        fb.stroke_round(ux, uy, uw, uh, radius, 1, LINE_3);
+        fb.blend_rect(ux, uy, uw, uh, r.hover_wash.argb());
+        fb.stroke_round(ux, uy, uw, uh, radius, 1, r.accent_edge.argb());
     }
     let tx = x + (w - fb.measure_ttf(LABEL, PX_KEY)) / 2;
     let ty = y + (h - line_height(PX_KEY).max(1)) / 2;
-    fb.text_ttf(tx, ty, LABEL, CYAN, PX_KEY);
+    fb.text_ttf(tx, ty, LABEL, r.accent.argb(), PX_KEY);
 }

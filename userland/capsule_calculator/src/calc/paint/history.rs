@@ -16,12 +16,13 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Card, Rect, Scrollbar};
 
 use super::history_row;
 use crate::calc::state::State;
-use crate::calc::theme::{FAINT, LINE_2, LINE_3, PANEL};
-use crate::calc::ui::history_geom::{capacity, entry_at, max_scroll, pane, PAD};
-use crate::calc::ui::metrics::{PX_BODY, R_PANEL};
+use crate::calc::ui::history_geom::{capacity, entry_at, pane, PAD};
+use crate::calc::ui::metrics::PX_BODY;
 
 const EMPTY: &str = "No calculations yet";
 
@@ -30,11 +31,11 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
     if w <= PAD * 2 || h <= 0 || x < 0 || y < 0 {
         return;
     }
-    fb.panel(x as u32, y as u32, w as u32, h as u32, R_PANEL as u32, PANEL, LINE_2);
+    Card::new().draw(fb, Rect { x: x as u32, y: y as u32, w: w as u32, h: h as u32 });
     if state.history.is_empty() {
         let lh = line_height(PX_BODY).max(1);
         let tx = x + (w - fb.measure_ttf(EMPTY, PX_BODY)) / 2;
-        fb.text_ttf(tx, y + (h - lh) / 2, EMPTY, FAINT, PX_BODY);
+        fb.text_ttf(tx, y + (h - lh) / 2, EMPTY, roles().quiet.argb(), PX_BODY);
         return;
     }
     let rows = capacity(fb.height as i32);
@@ -54,11 +55,6 @@ fn thumb(state: &State, fb: &mut PaintBuffer, pane: (i32, i32, i32, i32), rows: 
         return;
     }
     let (x, y, w, h) = pane;
-    let track = h - PAD * 2;
-    let size = (track * rows as i32 / len as i32).max(12);
-    let top = y
-        + PAD
-        + (track - size) * state.history_scroll as i32
-            / max_scroll(len, fb.height as i32).max(1) as i32;
-    fb.fill_round((x + w - 6) as u32, top as u32, 3, size as u32, 1, LINE_3);
+    let track = Rect { x: (x + w - 6) as u32, y: (y + PAD) as u32, w: 3, h: (h - PAD * 2) as u32 };
+    Scrollbar::new(state.history_scroll as u32, len as u32, rows as u32).draw(fb, track);
 }

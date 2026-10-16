@@ -16,12 +16,12 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::theme::roles;
 
 use crate::calc::format::{format, DISPLAY_MAX};
 use crate::calc::history::Entry;
 use crate::calc::hit::Hit;
 use crate::calc::state::State;
-use crate::calc::theme::{DIM, INK, KEY, LINE, LINE_3};
 use crate::calc::ui::history_geom::row;
 use crate::calc::ui::metrics::{PX_BODY, R_KEY};
 use crate::calc::ui::trim::{trim, ELLIPSIS};
@@ -34,12 +34,12 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, index: usize, entry: &Entry) {
         return;
     }
     let (ux, uy, uw, uh) = (x as u32, y as u32, w as u32, h as u32);
-    let radius = R_KEY as u32;
-    fb.fill_round(ux, uy, uw, uh, radius, KEY);
-    fb.stroke_round(ux, uy, uw, uh, radius, 1, LINE);
+    let (radius, r) = (R_KEY as u32, roles());
+    fb.fill_round(ux, uy, uw, uh, radius, r.raised.argb());
+    fb.stroke_round(ux, uy, uw, uh, radius, 1, r.border.argb());
     if state.hover == Some(Hit::Row(index)) {
-        fb.blend_rect(ux, uy, uw, uh, LINE);
-        fb.stroke_round(ux, uy, uw, uh, radius, 1, LINE_3);
+        fb.blend_rect(ux, uy, uw, uh, r.hover_wash.argb());
+        fb.stroke_round(ux, uy, uw, uh, radius, 1, r.accent_edge.argb());
     }
     let lh = line_height(PX_BODY).max(1);
     let ty = y + (h - lh) / 2;
@@ -47,10 +47,10 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, index: usize, entry: &Entry) {
     let n = format(entry.value, 0, &mut buf);
     let value = core::str::from_utf8(&buf[..n]).unwrap_or("");
     let vw = fb.measure_ttf(value, PX_BODY);
-    fb.text_ttf(x + w - PAD - vw, ty, value, INK, PX_BODY);
+    fb.text_ttf(x + w - PAD - vw, ty, value, r.text.argb(), PX_BODY);
     let (expr, cut) = trim(fb, entry.text(), w - PAD * 3 - vw, PX_BODY);
-    let pen = fb.text_ttf(x + PAD, ty, expr, DIM, PX_BODY);
+    let pen = fb.text_ttf(x + PAD, ty, expr, r.muted.argb(), PX_BODY);
     if cut {
-        fb.text_ttf(pen, ty, ELLIPSIS, DIM, PX_BODY);
+        fb.text_ttf(pen, ty, ELLIPSIS, r.muted.argb(), PX_BODY);
     }
 }
