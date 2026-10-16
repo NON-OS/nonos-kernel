@@ -20,20 +20,13 @@ use super::Progress;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
 use crate::design::size::PROGRESS_H;
-use crate::widgets::rect::centre;
+use crate::widgets::rect::{centre, share};
 
 /// The placed parts of a progress bar, in drawing pixels.
 pub(super) struct Parts {
     pub(super) track: Rect,
     pub(super) fill: Rect,
     pub(super) radius: u32,
-}
-
-/// `n` out of `of` as a share of `len`, rounded to the nearest; 0 when `of`
-/// is 0. A private copy of the slider's helper of the same name.
-fn share(n: u32, len: u32, of: u32) -> u32 {
-    let (n, len, of) = (u64::from(n), u64::from(len), u64::from(of));
-    (n * len + of / 2).checked_div(of).map_or(0, |v| u32::try_from(v).unwrap_or(u32::MAX))
 }
 
 impl Progress {

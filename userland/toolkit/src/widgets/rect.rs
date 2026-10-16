@@ -69,3 +69,11 @@ pub fn contains(r: Rect, x: i32, y: i32) -> bool {
     let (x, y) = (x as u32, y as u32);
     x >= r.x && y >= r.y && x - r.x < r.w && y - r.y < r.h
 }
+
+/// `n` out of `of` as a share of `len`, rounded to the nearest; 0 when `of` is 0.
+/// Maps a value to a position along a track and back, for sliders, bars and
+/// scroll bars.
+pub fn share(n: u32, len: u32, of: u32) -> u32 {
+    let (n, len, of) = (u64::from(n), u64::from(len), u64::from(of));
+    (n * len + of / 2).checked_div(of).map_or(0, |v| u32::try_from(v).unwrap_or(u32::MAX))
+}

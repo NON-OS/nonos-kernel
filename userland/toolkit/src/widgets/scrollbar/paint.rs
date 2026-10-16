@@ -16,13 +16,12 @@
 
 //! Painting and hit testing a scroll bar, both from `parts`.
 
-use super::geometry::share;
 use super::Scrollbar;
 use crate::decorations::Rect;
 use crate::paint::PaintBuffer;
 use crate::theme::roles;
 use crate::widgets::draw;
-use crate::widgets::rect::contains;
+use crate::widgets::rect::{contains, share};
 
 impl Scrollbar {
     /// Paints the thumb in `muted`, `text_2` when hovered and `text` when

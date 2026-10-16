@@ -20,6 +20,7 @@ use super::Scrollbar;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
 use crate::design::size::{SCROLL_MIN, SCROLL_W};
+use crate::widgets::rect::share;
 
 /// The placed thumb, in drawing pixels. Its top travels `travel` pixels
 /// down as the offset goes from 0 to `most`.
@@ -28,13 +29,6 @@ pub(super) struct Parts {
     pub(super) radius: u32,
     pub(super) travel: u32,
     pub(super) most: u32,
-}
-
-/// `n` out of `of` as a share of `len`, rounded to the nearest; 0 when `of`
-/// is 0. A private copy of the slider's helper of the same name.
-pub(super) fn share(n: u32, len: u32, of: u32) -> u32 {
-    let (n, len, of) = (u64::from(n), u64::from(len), u64::from(of));
-    (n * len + of / 2).checked_div(of).map_or(0, |v| u32::try_from(v).unwrap_or(u32::MAX))
 }
 
 impl Scrollbar {

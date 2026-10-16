@@ -16,7 +16,6 @@
 
 //! Painting and hit testing a slider, both from `parts`.
 
-use super::geometry::share;
 use super::Slider;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
@@ -24,7 +23,7 @@ use crate::paint::PaintBuffer;
 use crate::theme::derive::mix;
 use crate::theme::{roles, Opaque};
 use crate::widgets::draw;
-use crate::widgets::rect::contains;
+use crate::widgets::rect::{contains, share};
 
 impl Slider {
     /// Paints the track, the accent fill up to the knob, and the knob with
