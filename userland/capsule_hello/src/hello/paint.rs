@@ -15,17 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-
-const BG: u32 = 0xFF10161C;
-const ACCENT: u32 = 0xFF00D4AA;
-const TEXT: u32 = 0xFFE8F0F8;
-const DIM: u32 = 0xFF667788;
+use nonos_toolkit::theme::roles;
 
 pub fn paint(fb: &mut PaintBuffer) {
-    fb.clear(BG);
-    fb.fill_rect(0, 0, 360, 4, ACCENT);
-    fb.text_scaled(24, 40, b"hello, NONOS", ACCENT, 2);
-    fb.text(24, 88, b"a signed, attested capsule", TEXT);
-    fb.text(24, 110, b"built from the quickstart", TEXT);
-    fb.text(24, 148, b"press Esc to close", DIM);
+    let r = roles();
+    let (accent, text) = (r.accent.argb(), r.text.argb());
+    fb.clear(r.bg.argb());
+    fb.fill_rect(0, 0, 360, 4, accent);
+    fb.text_scaled(24, 40, b"hello, NONOS", accent, 2);
+    fb.text(24, 88, b"a signed, attested capsule", text);
+    fb.text(24, 110, b"built from the quickstart", text);
+    fb.text(24, 148, b"press Esc to close", r.quiet.argb());
 }
