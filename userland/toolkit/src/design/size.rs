@@ -31,6 +31,8 @@ pub const CARD_RADIUS: u32 = 12;
 pub const ROW_H: u32 = 44;
 /// Height of a list row with a note line.
 pub const ROW_NOTE_H: u32 = 66;
+/// Side of the square a row's disclosure chevron is drawn in.
+pub const CHEVRON: u32 = 8;
 /// Height of a card's head when it holds only a title.
 pub const CARD_HEAD_H: u32 = 48;
 /// Height of a card's head when a note sits under the title.
