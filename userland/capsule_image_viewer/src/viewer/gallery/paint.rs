@@ -4,41 +4,37 @@ use crate::viewer::gallery::state::GalleryState;
 use crate::viewer::says::{gallery_next, gallery_note};
 use crate::viewer::scale::{draw_nn, Dst};
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::derive::mix;
+use nonos_toolkit::theme::roles;
 
-const BG: u32 = 0xFF10_1418;
-const FG: u32 = 0xFFE6_E6E6;
-const DIM: u32 = 0xFF9A_A4AE;
-const PLACEHOLDER: u32 = 0xFF23_282E;
-const ERRTILE: u32 = 0xFF3A_1E1E;
-const SEL: u32 = 0xFF4A_9EFF;
-const TROUBLE: u32 = 0xFFE0_7A6E;
 /// The bitmap face's advance, for centring a line by its length.
 const GLYPH_W: u32 = 8;
 
 pub fn paint_gallery(g: &mut GalleryState, fb: &mut PaintBuffer) {
-    let (w, h) = (fb.width, fb.height);
-    fb.fill_rect(0, 0, w, h, BG);
+    let (w, h, r) = (fb.width, fb.height, roles());
+    let text = r.text.argb();
+    fb.fill_rect(0, 0, w, h, r.bg.argb());
     let gr = grid(w);
     let n = g.entries.len();
     if let Some(note) = gallery_note(g.scanned, g.scan_error, n) {
         let x = (w / 2).saturating_sub(note.len() as u32 * GLYPH_W / 2);
-        fb.text(x, h / 2, note.as_bytes(), FG);
+        fb.text(x, h / 2, note.as_bytes(), text);
         if let Some(next) = gallery_next(g.scanned, g.scan_error, n) {
             let x = (w / 2).saturating_sub(next.len() as u32 * GLYPH_W / 2);
-            fb.text(x, h / 2 + 2 * GLYPH_W, next.as_bytes(), DIM);
+            fb.text(x, h / 2 + 2 * GLYPH_W, next.as_bytes(), r.muted.argb());
         }
         return;
     }
     paint_boxes(fb, g, &gr, n);
     blit_thumbs(fb, g, &gr, n);
-    fb.text(10, 8, b"Gallery", FG);
+    fb.text(10, 8, b"Gallery", text);
     if let Some(trouble) = g.decoder_trouble {
-        fb.text(10 + 9 * GLYPH_W, 8, trouble.as_bytes(), TROUBLE);
+        fb.text(10 + 9 * GLYPH_W, 8, trouble.as_bytes(), r.danger.argb());
     }
 }
 
 fn paint_boxes(fb: &mut PaintBuffer, g: &GalleryState, gr: &Grid, n: usize) {
-    let h = fb.height;
+    let (h, r) = (fb.height, roles());
     for i in 0..n {
         let (x, y, _cw, ch) = cell_rect(i, g.scroll, gr);
         if y + ch as i32 <= HEADER_H as i32 || y >= h as i32 {
@@ -47,18 +43,18 @@ fn paint_boxes(fb: &mut PaintBuffer, g: &GalleryState, gr: &Grid, n: usize) {
         let (ux, uy) = (x.max(0) as u32, y.max(0) as u32);
         let e = &g.entries[i];
         let base = if e.failed {
-            ERRTILE
+            mix(r.surface.argb(), r.danger.argb(), 40)
         } else if e.thumb.is_none() {
-            PLACEHOLDER
+            r.surface.argb()
         } else {
-            BG
+            r.bg.argb()
         };
         fb.fill_rect(ux, uy, THUMB_W, THUMB_H, base);
         if i == g.sel {
-            fb.fill_rect(ux, uy, THUMB_W, 2, SEL);
-            fb.fill_rect(ux, uy + THUMB_H - 2, THUMB_W, 2, SEL);
+            fb.fill_rect(ux, uy, THUMB_W, 2, r.accent.argb());
+            fb.fill_rect(ux, uy + THUMB_H - 2, THUMB_W, 2, r.accent.argb());
         }
-        fb.text(ux, uy + THUMB_H, label(&e.path), FG);
+        fb.text(ux, uy + THUMB_H, label(&e.path), r.text.argb());
     }
 }
 
