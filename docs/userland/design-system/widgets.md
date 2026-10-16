@@ -62,8 +62,8 @@ All of them measure with `measure_ttf` at the size `readable_px` gives.
 
 ## Tests
 
-Each widget gets a test file in `theme_proofs`, which includes the real source with `#[path]`
-and runs on the host:
+Each widget has tests in `theme_proofs/src/widget_tests/`, which draw the real widgets on the
+host through the `nonos_toolkit` dependency, in all 32 state combinations, at three scales:
 
 - **Bounds:** draw into a `PaintBuffer` over a `Vec<u32>`; every changed pixel lies inside `at`.
 - **Hit agrees with draw:** `hit` is true on drawn pixels of the hit part, and false outside `at`.
