@@ -44,6 +44,8 @@ the theme the person picks. What the tree holds today:
 5. Widgets live in a new `nonos_toolkit::widgets` on `PaintBuffer`, moved down from
    `capsule_settings/src/settings/ui`. Each widget has one geometry function that its painter and
    its hit test both call. Widgets read the palette themselves; an app names no colour.
+   Every widget lives in this shared list, even one only a single app uses so far; an app
+   keeps no private widgets. Adding one is a file in `widgets/` and its line in `widgets/mod.rs`.
 6. Spacing, radius and text size are logical units, scaled once inside the widget, never by the
    caller.
 7. A colour that carries alpha is its own type, and only the blending painters accept it.
