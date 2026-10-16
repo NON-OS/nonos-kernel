@@ -10,12 +10,11 @@ then move over one per commit, in this order.
 | 3 | Process Manager | its sidebar is nearly Settings' own; tables wait for `Table` |
 | 4 | About, Snake, hello, qrgen, mdview, prove, gui_demo, egui_proof | roles only, little to move |
 | 5 | the other `app_skeleton` apps, one per commit | file manager, calculator, clock and the rest |
-| 6 | Browser, Text Editor, Terminal, Audio player | each has a palette or theme system of its own |
+| 6 | Browser, Text Editor, Terminal, Audio player | own palettes; the first three gain "System" |
 | 7 | desktop shell | its own loop, translucent glass and raw fills; needs a boot |
 
-The installer and the wallet keep the `nonos_brand` palette and are not migrated. The setup
-wizard keeps its own constants: it runs before any choice exists. Whether `boot_splash` is brand
-or house is not decided.
+The installer, the wallet and `boot_splash` keep their own brand look and are not migrated. The
+setup wizard keeps its own constants: it runs before any choice exists.
 
 ## Moving one app
 
@@ -45,10 +44,10 @@ or house is not decided.
 | `FOCUS_RING`, `ROW_HOVER_BG` | `focus_ring`, `hover_wash` |
 | `SWITCH_*`, `TRACK_BG` | inside `Switch` and `Slider` |
 
-## Per-app choices still open
+## Per-app choices
 
-- The Browser (#621), the Text Editor and the Terminal each let the person pick a theme of their
-  own. Proposal: each gains "System" as its first option, and it becomes the default.
+- The Browser (#621), the Text Editor and the Terminal keep their own theme picker, and each
+  gains "System" as its first option. "System" follows the OS theme and is the default.
 - Colours shift slightly where an app's value and the shared formula differ. For example, App
   Store's cards become round. A migration accepts that shift; it does not add a role to match
   one app.

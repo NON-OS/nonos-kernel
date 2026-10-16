@@ -56,6 +56,5 @@ that expects a reply must.
   wiring is built.
 - `Watch` covers only u8 fields. `HighContrast` is a bool, so it is either read beside `Watch` with
   `get_bool`, or `Watch` gains a bool form.
-- The Browser (#621), the Text Editor and the Terminal each keep their own theme choice. Whether
-  each one follows the system, keeps its own, or offers "follow system" is decided per app in
-  [Migration](migration.md).
+- Decided: the Browser (#621), the Text Editor and the Terminal keep their own picker and gain a
+  "System" option, the default, that follows this setting ([Migration](migration.md)).

@@ -50,7 +50,7 @@ the theme the person picks. What the tree holds today:
 6. Spacing, radius and text size are logical units, scaled once inside the widget, never by the
    caller.
 7. A colour that carries alpha is its own type, and only the blending painters accept it.
-8. The installer and wallet keep their own brand palette (`nonos_brand`). The demo apps (hello,
+8. The installer, wallet and boot splash keep their own brand look. The demo apps (hello,
    qrgen, mdview, prove, gui_demo, egui_proof) move to the house palette.
 
 ## Not decided here
