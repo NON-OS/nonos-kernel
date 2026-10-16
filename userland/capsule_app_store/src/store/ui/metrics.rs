@@ -34,6 +34,10 @@ pub const TAB_PAD_X: u32 = 14;
 /// Air between the tab strip and the first card.
 pub const TAB_TO_LIST: u32 = 10;
 
+/// The search field in the head band, right-aligned.
+pub const SEARCH_W: u32 = 260;
+pub const SEARCH_H: u32 = 26;
+
 /// A card holds two lines of text over a tile, so it is tall enough for
 /// both plus the breathing room that stops a list looking like a table.
 pub const CARD_H: u32 = 64;
@@ -41,6 +45,9 @@ pub const CARD_GAP: u32 = 6;
 pub const CARD_PAD: u32 = 14;
 pub const TILE: u32 = 36;
 pub const TILE_GAP: u32 = 14;
+/// The scrollbar beside the list, this far right of the cards.
+pub const SCROLL_GAP: u32 = 6;
+pub const SCROLL_W: u32 = 3;
 
 /// The action sits at a fixed width on the right so every card's button
 /// starts at the same x and the eye can run straight down them.

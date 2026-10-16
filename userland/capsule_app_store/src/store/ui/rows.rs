@@ -17,20 +17,21 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text;
 
 use crate::store::state::State;
-use crate::store::theme::MUTED;
 
+use super::bytes::as_str;
 use super::card;
 use super::metrics::{BODY_PX, CARD_GAP, CARD_H};
-use super::text;
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, rows: usize) {
     let visible = state.visible();
     if visible.is_empty() {
-        let step = line_height(BODY_PX).max(1);
+        let (step, ink) = (line_height(BODY_PX).max(1), roles().muted);
         for (i, said) in empty_because(state).split(|&b| b == b'\n').enumerate() {
-            text::line(fb, x, y as i32 + 10 + i as i32 * step, said, MUTED, BODY_PX);
+            text::left(fb, x, y as i32 + 10 + i as i32 * step, as_str(said), ink, BODY_PX);
         }
         return;
     }

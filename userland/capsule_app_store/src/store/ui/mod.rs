@@ -16,8 +16,9 @@
 
 //! The painter.
 
-pub mod chrome;
+mod bytes;
 mod card;
+pub mod chrome;
 mod counter;
 mod detail;
 mod frame;
@@ -26,11 +27,8 @@ pub mod geometry;
 mod hex;
 pub mod metrics;
 mod rows;
-mod scrollbar;
-mod searchbar;
 mod standing;
 mod status;
-mod text;
 mod tier_path;
 mod wrap;
 

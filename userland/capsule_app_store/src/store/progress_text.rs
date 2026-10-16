@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! How an install's progress reads to a person, and in what colour.
+//! How an install's progress reads to a person, and in what tone.
 
 use nonos_market_proto::reason;
 
 use super::progress::Progress;
-use crate::store::theme::{ACCENT, DANGER, MUTED, OK};
+use crate::store::theme::{Tone, ACCENT, DANGER, MUTED, OK};
 
 impl Progress {
-    /// A sentence for the detail pane, with its colour, when there is news.
-    pub fn sentence(self) -> Option<(&'static [u8], u32)> {
-        let line: (&'static [u8], u32) = match self {
+    /// A sentence for the detail pane, with its tone, when there is news.
+    pub fn sentence(self) -> Option<(&'static [u8], Tone)> {
+        let line: (&'static [u8], Tone) = match self {
             Progress::Idle => return None,
             Progress::Queued => (b"Waiting for the installer to start", MUTED),
             Progress::Installing => (b"Downloading and checking every file", ACCENT),

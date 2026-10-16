@@ -14,10 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Breaking a description to the width it has.
+//! Kept over the toolkit's `text::wrap`, which sums each word's width where
+//! this measures the joined line, and splits at any whitespace where this
+//! splits at spaces: their breaks can differ by a word at the edge.
 
 use alloc::vec::Vec;
 
-use super::text::width_of;
+use nonos_toolkit::widgets::text::width;
+
+use super::bytes::as_str;
 
 pub fn wrap(text: &[u8], room: u32, px: f32) -> Vec<Vec<u8>> {
     let mut out: Vec<Vec<u8>> = Vec::new();
@@ -28,7 +33,7 @@ pub fn wrap(text: &[u8], room: u32, px: f32) -> Vec<Vec<u8>> {
             candidate.push(b' ');
         }
         candidate.extend_from_slice(word);
-        if width_of(&candidate, px) > room && !line.is_empty() {
+        if width(as_str(&candidate), px) > room && !line.is_empty() {
             out.push(core::mem::take(&mut line));
             line.extend_from_slice(word);
         } else {
