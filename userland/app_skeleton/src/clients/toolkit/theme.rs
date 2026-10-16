@@ -16,13 +16,16 @@
 
 use alloc::vec::Vec;
 
-use nonos_libc::mk_ipc_call;
+use nonos_libc::mk_ipc_call_timeout;
 
 const NOTK_MAGIC: u32 = 0x4E4F_544B;
 const HDR_LEN: usize = 16;
 const TOOLKIT_OP_THEME_GET: u16 = 0x0004;
 const THEME_PAYLOAD_LEN: usize = 24;
 const STATUS_OK: u16 = 0;
+/// The same budget as the frame handshake this follows: a toolkit that answered
+/// that in time answers this, and one that is gone must not hold the paint.
+const THEME_BUDGET_MS: u64 = 8;
 
 #[derive(Clone, Copy)]
 pub struct Theme {
@@ -42,8 +45,14 @@ pub fn theme_get(port: u32, request_id: u32) -> Result<Theme, &'static str> {
     request.extend_from_slice(&request_id.to_le_bytes());
     request.extend_from_slice(&0u32.to_le_bytes());
     let mut reply = [0u8; HDR_LEN + THEME_PAYLOAD_LEN];
-    let rc =
-        mk_ipc_call(port as u64, request.as_ptr(), request.len(), reply.as_mut_ptr(), reply.len());
+    let rc = mk_ipc_call_timeout(
+        port as u64,
+        request.as_ptr(),
+        request.len(),
+        reply.as_mut_ptr(),
+        reply.len(),
+        THEME_BUDGET_MS,
+    );
     if rc < (HDR_LEN + THEME_PAYLOAD_LEN) as i64 {
         return Err("toolkit theme_get short reply");
     }
