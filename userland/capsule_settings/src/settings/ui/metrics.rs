@@ -48,7 +48,6 @@ pub const SWITCH_H: u32 = 24;
 pub const SLIDER_W: u32 = 150;
 
 pub const PILL_H: u32 = 26;
-pub const PILL_PAD_X: u32 = 11;
 
 pub const TITLE_PX: f32 = 26.0;
 pub const SUBTITLE_PX: f32 = 17.0;

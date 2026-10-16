@@ -31,6 +31,4 @@ pub const OK: u32 = 0xFF33CF7D;
 pub const WARN: u32 = 0xFFE0A44A;
 pub const IDLE: u32 = 0xFF7A8E99;
 
-pub const PILL_BG: u32 = 0xFF14232C;
-pub const PILL_BORDER: u32 = 0xFF1D323D;
 pub const TRACK_BG: u32 = 0xFF25373F;

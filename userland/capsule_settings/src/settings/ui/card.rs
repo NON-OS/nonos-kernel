@@ -15,14 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::widgets::{Card, Rect, Scrolled};
+use nonos_toolkit::widgets::{Card, Pill, Rect, Scrolled, Tone as Look};
 
-use crate::settings::schema::rows::Block;
+use crate::settings::schema::rows::{Block, Tone};
 use crate::settings::state::State;
 
 use super::card_pill::block_pill;
 use super::metrics::{CARD_HEAD_H, CARD_PAD_X, PILL_H};
-use super::pill;
 
 /// Draws block `b`'s card, head included, at `at` in content coordinates.
 pub fn paint(fb: &mut PaintBuffer, b: &Block, scroll: u32, at: Rect) {
@@ -35,6 +34,17 @@ pub fn paint_pill(fb: &mut PaintBuffer, state: &State, b: &Block, x: u32, screen
     let Some((label, tone)) = block_pill(state, b) else { return };
     let pill_y = screen_y + ((CARD_HEAD_H - PILL_H) / 2) as i32;
     if pill_y >= 0 {
-        pill::draw(fb, x + w - CARD_PAD_X, pill_y as u32, label.as_str(), tone);
+        let pill = Pill::new(label.as_str()).tone(look(tone)).dot();
+        let (pw, right) = (pill.size().0, x + w - CARD_PAD_X);
+        pill.draw(fb, Rect { x: right.saturating_sub(pw), y: pill_y as u32, w: pw, h: PILL_H });
+    }
+}
+
+/// The toolkit tone a block's status reads in; idle is the plain, muted one.
+fn look(tone: Tone) -> Look {
+    match tone {
+        Tone::Ok => Look::Ok,
+        Tone::Warn => Look::Warn,
+        Tone::Idle => Look::Plain,
     }
 }
