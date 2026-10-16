@@ -24,8 +24,8 @@ use crate::widgets::draw;
 use crate::widgets::rect::{contains, share};
 
 impl Scrollbar {
-    /// Paints the thumb in `muted`, `text_2` when hovered and `text` when
-    /// pressed. Disabled, or content that fits, draws nothing.
+    /// Paints the track in `border` and the thumb over it in `muted`, `text_2`
+    /// when hovered and `text` when pressed. Disabled, or content that fits, draws nothing.
     pub fn draw(&self, fb: &mut PaintBuffer, at: Rect) {
         let (r, st) = (roles(), self.state);
         let Some(p) = self.parts(at) else {
@@ -41,6 +41,7 @@ impl Scrollbar {
         } else {
             r.muted
         };
+        draw::round(fb, p.track, p.radius, r.border);
         draw::round(fb, p.thumb, p.radius, ink);
     }
 

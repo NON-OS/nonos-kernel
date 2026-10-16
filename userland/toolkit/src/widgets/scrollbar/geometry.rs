@@ -25,6 +25,7 @@ use crate::widgets::rect::share;
 /// The placed thumb, in drawing pixels. Its top travels `travel` pixels
 /// down as the offset goes from 0 to `most`.
 pub(super) struct Parts {
+    pub(super) track: Rect,
     pub(super) thumb: Rect,
     pub(super) radius: u32,
     pub(super) travel: u32,
@@ -53,6 +54,7 @@ impl Scrollbar {
         let travel = at.h - h;
         let y = at.y.saturating_add(share(self.offset.min(most), travel, most));
         let thumb = Rect { x: at.x.saturating_add(at.w - w), y, w, h };
-        Some(Parts { thumb, radius: w / 2, travel, most })
+        let track = Rect { y: at.y, h: at.h, ..thumb };
+        Some(Parts { track, thumb, radius: w / 2, travel, most })
     }
 }
