@@ -33,8 +33,8 @@ impl Card<'_> {
         (0, self.head_h())
     }
 
-    /// The area below the head, inset by `SPACE.lg` on the left, right and
-    /// bottom, where an app places the card's rows.
+    /// The area below the head, the card's full width, less `SPACE.lg` at the
+    /// bottom, where an app places the card's rows; rows pad themselves.
     pub fn content(&self, at: Rect) -> Rect {
         self.parts(at).content
     }

@@ -58,7 +58,7 @@ impl Card<'_> {
             text: Rect { y: head.y, h: head.h, ..inset(at, pad) },
             title_top: top(title_y),
             note_top: top(note_y),
-            content: Rect { y: rest.y, h: rest.h.saturating_sub(pad), ..inset(rest, pad) },
+            content: Rect { h: rest.h.saturating_sub(pad), ..rest },
             px,
         }
     }
