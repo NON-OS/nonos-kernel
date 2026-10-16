@@ -32,7 +32,6 @@ mod says;
 mod state;
 mod stopwatch;
 mod tabs;
-mod theme;
 mod timer;
 
 pub use app::Clock;

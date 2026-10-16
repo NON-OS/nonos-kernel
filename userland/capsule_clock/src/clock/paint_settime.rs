@@ -15,25 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Button, Kind, Rect};
 
+use crate::clock::fmt;
 use crate::clock::says::DONE;
 use crate::clock::state::State;
-use crate::clock::{fmt, theme};
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let buf = fmt::hm(state.edit_hour, state.edit_min);
-    fb.text_scaled(96, 100, &buf, theme::FG, 6);
-    adj(fb, 40, b"H-");
-    adj(fb, 118, b"H+");
-    adj(fb, 202, b"M-");
-    adj(fb, 280, b"M+");
-    fb.fill_rect(40, 300, 280, 48, theme::ACCENT);
-    fb.text(150, 318, b"Apply", theme::BG);
-    let ink = if state.set_note == DONE { theme::FG } else { theme::ALERT };
-    fb.text(40, 366, state.set_note, ink);
+    let r = roles();
+    fb.text_scaled(96, 100, &buf, r.text.argb(), 6);
+    adj(fb, 40, "H-");
+    adj(fb, 118, "H+");
+    adj(fb, 202, "M-");
+    adj(fb, 280, "M+");
+    Button::new("Apply").kind(Kind::Primary).draw(fb, Rect { x: 40, y: 300, w: 280, h: 48 });
+    let ink = if state.set_note == DONE { r.text } else { r.danger };
+    fb.text(40, 366, state.set_note, ink.argb());
 }
 
-fn adj(fb: &mut PaintBuffer, x: u32, label: &[u8]) {
-    fb.fill_rect(x, 210, 68, 48, theme::DIM);
-    fb.text(x + 22, 228, label, theme::BG);
+fn adj(fb: &mut PaintBuffer, x: u32, label: &str) {
+    Button::new(label).draw(fb, Rect { x, y: 210, w: 68, h: 48 });
 }

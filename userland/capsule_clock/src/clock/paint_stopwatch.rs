@@ -15,17 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Button, Kind, Rect};
 
+use crate::clock::fmt;
 use crate::clock::state::State;
-use crate::clock::{fmt, theme};
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let e = state.sw.elapsed(state.now_ms);
     let buf = fmt::ms_clock(e);
-    fb.text_scaled(40, 150, &buf, theme::FG, 5);
-    let label: &[u8] = if state.sw.running { b"Stop" } else { b"Start" };
-    fb.fill_rect(40, 300, 130, 46, theme::ACCENT);
-    fb.text(80, 318, label, theme::BG);
-    fb.fill_rect(190, 300, 130, 46, theme::DIM);
-    fb.text(228, 318, b"Reset", theme::BG);
+    fb.text_scaled(40, 150, &buf, roles().text.argb(), 5);
+    let label = if state.sw.running { "Stop" } else { "Start" };
+    Button::new(label).kind(Kind::Primary).draw(fb, Rect { x: 40, y: 300, w: 130, h: 46 });
+    Button::new("Reset").draw(fb, Rect { x: 190, y: 300, w: 130, h: 46 });
 }

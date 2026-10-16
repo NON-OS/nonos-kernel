@@ -15,16 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::clock::says::NOT_SET;
 use crate::clock::state::State;
 use crate::clock::tabs::Tab;
-use crate::clock::{
-    fmt, paint_analog, paint_settime, paint_stopwatch, paint_tabbar, paint_timer, theme,
-};
+use crate::clock::{fmt, paint_analog, paint_settime, paint_stopwatch, paint_tabbar, paint_timer};
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
-    fb.clear(theme::BG);
+    fb.clear(roles().bg.argb());
     match state.tab {
         Tab::Clock => paint_clock(state, fb),
         Tab::Stopwatch => paint_stopwatch::paint(state, fb),
@@ -35,21 +34,22 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
 }
 
 fn paint_clock(state: &State, fb: &mut PaintBuffer) {
-    // Drawn from no reading the face would show midnight of year zero.
+    let theme = roles();
+    /* Drawn from no reading the face would show midnight of year zero. */
     if !state.clock_ok {
-        fb.text(40, 122, NOT_SET, theme::ALERT);
+        fb.text(40, 122, NOT_SET, theme.danger.argb());
         return;
     }
-    let r = &state.rtc;
+    let (r, muted) = (&state.rtc, theme.muted.argb());
     let hms = fmt::hms(r.hour, r.minute, r.second);
-    fb.text_scaled(36, 72, &hms, theme::FG, 4);
+    fb.text_scaled(36, 72, &hms, theme.text.argb(), 4);
     let wd = fmt::weekday(r.year, r.month, r.day);
-    fb.text(40, 122, wd.as_bytes(), theme::DIM);
+    fb.text(40, 122, wd.as_bytes(), muted);
     let mon = fmt::month_name(r.month);
-    fb.text(40, 142, mon.as_bytes(), theme::DIM);
+    fb.text(40, 142, mon.as_bytes(), muted);
     let dd = fmt::two(r.day);
-    fb.text(84, 142, &dd, theme::DIM);
+    fb.text(84, 142, &dd, muted);
     let yr = fmt::year4(r.year);
-    fb.text(120, 142, &yr, theme::DIM);
+    fb.text(120, 142, &yr, muted);
     paint_analog::paint(state, fb, 180, 300, 84);
 }

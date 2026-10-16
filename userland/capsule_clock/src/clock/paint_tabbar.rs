@@ -15,18 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::clock::tabs::{self, Tab, BAR_H, BAR_TOP};
-use crate::clock::theme;
 
 pub fn paint(tab: Tab, fb: &mut PaintBuffer, width: u32) {
-    let w = width / 4;
+    let (w, r) = (width / 4, roles());
     for (i, t) in tabs::all().iter().enumerate() {
         let x = i as u32 * w;
         let active = *t == tab;
-        let bg = if active { theme::ACCENT } else { theme::BG };
-        fb.fill_rect(x, BAR_TOP as u32, w, BAR_H as u32, bg);
-        let fg = if active { theme::BG } else { theme::DIM };
-        fb.text(x + 10, (BAR_TOP + 10) as u32, tabs::label(*t), fg);
+        let bg = if active { r.accent } else { r.bg };
+        fb.fill_rect(x, BAR_TOP as u32, w, BAR_H as u32, bg.argb());
+        let fg = if active { r.on_accent } else { r.muted };
+        fb.text(x + 10, (BAR_TOP + 10) as u32, tabs::label(*t), fg.argb());
     }
 }
