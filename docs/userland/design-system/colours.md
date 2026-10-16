@@ -27,9 +27,9 @@ Where `theme/chrome/` uses a different ratio, chrome is changed: no app reads it
 | `border_soft` | opaque | a line inside one surface | `mix(bg, border, 87)` |
 | `border_strong` | opaque | control outline | `mix(border, text, 16)` |
 | `text` | opaque | body and titles | seed |
-| `text_2` | opaque | a value beside its label | `mix(text, bg, 36)` |
-| `muted` | opaque | secondary text | `legible::muted(text, bg, surface, MUTED_TARGET)` |
-| `quiet` | opaque | placeholder, hint | `legible::quiet(text, bg, surface, QUIET_TARGET)` |
+| `text_2` | opaque | a value beside its label | `mix(text, bg, 36)`, stepped back to clear 4.5:1 on all four grounds |
+| `muted` | opaque | secondary text | `mix(text, bg, MUTED_TARGET)`, stepped back the same way |
+| `quiet` | opaque | placeholder, hint | `mix(text, bg, QUIET_TARGET)`, stepped back to clear 3:1 |
 | `disabled` | opaque | an unavailable control | `mix(border, text, 57)` |
 | `accent` | opaque | links, on states, the brand | seed |
 | `accent_text` | opaque | an active tab or nav label | `mix(accent, text, 146)` |
@@ -62,10 +62,12 @@ the dock-tile hole bug out of the widgets. Existing `paint` signatures do not ch
 
 - 4.5:1 for `text`, `text_2` and `muted` on `bg`, `surface`, `sunken` and `raised`, and for
   `on_accent` on `accent`.
-- 3:1 for `quiet` on `bg` and `surface`, and for `accent` on `bg`.
+- 3:1 for `quiet` on all four grounds, since a placeholder sits on `raised`, and for `accent` on `bg`.
 - `disabled`, borders and washes carry no floor. They are not read as text.
 
-The `on_accent` rule exists for Solarized: its `bg` reads at only 4.08:1 on its accent.
+The `on_accent` rule exists for Solarized: its `bg` reads at only 4.08:1 on its accent. The
+stepping back (`legible_walk::walk_on`) exists for it too: its text reads at only 4.86:1 on its
+own surface, so a fixed step towards the ground would fail.
 
 ## What Light changes
 
