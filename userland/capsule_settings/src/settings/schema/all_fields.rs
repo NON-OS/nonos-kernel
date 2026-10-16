@@ -32,6 +32,8 @@ pub const ALL_FIELDS: &[Field] = &[
     Field::Wallpaper,            // wallpaper capsule
     Field::WallpapersKept,       // wallpaper catalog: the only ones read
     Field::MouseSensitivity,     // input router
+    Field::Theme,                // every app's and the shell's theme_follow
+    Field::HighContrast,         // every app's and the shell's theme_follow
     Field::Persistent,           // vfs persistence gate
     Field::SoundEnabled,         // shell tones
     Field::Volume,               // shell tones

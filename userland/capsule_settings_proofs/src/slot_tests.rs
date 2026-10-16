@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The rows the Settings cursor stops on in Appearance: the desktop's
-//! wallpaper, the count of those kept, then every wallpaper of the
-//! collection in catalog order, then the pointer. A wallpaper row is a stop of
+//! The rows the Settings cursor stops on in Appearance: the theme and high
+//! contrast, the desktop's wallpaper, the count of those kept, then every
+//! wallpaper of the collection in catalog order, then the pointer. A wallpaper row is a stop of
 //! its own and names no field, so nothing meant for a field acts on it.
 
 use nonos_policy_proto::wallpaper_labels::WALLPAPER_LABELS;
@@ -29,15 +29,17 @@ use crate::settings::section::Section;
 fn appearance_stops_on_every_wallpaper_in_order() {
     let n = WALLPAPER_LABELS.len();
     let s = Section::Appearance;
-    assert_eq!(field_count(s), 2 + n + 1);
-    assert!(slot_at(s, 0) == Some(Slot::Field(Field::Wallpaper)));
-    assert!(slot_at(s, 1) == Some(Slot::Field(Field::WallpapersKept)));
+    assert_eq!(field_count(s), 4 + n + 1);
+    assert!(slot_at(s, 0) == Some(Slot::Field(Field::Theme)));
+    assert!(slot_at(s, 1) == Some(Slot::Field(Field::HighContrast)));
+    assert!(slot_at(s, 2) == Some(Slot::Field(Field::Wallpaper)));
+    assert!(slot_at(s, 3) == Some(Slot::Field(Field::WallpapersKept)));
     for i in 0..n {
-        assert!(slot_at(s, 2 + i) == Some(Slot::Wallpaper(i as u8)), "wallpaper {i}");
-        assert!(field_at(s, 2 + i).is_none(), "a wallpaper row names no field");
+        assert!(slot_at(s, 4 + i) == Some(Slot::Wallpaper(i as u8)), "wallpaper {i}");
+        assert!(field_at(s, 4 + i).is_none(), "a wallpaper row names no field");
     }
-    assert!(slot_at(s, 2 + n) == Some(Slot::Field(Field::MouseSensitivity)));
-    assert!(slot_at(s, 3 + n).is_none());
+    assert!(slot_at(s, 4 + n) == Some(Slot::Field(Field::MouseSensitivity)));
+    assert!(slot_at(s, 5 + n).is_none());
 }
 
 #[test]

@@ -3,8 +3,8 @@
 ## The design
 
 1. Settings gets two rows in `capsule_settings/src/settings/schema/blocks/appearance.rs`:
-   `Row::Field(Field::Theme)` and `Row::Field(Field::HighContrast)`. They land last, once every
-   app follows the choice. The policy store already
+   `Row::Field(Field::Theme)` and `Row::Field(Field::HighContrast)`, in a Theme block first in
+   Appearance. They landed last, once every app followed the choice. The policy store already
    keeps both. Only Settings and the setup wizard may write them
    (`capsule_policy/src/server/handle_set.rs`, `SETTERS`).
 2. `app_skeleton` reads both fields with `nonos_policy_client` (`get_u8`, `get_bool`). These go

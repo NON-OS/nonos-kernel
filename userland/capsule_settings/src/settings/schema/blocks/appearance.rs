@@ -19,6 +19,12 @@ use nonos_policy_proto::Field;
 use crate::settings::schema::rows::{Block, Pill, Row};
 
 pub const APPEARANCE: &[Block] = &[
+    Block {
+        title: "Theme",
+        note: Some("Every app follows this, within about a second."),
+        pill: Pill::None,
+        rows: &[Row::Field(Field::Theme), Row::Field(Field::HighContrast)],
+    },
     Block { title: "Desktop", note: None, pill: Pill::None, rows: &[Row::Field(Field::Wallpaper)] },
     Block {
         title: "Wallpapers kept",

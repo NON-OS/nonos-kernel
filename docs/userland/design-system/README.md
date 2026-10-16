@@ -5,8 +5,8 @@ person picks reaching every app. An app imports a widget and draws it. It names 
 no drawing arithmetic of its own.
 
 **Status:** built on `feat/toolkit-design-system`: the roles, sizes, 15 widgets, the theme
-following, and every app in [Migration](migration.md) moved over. Settings' two theme rows land
-last; until then the policy store's default theme is in force. The decision behind it is
+following, every app in [Migration](migration.md) moved over, and Settings' Theme block, where
+the theme and high contrast are chosen. The decision behind it is
 [ADR 0001](../../../adr/0001-toolkit-design-system.md).
 
 ## Goals
