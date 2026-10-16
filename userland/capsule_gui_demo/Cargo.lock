@@ -70,6 +70,7 @@ name = "nonos_gui_demo"
 version = "0.1.0"
 dependencies = [
  "nonos_app_skeleton",
+ "nonos_toolkit",
  "nonos_userland_libc",
 ]
 

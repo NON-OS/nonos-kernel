@@ -15,24 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Card, Rect};
 
 use super::decimal::{render_u32, DIGITS};
 use super::manifest::WIDTH;
 
-const BG: u32 = 0xFF10161C;
-const ACCENT: u32 = 0xFF00D4AA;
-const TEXT: u32 = 0xFFE8F0F8;
-const DIM: u32 = 0xFF667788;
-const PANEL: u32 = 0xFF1A2430;
-
 pub fn paint(fb: &mut PaintBuffer, clicks: u32) {
-    fb.clear(BG);
-    fb.fill_rect(0, 0, WIDTH, 4, ACCENT);
-    fb.text_scaled(24, 36, b"gui demo", ACCENT, 2);
-    fb.text(24, 76, b"click the window to count", TEXT);
-    fb.fill_rect(24, 100, 332, 60, PANEL);
-    fb.text(40, 122, b"clicks", DIM);
+    let r = roles();
+    fb.clear(r.bg.argb());
+    fb.fill_rect(0, 0, WIDTH, 4, r.accent.argb());
+    fb.text_scaled(24, 36, b"gui demo", r.accent.argb(), 2);
+    fb.text(24, 76, b"click the window to count", r.text.argb());
+    Card::new().draw(fb, Rect { x: 24, y: 100, w: 332, h: 60 });
+    fb.text(40, 122, b"clicks", r.muted.argb());
     let mut buf = [0u8; DIGITS];
-    fb.text_scaled(140, 112, render_u32(clicks, &mut buf), TEXT, 3);
-    fb.text(24, 186, b"press Esc to close", DIM);
+    fb.text_scaled(140, 112, render_u32(clicks, &mut buf), r.text_2.argb(), 3);
+    fb.text(24, 186, b"press Esc to close", r.quiet.argb());
 }
