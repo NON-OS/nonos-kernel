@@ -18,9 +18,9 @@
 //! of this surface, so the layout starts where that strip ends.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::super::app::Editor;
-use super::super::theme;
 use super::metrics::{pane_x, PANE_PAD};
 use super::pane::paint_pane_head;
 use super::rail::paint_rail;
@@ -31,7 +31,7 @@ const MIN_COLS_W: u32 = 200;
 
 pub(crate) fn paint_home(ed: &mut Editor, fb: &mut PaintBuffer) {
     let (w, h) = (fb.width, fb.height);
-    fb.fill_rect(0, 0, w, h, theme::active().background);
+    fb.fill_rect(0, 0, w, h, roles().bg.argb());
     HomeState::note_size(w, h);
     if h == 0 || w <= pane_x() + PANE_PAD * 2 {
         return;

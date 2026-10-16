@@ -14,24 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Settings palette.
+//! The editor palette. A theme carries every colour the shell paints with, so
+//! switching themes recolours the whole editor at once: body, gutter, syntax,
+//! and the chrome (tab bar, sidebar, activity bar, status bar). The choices are
+//! System, which follows the OS theme set in Settings and is the default, then
+//! four fixed themes. One is active process-wide, so every tab shares it and the
+//! theme button can switch it from any paint path.
 
-use crate::editor::widget::NavStyle;
+mod active;
+mod fields;
+mod ink;
+mod named;
+mod system;
 
-pub(super) const RAIL_BG: u32 = 0xFF08111D;
-pub(super) const HAIRLINE: u32 = 0xFF16273B;
-pub(super) const CARD_BG: u32 = 0xFF0B1524;
-pub(super) const TEXT: u32 = 0xFFE4ECF5;
-pub(super) const MUTED: u32 = 0xFF9BB0C7;
-pub(super) const SWITCH: (u32, u32, u32) = (0xFF17BED9, 0xFF1C2F47, 0xFFE4ECF5);
-
-pub(super) fn nav_live() -> NavStyle {
-    NavStyle {
-        accent: 0xFF0C4C5D,
-        ring: 0x4017BED9,
-        label: MUTED,
-        label_sel: TEXT,
-        radius: 9,
-        pad_x: 12,
-    }
-}
+pub use active::{active, cycle};
+pub use fields::Theme;
+pub use system::SELECT_WASH;

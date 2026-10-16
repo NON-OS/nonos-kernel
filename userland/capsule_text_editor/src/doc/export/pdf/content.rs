@@ -20,7 +20,12 @@ use crate::doc::document::Doc;
 use crate::doc::export::pdf::fmt::{push_f32, push_usize};
 use crate::doc::export::pdf::text::push_literal;
 use crate::doc::page::{Page, PageMetrics};
-use crate::doc::style::{Family, RunStyle};
+use crate::doc::style::{Family, RunStyle, INK_TEXT};
+
+/// Body text on paper. A printed page keeps its own colours, not the screen's theme.
+const PRINT_TEXT: u32 = 0xFF00_0000;
+/// Headings and accent text on paper: the editor's cyan, darkened to read on white.
+const PRINT_ACCENT: u32 = 0xFF0E_7490;
 
 pub fn font_index(style: &RunStyle) -> usize {
     let base = match style.family {
@@ -49,7 +54,7 @@ pub fn page_content(doc: &Doc, page: &Page, pm: &PageMetrics) -> Vec<u8> {
         out.push(b' ');
         push_f32(&mut out, style.size_px);
         out.extend_from_slice(b" Tf\n");
-        push_rgb(&mut out, style.color);
+        push_rgb(&mut out, print_ink(style.color));
         out.extend_from_slice(b"1 0 0 1 ");
         push_f32(&mut out, pm.margin);
         out.push(b' ');
@@ -60,6 +65,16 @@ pub fn page_content(doc: &Doc, page: &Page, pm: &PageMetrics) -> Vec<u8> {
     }
     out.extend_from_slice(b"ET\n");
     out
+}
+
+/// The paper colour for a run's ink: body text black, headings and accent text
+/// the print accent.
+fn print_ink(ink: u32) -> u32 {
+    if ink == INK_TEXT {
+        PRINT_TEXT
+    } else {
+        PRINT_ACCENT
+    }
 }
 
 fn push_rgb(out: &mut Vec<u8>, color: u32) {

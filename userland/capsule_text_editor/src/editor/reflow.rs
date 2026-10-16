@@ -37,9 +37,11 @@ impl State {
             return;
         }
         self.doc = doc_from_text(&self.buf[..self.len]);
-        // The text carries headings; the ribbon's formatting and alignment
-        // are carried beside it and laid back over the fresh model.
-        self.apply_styles(super::theme::active().accent);
+        /*
+         * The text carries headings; the ribbon's formatting and alignment
+         * are carried beside it and laid back over the fresh model.
+         */
+        self.apply_styles();
         self.pages = paginate(&self.doc, &self.page_metrics, &TtfMeasurer);
     }
 }

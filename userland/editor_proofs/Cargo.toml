@@ -14,3 +14,5 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
+# The editor's System theme is worked out from the toolkit's theme roles.
+nonos_toolkit = { path = "../toolkit", default-features = false }

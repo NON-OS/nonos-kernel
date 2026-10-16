@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use capsule_text_editor_layout_tests::doc::style::{Family, RunStyle};
+use capsule_text_editor_layout_tests::doc::style::{Family, RunStyle, INK_HEADING};
 
 #[test]
 fn body_is_regular_sans() {
@@ -33,7 +33,7 @@ fn headings_shrink_with_level_and_are_bold() {
     assert!(h1.bold && h2.bold && h6.bold);
     assert!(h1.size_px > h2.size_px);
     assert!(h2.size_px > h6.size_px);
-    assert_eq!(h1.color, 0xFF17BED9);
+    assert_eq!(h1.color, INK_HEADING);
 }
 
 #[test]

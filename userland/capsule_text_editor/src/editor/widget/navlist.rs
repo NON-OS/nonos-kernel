@@ -19,9 +19,12 @@
 //! paint already on the surface rather than written raw.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::derive::{mix, with_alpha};
+use nonos_toolkit::theme::roles;
 use nonos_toolkit::ttf::line_height;
 
 use super::truncate::truncate_to_width;
+use crate::editor::theme::SELECT_WASH;
 
 pub(in crate::editor) struct NavStyle {
     pub accent: u32,
@@ -30,6 +33,22 @@ pub(in crate::editor) struct NavStyle {
     pub label_sel: u32,
     pub radius: u32,
     pub pad_x: u32,
+}
+
+impl NavStyle {
+    /// The rail list Home and Settings share, in the OS theme's colours: the
+    /// selected row washed from the rail towards the accent and edged in it.
+    pub(in crate::editor) fn rail(pad_x: u32) -> Self {
+        let r = roles();
+        Self {
+            accent: mix(r.sunken.argb(), r.accent.argb(), SELECT_WASH),
+            ring: r.accent_edge.argb(),
+            label: r.muted.argb(),
+            label_sel: r.text.argb(),
+            radius: 9,
+            pad_x,
+        }
+    }
 }
 
 pub(in crate::editor) fn nav_row_h(px: f32) -> u32 {
@@ -51,10 +70,10 @@ pub(in crate::editor) fn paint_navlist(
     for (i, label) in labels.iter().enumerate() {
         let ry = y + i as u32 * rh;
         if i == selected && w > cap {
-            let a = (st.accent >> 24) & 0xFF;
-            let mid = (a * (w - cap) as u32 / w) << 24 | (st.accent & 0x00FF_FFFF);
+            let a = st.accent >> 24;
+            let mid = with_alpha(st.accent, (a * (w - cap) / w) as u8);
             fb.fill_round(x, ry, cap, rh, st.radius, st.accent);
-            fb.gradient_h(x + cap, ry, w - cap, rh, mid, st.accent & 0x00FF_FFFF);
+            fb.gradient_h(x + cap, ry, w - cap, rh, mid, with_alpha(st.accent, 0));
             fb.stroke_round(x, ry, w, rh, st.radius, 1, st.ring);
         }
         let avail = w.saturating_sub(st.pad_x * 2) as i32;

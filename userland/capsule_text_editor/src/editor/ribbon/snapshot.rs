@@ -24,9 +24,8 @@ use alloc::string::{String, ToString};
 use super::items::{FONTS, HEADINGS};
 use crate::doc::align::Align;
 use crate::doc::list::syntax::{kind_of, ListKind};
-use crate::doc::style::{Family, RunStyle};
+use crate::doc::style::{Family, RunStyle, INK_ACCENT};
 use crate::editor::state::State;
-use crate::editor::theme;
 
 pub(in crate::editor) struct RibbonState {
     pub style: String,
@@ -42,12 +41,11 @@ pub(in crate::editor) fn ribbon_state(st: &State) -> RibbonState {
     let block = st.doc.blocks.get(b);
     let level = block.and_then(|x| x.kind.heading_level()).unwrap_or(0);
     let run = block.map(|x| x.style_at(off)).unwrap_or_else(RunStyle::body);
-    let accent = theme::active().accent;
     RibbonState {
         style: HEADINGS[level.min(6) as usize].0.to_string(),
         font: FONTS[usize::from(run.family == Family::Mono)].to_string(),
         size: format!("{}", (run.size_px + 0.5) as u32),
-        flags: [run.bold, run.italic, run.underline, run.strike, run.color == accent],
+        flags: [run.bold, run.italic, run.underline, run.strike, run.color == INK_ACCENT],
         align: block.map(|x| x.align).unwrap_or(Align::Left),
         list: block.and_then(|x| kind_of(x.as_str().as_bytes())),
     }

@@ -3027,12 +3027,17 @@
   "signed": []
  },
  "userland/editor_proofs": {
-  "exclude": [],
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
   "include": [
    ".cargo",
+   "userland/assets/icons",
    "userland/capsule_text_editor/src/doc",
    "userland/capsule_text_editor/src/editor",
-   "userland/editor_proofs"
+   "userland/editor_proofs",
+   "userland/libc",
+   "userland/toolkit"
   ],
   "md": [],
   "signed": []

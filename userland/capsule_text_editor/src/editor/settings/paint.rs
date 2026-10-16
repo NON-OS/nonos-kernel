@@ -18,9 +18,9 @@
 //! for the selected section, from its table.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::super::app::Editor;
-use super::super::theme;
 use super::rail::paint_rail;
 use super::sect::section;
 use super::sect_paint::paint_section;
@@ -28,7 +28,7 @@ use super::state::{latch_width, state};
 
 pub(crate) fn paint_settings(_ed: &mut Editor, fb: &mut PaintBuffer) {
     let (w, h) = (fb.width, fb.height);
-    fb.fill_rect(0, 0, w, h, theme::active().background);
+    fb.fill_rect(0, 0, w, h, roles().bg.argb());
     latch_width(w);
     let st = state();
     paint_rail(fb, st.nav);

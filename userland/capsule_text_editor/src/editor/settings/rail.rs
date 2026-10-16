@@ -18,18 +18,18 @@
 //! now has a panel behind it, so the list is painted live in one pass.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::geom::{nav_rect, title_top, NAV_LABELS, NAV_PX, RAIL_PAD, RAIL_W, RAIL_X, TITLE_PX};
-use super::style::{nav_live, HAIRLINE, RAIL_BG, TEXT};
-use crate::editor::widget::paint_navlist;
+use crate::editor::widget::{paint_navlist, NavStyle};
 
 pub(super) fn paint_rail(fb: &mut PaintBuffer, selected: usize) {
-    let h = fb.height;
-    fb.fill_rect(RAIL_X, 0, RAIL_W, h, RAIL_BG);
-    fb.fill_rect(RAIL_X + RAIL_W - 1, 0, 1, h, HAIRLINE);
+    let (h, r) = (fb.height, roles());
+    fb.fill_rect(RAIL_X, 0, RAIL_W, h, r.sunken.argb());
+    fb.fill_rect(RAIL_X + RAIL_W - 1, 0, 1, h, r.border.argb());
     let tx = (RAIL_X + RAIL_PAD + 12) as i32;
-    let _ = fb.text_ttf(tx, title_top() as i32, "Docs Settings", TEXT, TITLE_PX);
+    let _ = fb.text_ttf(tx, title_top() as i32, "Docs Settings", r.text.argb(), TITLE_PX);
 
     let (nx, ny, nw) = nav_rect();
-    paint_navlist(fb, (nx, ny, nw), &NAV_LABELS, selected, NAV_PX, &nav_live());
+    paint_navlist(fb, (nx, ny, nw), &NAV_LABELS, selected, NAV_PX, &NavStyle::rail(12));
 }

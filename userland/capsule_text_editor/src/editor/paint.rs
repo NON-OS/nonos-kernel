@@ -119,6 +119,7 @@ fn paint_body(state: &State, fb: &mut PaintBuffer, adv: u32) {
     let mut col = 0u32;
     let mut line = 0u32;
     let mut chbuf = [0u8; 4];
+    let th = theme::active();
     for (bi, ch) in text.char_indices() {
         if ch == '\n' || col == state.wrap_cols {
             line += 1;
@@ -138,15 +139,16 @@ fn paint_body(state: &State, fb: &mut PaintBuffer, adv: u32) {
         let x = left + col * adv;
         if let Some((s, e)) = sel {
             if bi >= s && bi < e {
-                fb.fill_rect(x, ty, adv, lh, theme::active().selection);
+                fb.fill_rect(x, ty, adv, lh, th.selection);
             }
         }
         if ch > ' ' && ch != '\u{7f}' {
-            let color = highlight::color(toks.get(bi).copied().unwrap_or(highlight::Tok::Text));
+            let tok = toks.get(bi).copied().unwrap_or(highlight::Tok::Text);
+            let color = highlight::color(&th, tok);
             let s = ch.encode_utf8(&mut chbuf);
             let _ = fb.text_ttf_mono(x as i32, ty as i32, s, color, px);
         } else if invisibles {
-            paint_invisible(fb, ch, x, ty, adv, lh);
+            paint_invisible(fb, ch, x, ty, adv, lh, th.disabled);
         }
         col += 1;
     }
@@ -156,14 +158,13 @@ fn paint_body(state: &State, fb: &mut PaintBuffer, adv: u32) {
 ///
 /// Drawn as marks rather than glyphs so they cannot be confused with text a
 /// document actually contains: a centred dot for a space, a short arrow for a
-/// tab. Both in the disabled colour, which is the dimmest the theme defines,
-/// because these are an aid and not content.
+/// tab. Both in `c`, the theme's disabled colour, which is the dimmest it
+/// defines, because these are an aid and not content.
 ///
 /// Line ends are not marked. The wrap loop consumes a newline before a column
 /// is known for it, so marking one would need the position from before the
 /// wrap, and a mark in the wrong column is worse than none.
-fn paint_invisible(fb: &mut PaintBuffer, ch: char, x: u32, ty: u32, adv: u32, lh: u32) {
-    let c = theme::active().disabled;
+fn paint_invisible(fb: &mut PaintBuffer, ch: char, x: u32, ty: u32, adv: u32, lh: u32, c: u32) {
     match ch {
         ' ' => {
             fb.fill_rect(x + adv / 2, ty + lh / 2, 1, 1, c);

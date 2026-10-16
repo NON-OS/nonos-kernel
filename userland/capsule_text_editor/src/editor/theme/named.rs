@@ -14,50 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The editor palette. A theme carries every colour the shell paints with, so
-//! switching themes recolours the whole editor at once: body, gutter, syntax,
-//! and the chrome (tab bar, sidebar, activity bar, status bar). One theme is
-//! active process-wide, held in an atomic so every tab shares it and the theme
-//! button can flip it from any paint path.
+//! The four fixed themes. Each is a choice the user made by name, so its colours
+//! are its own and do not move with the OS theme.
 
-use core::sync::atomic::{AtomicUsize, Ordering};
+use super::fields::Theme;
 
-// A full palette. Every field is an ARGB colour with a 0xFF alpha.
-#[derive(Clone, Copy)]
-pub struct Theme {
-    pub background: u32,
-    pub foreground: u32,
-    pub title: u32,
-    pub muted: u32,
-    pub disabled: u32,
-    pub header_bg: u32,
-    pub activity_bg: u32,
-    pub sidebar_bg: u32,
-    pub tabbar_bg: u32,
-    pub tab_active_bg: u32,
-    pub tab_inactive_bg: u32,
-    pub row_select: u32,
-    pub icon: u32,
-    pub icon_active: u32,
-    pub folder: u32,
-    pub gutter_bg: u32,
-    pub gutter_fg: u32,
-    pub gutter_cur: u32,
-    pub line: u32,
-    pub accent: u32,
-    pub caret: u32,
-    pub current_line: u32,
-    pub selection: u32,
-    pub syn_keyword: u32,
-    pub syn_string: u32,
-    pub syn_comment: u32,
-    pub syn_number: u32,
-    pub syn_type: u32,
-    pub syn_function: u32,
-}
-
-// The bundled themes, cycled by the theme button and Ctrl+B. Index 0 is the
-// NONOS Docs default: cyan on deep navy, matching the shell's own identity.
+/// The fixed themes, in the order the theme button and Ctrl+K T reach them after
+/// System. NONOS Docs is cyan on deep navy, matching the shell's own identity.
 pub const THEMES: [Theme; 4] = [
     // NONOS Docs.
     Theme {
@@ -188,16 +151,3 @@ pub const THEMES: [Theme; 4] = [
         syn_function: 0xFF88C0D0,
     },
 ];
-
-// The index of the active theme, shared by every tab and paint path.
-static ACTIVE: AtomicUsize = AtomicUsize::new(0);
-
-// The palette every painter reads from this frame.
-pub fn active() -> &'static Theme {
-    &THEMES[ACTIVE.load(Ordering::Relaxed) % THEMES.len()]
-}
-
-// Advance to the next theme, wrapping. Driven by the theme button and Ctrl+B.
-pub fn cycle() {
-    ACTIVE.store((ACTIVE.load(Ordering::Relaxed) + 1) % THEMES.len(), Ordering::Relaxed);
-}

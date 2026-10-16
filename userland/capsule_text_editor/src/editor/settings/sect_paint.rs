@@ -19,22 +19,23 @@
 //! router calls, so a switch is never drawn where a press would miss it.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::card::{card_rect, control_box, row_y, RADIUS, ROW_H, ROW_PAD, TOGGLE_H, TOGGLE_W};
 use super::geom::{head_top, lh, pane_x, HEAD_PX, PANE_PAD, ROW_PX};
 use super::sect::{sect_rect, Ctl, Section};
 use super::sect_state::sect_on;
-use super::style::{CARD_BG, HAIRLINE, SWITCH, TEXT};
 use crate::editor::widget::{paint_toggle, truncate_to_width};
 
 pub(super) fn paint_section(fb: &mut PaintBuffer, nav: usize, sec: &Section) {
-    let width = fb.width;
+    let (width, r) = (fb.width, roles());
     let hx = (pane_x() + PANE_PAD) as i32;
-    let _ = fb.text_ttf(hx, head_top() as i32, sec.head, TEXT, HEAD_PX);
+    let _ = fb.text_ttf(hx, head_top() as i32, sec.head, r.text.argb(), HEAD_PX);
     let (cx, cy, cw, ch) = sect_rect(width, sec.rows.len());
-    fb.panel(cx, cy, cw, ch, RADIUS, CARD_BG, HAIRLINE);
+    fb.panel(cx, cy, cw, ch, RADIUS, r.surface.argb(), r.border.argb());
     for i in 1..sec.rows.len() {
-        fb.fill_rect(cx + 1, cy + i as u32 * ROW_H, cw.saturating_sub(2), 1, HAIRLINE);
+        let y = cy + i as u32 * ROW_H;
+        fb.fill_rect(cx + 1, y, cw.saturating_sub(2), 1, r.border_soft.argb());
     }
     for (i, row) in sec.rows.iter().enumerate() {
         paint_row(fb, width, nav, i, row);
@@ -46,8 +47,10 @@ fn paint_row(fb: &mut PaintBuffer, width: u32, nav: usize, row: usize, spec: &(&
     let ty = (row_y(width, row) + ROW_H.saturating_sub(lh(ROW_PX)) / 2) as i32;
     let avail = cw.saturating_sub(ROW_PAD * 2 + TOGGLE_W + 16) as i32;
     let cut = truncate_to_width(fb, spec.0, ROW_PX, avail);
-    let _ = fb.text_ttf((cx + ROW_PAD) as i32, ty, cut, TEXT, ROW_PX);
+    let r = roles();
+    let _ = fb.text_ttf((cx + ROW_PAD) as i32, ty, cut, r.text.argb(), ROW_PX);
     let Ctl::Toggle(bit) = spec.1;
     let rect = control_box(width, row, TOGGLE_W, TOGGLE_H);
-    paint_toggle(fb, rect, sect_on(nav, bit), SWITCH);
+    let colours = (r.accent.argb(), r.border_strong.argb(), r.text.argb());
+    paint_toggle(fb, rect, sect_on(nav, bit), colours);
 }

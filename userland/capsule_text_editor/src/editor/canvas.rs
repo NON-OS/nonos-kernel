@@ -21,6 +21,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::{ascent_with, builtin_face, draw_text_sheared, OBLIQUE};
+use nonos_toolkit::theme::roles;
 
 use super::state::State;
 use super::table_paint::paint_row;
@@ -33,8 +34,6 @@ use crate::doc::ttf_measure::TtfMeasurer;
 
 const SHEET_R: u32 = 10;
 const SHEET_TOP: u32 = 12;
-const SHEET_BG: u32 = 0xFF14_1A22;
-const SHEET_SHADOW: u32 = 0x5000_0000;
 
 pub(super) fn page_index(state: &State) -> usize {
     let (block, off) = state.doc_pos(state.caret);
@@ -57,18 +56,13 @@ pub(super) fn paint_document(state: &mut State, fb: &mut PaintBuffer) {
     if state.pages.is_empty() {
         state.reflow();
     }
-    fb.fill_rect(
-        state.pane_x,
-        state.pane_y,
-        state.pane_w,
-        state.pane_h,
-        theme::active().background,
-    );
+    let th = theme::active();
+    fb.fill_rect(state.pane_x, state.pane_y, state.pane_w, state.pane_h, th.background);
     let (sx, sy) = sheet_origin(state);
     let sw = state.page_metrics.width as u32;
     let sh = (state.page_metrics.height as u32).min(state.pane_h.saturating_sub(2 * SHEET_TOP));
-    fb.shadow_round(sx, sy, sw, sh, SHEET_R, 10, SHEET_SHADOW);
-    fb.fill_round(sx, sy, sw, sh, SHEET_R, SHEET_BG);
+    fb.shadow_round(sx, sy, sw, sh, SHEET_R, 10, roles().shadow.argb());
+    fb.fill_round(sx, sy, sw, sh, SHEET_R, th.tab_inactive_bg);
     paint_lines(state, fb, sx, sy);
     paint_caret(state, fb, sx, sy);
 }
@@ -92,6 +86,7 @@ fn paint_lines(state: &State, fb: &mut PaintBuffer, sx: u32, sy: u32) {
     let m = state.page_metrics.margin as i32;
     let (w, h, stride) = (fb.width, fb.height, fb.stride_words as usize);
     let cw = state.page_metrics.content_width();
+    let th = theme::active();
     for (li, line) in page.lines.iter().enumerate() {
         let Some(b) = state.doc.blocks.get(line.block) else { continue };
         if is_row(b.as_str()) {
@@ -105,16 +100,16 @@ fn paint_lines(state: &State, fb: &mut PaintBuffer, sx: u32, sy: u32) {
         let x = sx as i32 + m + line_offset(b, line, cw) as i32;
         let y = sy as i32 + m + line.y as i32;
         let slant = if st.italic { OBLIQUE } else { 0.0 };
-        let end = draw_text_sheared(
-            f, fb.pixels, stride, w, h, x, y, text, st.color, st.size_px, 0.0, slant,
-        );
+        let ink = th.ink(st.color);
+        let end =
+            draw_text_sheared(f, fb.pixels, stride, w, h, x, y, text, ink, st.size_px, 0.0, slant);
         if st.underline || st.strike {
             let a = ascent_with(f, st.size_px);
             if st.underline {
-                rule(fb, x, y + a + 2, end - x, st.size_px, st.color);
+                rule(fb, x, y + a + 2, end - x, st.size_px, ink);
             }
             if st.strike {
-                rule(fb, x, y + a * 2 / 3, end - x, st.size_px, st.color);
+                rule(fb, x, y + a * 2 / 3, end - x, st.size_px, ink);
             }
         }
     }

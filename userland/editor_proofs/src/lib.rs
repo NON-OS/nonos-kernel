@@ -123,7 +123,7 @@ pub mod state_new;
 #[path = "../../capsule_text_editor/src/editor/style_marks.rs"]
 pub mod style_marks;
 #[cfg(test)]
-#[path = "../../capsule_text_editor/src/editor/theme.rs"]
+#[path = "../../capsule_text_editor/src/editor/theme/mod.rs"]
 pub mod theme;
 #[cfg(test)]
 #[path = "../../capsule_text_editor/src/editor/toggle_comment.rs"]

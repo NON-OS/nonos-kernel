@@ -22,7 +22,6 @@ mod metrics;
 mod metrics_pane;
 mod mru;
 mod paint;
-mod palette;
 mod pane;
 mod rail;
 mod recent;

@@ -23,6 +23,7 @@ use nonos_toolkit::font::ttf::{builtin_face, draw_text_sheared};
 
 use super::state::State;
 use super::table_rules::paint_rules;
+use super::theme;
 use crate::doc::linebox::LineBox;
 use crate::doc::style::Family;
 use crate::doc::table::fit::fit;
@@ -52,13 +53,12 @@ pub(super) fn paint_row(
     let (t, st) = (b.as_str(), b.style_at(0));
     let Some(f) = builtin_face(st.family == Family::Mono, st.bold) else { return };
     let (fw, fh, stride) = (fb.width, fb.height, fb.stride_words as usize);
+    let ink = theme::active().ink(st.color);
     for (c, cwidth) in w.iter().enumerate() {
         let Some((s, e)) = cell_span(t, c) else { break };
         let text = fit(t.get(s..e).unwrap_or(""), cwidth - 2.0 * CELL_PAD_X, &st, &TtfMeasurer);
         let tx = ox + (col_x(&w, c) + CELL_PAD_X) as i32;
         let ty = y + ROW_PAD_Y as i32;
-        draw_text_sheared(
-            f, fb.pixels, stride, fw, fh, tx, ty, text, st.color, st.size_px, 0.0, 0.0,
-        );
+        draw_text_sheared(f, fb.pixels, stride, fw, fh, tx, ty, text, ink, st.size_px, 0.0, 0.0);
     }
 }

@@ -19,26 +19,18 @@
 //! machine knows nothing of; the editor has no accounts, so it is gone.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::editor::widget::{paint_navlist, NavStyle};
 
 use super::brand::paint_brand;
 use super::metrics::{nav_rect, rail_x, BODY, RAIL_W};
-use super::palette::{LABEL, NAV_ACCENT, NAV_RING, RAIL_BG, RAIL_LINE, TITLE};
 use super::state::{HomeState, NAV_LABELS};
 
 pub(super) fn paint_rail(fb: &mut PaintBuffer, st: &HomeState) {
-    let h = fb.height;
-    fb.fill_rect(rail_x(), 0, RAIL_W - 1, h, RAIL_BG);
-    fb.fill_rect(rail_x() + RAIL_W - 1, 0, 1, h, RAIL_LINE);
+    let (h, r) = (fb.height, roles());
+    fb.fill_rect(rail_x(), 0, RAIL_W - 1, h, r.sunken.argb());
+    fb.fill_rect(rail_x() + RAIL_W - 1, 0, 1, h, r.border.argb());
     paint_brand(fb);
-    let style = NavStyle {
-        accent: NAV_ACCENT,
-        ring: NAV_RING,
-        label: LABEL,
-        label_sel: TITLE,
-        radius: 9,
-        pad_x: 14,
-    };
-    paint_navlist(fb, nav_rect(), &NAV_LABELS, st.nav, BODY, &style);
+    paint_navlist(fb, nav_rect(), &NAV_LABELS, st.nav, BODY, &NavStyle::rail(14));
 }

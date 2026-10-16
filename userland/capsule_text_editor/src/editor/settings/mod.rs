@@ -26,7 +26,6 @@ mod sect_paint;
 mod sect_state;
 mod sects_a;
 mod state;
-mod style;
 
 pub(crate) use event::settings_event;
 pub(crate) use paint::paint_settings;

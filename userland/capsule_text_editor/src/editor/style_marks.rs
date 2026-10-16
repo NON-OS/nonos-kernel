@@ -35,7 +35,7 @@ use alloc::vec::Vec;
 use super::state::State;
 use crate::doc::align::Align;
 use crate::doc::restyle::set_style;
-use crate::doc::style::{Family, RunStyle};
+use crate::doc::style::{Family, RunStyle, INK_ACCENT, INK_TEXT};
 
 /// One character's formatting as the ribbon set it; `None` is "as the block".
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
@@ -52,9 +52,8 @@ pub struct Mark {
 }
 
 impl Mark {
-    /// `style` with this mark laid over it. `accent` is the colour the toggle
-    /// paints in.
-    pub fn apply(&self, style: &mut RunStyle, accent: u32) {
+    /// `style` with this mark laid over it.
+    pub fn apply(&self, style: &mut RunStyle) {
         if let Some(on) = self.bold {
             style.bold = on;
         }
@@ -68,7 +67,7 @@ impl Mark {
             style.strike = on;
         }
         if let Some(on) = self.accent {
-            style.color = if on { accent } else { RunStyle::body().color };
+            style.color = if on { INK_ACCENT } else { INK_TEXT };
         }
         if let Some(family) = self.family {
             style.family = family;
@@ -162,7 +161,7 @@ impl State {
     /// Lay the marks and alignments over a model fresh from `doc_from_text`.
     /// Line `i` of the buffer is block `i`; a heading's `#` prefix is not in
     /// the block's text, so its marks start past it.
-    pub(super) fn apply_styles(&mut self, accent: u32) {
+    pub(super) fn apply_styles(&mut self) {
         let text = &self.buf[..self.len];
         let mut base = 0usize;
         let starts: Vec<(usize, usize)> = text
@@ -189,7 +188,7 @@ impl State {
                     next += 1;
                 }
                 if mark != Mark::default() {
-                    set_style(block, run - from, next - run, &|s| mark.apply(s, accent));
+                    set_style(block, run - from, next - run, &|s| mark.apply(s));
                 }
                 run = next;
             }

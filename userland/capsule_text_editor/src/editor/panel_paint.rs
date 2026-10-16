@@ -21,6 +21,7 @@
 use alloc::vec::Vec;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 use nonos_toolkit::ttf::line_height;
 
 use super::app::Editor;
@@ -30,8 +31,6 @@ use super::panel_geom::{panel_list, panel_rect};
 use super::theme;
 use super::widget::{nav_row_h, paint_navlist, NavStyle};
 
-const PANEL_SHADOW: u32 = 0x5000_0000;
-
 impl Editor {
     pub(super) fn paint_panel(&self, fb: &mut PaintBuffer, panel: Panel) {
         let owned = self.panel_rows(panel);
@@ -40,7 +39,7 @@ impl Editor {
         let rect = panel_rect(self.last_w, self.last_h, title, &labels);
         let (x, y, w, h) = rect;
         let th = theme::active();
-        fb.shadow_round(x, y, w, h, PANEL_R, 12, PANEL_SHADOW);
+        fb.shadow_round(x, y, w, h, PANEL_R, 12, roles().shadow.argb());
         fb.fill_round(x, y, w, h, PANEL_R, th.tab_inactive_bg);
         fb.stroke_round(x, y, w, h, PANEL_R, 1, th.line);
         let lh = line_height(CHROME_PX).max(1) as u32;

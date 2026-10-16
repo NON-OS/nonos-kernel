@@ -20,6 +20,12 @@ pub enum Family {
     Mono,
 }
 
+/// The inks a run can be painted in. The model keeps which ink, not a colour,
+/// and the canvas resolves it against the theme in force when it paints.
+pub const INK_TEXT: u32 = 0;
+pub const INK_HEADING: u32 = 1;
+pub const INK_ACCENT: u32 = 2;
+
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct RunStyle {
     pub bold: bool,
@@ -28,6 +34,7 @@ pub struct RunStyle {
     pub strike: bool,
     pub size_px: f32,
     pub family: Family,
+    /// One of the `INK_` values.
     pub color: u32,
     pub highlight: u32,
 }
@@ -41,7 +48,7 @@ impl RunStyle {
             strike: false,
             size_px: 16.0,
             family: Family::Sans,
-            color: 0xFFE4ECF5,
+            color: INK_TEXT,
             highlight: 0,
         }
     }
@@ -49,11 +56,6 @@ impl RunStyle {
     pub fn heading(level: u8) -> Self {
         let sizes = [34.0, 26.0, 21.0, 18.0, 16.5, 15.0];
         let idx = (level.clamp(1, 6) - 1) as usize;
-        Self {
-            bold: true,
-            size_px: sizes[idx],
-            color: 0xFF17BED9,
-            ..Self::body()
-        }
+        Self { bold: true, size_px: sizes[idx], color: INK_HEADING, ..Self::body() }
     }
 }
