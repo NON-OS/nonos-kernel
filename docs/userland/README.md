@@ -10,6 +10,7 @@ Every program NONOS runs outside the kernel runs in ring 3, as a [capsule](../ov
 - [Signing and publisher keys](signing-and-publisher-keys.md): `capsule-sign`, the keys, the enrollment and the market's publishers.
 - [libc and the Rust runtimes](libc.md): `nonos_libc`, `nonos_runtime`, the SDK, the toolkit and `std`.
 - [IPC services](ipc-services.md): service names, ports and message formats.
+- [Design system](design-system/README.md): shared theme colours and widgets for app screens (proposed).
 - [The Linux personality](linux-personality.md): which Linux calls are served, which are refused, and why.
 
 ## What a capsule is
