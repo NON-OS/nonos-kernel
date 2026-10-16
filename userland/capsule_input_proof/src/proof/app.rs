@@ -15,13 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::{App, AppManifest, EventOutcome, InputEvent, PaintBuffer};
+use nonos_toolkit::theme::roles;
 
 use super::emit::Line;
 use super::manifest::manifest;
 use super::markers::on_input;
 use super::state::Latches;
-
-const BACKGROUND_ARGB: u32 = 0xFF10_1820;
 
 pub struct InputProof {
     latches: Latches,
@@ -48,6 +47,6 @@ impl App for InputProof {
             self.latches.composited = true;
             Line::new().push(b"surface composited").emit();
         }
-        fb.clear(BACKGROUND_ARGB);
+        fb.clear(roles().bg.argb());
     }
 }
