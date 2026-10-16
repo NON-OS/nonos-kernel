@@ -21,6 +21,7 @@ use alloc::vec::Vec;
 
 use nonos_app_skeleton::clients::vfs::{search, SEARCH_CONTENT, SEARCH_NAMES};
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::entries::RESERVED_PREFIX;
 use super::file_color::color;
@@ -37,7 +38,6 @@ use super::screen_row::{empty_state, screen_row, section_label, LABEL_ADV, LIST_
 use super::search_hl::highlight;
 use super::sidebar_rows::base_label;
 use super::state::State;
-use super::theme::INK3;
 
 const MAX_HITS: u32 = 256;
 
@@ -78,8 +78,8 @@ pub fn paint_search(state: &State, fb: &mut PaintBuffer) {
     let x = CONTENT_X + PAD_X;
     let w = fb.width.saturating_sub(CONTENT_X + PAD_X * 2);
     if state.query.is_empty() {
-        let _ =
-            fb.text_ttf(x as i32, (HEADER_H + 24) as i32, "Type to search the store.", INK3, 18.0);
+        let (y, quiet) = ((HEADER_H + 24) as i32, roles().quiet.argb());
+        let _ = fb.text_ttf(x as i32, y, "Type to search the store.", quiet, 18.0);
         return;
     }
     if state.hits.is_empty() {

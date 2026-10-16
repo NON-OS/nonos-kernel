@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::preview::Preview;
 use super::preview_clip::clip;
 use super::preview_info::info;
-use super::theme::{BACKGROUND, DIRECTORY, FOREGROUND, MUTED};
 
 const LEFT: u32 = 16;
 const FIRST_Y: u32 = 72;
@@ -30,14 +30,15 @@ pub const VISIBLE_LINES: usize = 10;
 // Render an opened file: title, path, a byte/line info bar, then the visible
 // window of content lines starting at the preview's scroll offset.
 pub fn paint_preview(preview: &Preview, fb: &mut PaintBuffer) {
-    fb.clear(BACKGROUND);
-    fb.text(LEFT, 18, b"file_manager", FOREGROUND);
-    fb.text(LEFT, 40, clip(preview.path.as_bytes()), DIRECTORY);
-    fb.text(LEFT, 56, info(preview).as_bytes(), MUTED);
+    let r = roles();
+    fb.clear(r.bg.argb());
+    fb.text(LEFT, 18, b"file_manager", r.text.argb());
+    fb.text(LEFT, 40, clip(preview.path.as_bytes()), r.accent.argb());
+    fb.text(LEFT, 56, info(preview).as_bytes(), r.muted.argb());
     let mut y = FIRST_Y;
     for line in preview.lines.iter().skip(preview.scroll).take(VISIBLE_LINES) {
-        fb.text(LEFT, y, clip(line.as_bytes()), FOREGROUND);
+        fb.text(LEFT, y, clip(line.as_bytes()), r.text.argb());
         y += LINE_H;
     }
-    fb.text(LEFT, 232, b"esc back  up/down scroll", MUTED);
+    fb.text(LEFT, 232, b"esc back  up/down scroll", r.quiet.argb());
 }

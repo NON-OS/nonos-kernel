@@ -15,11 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::help::paint_help;
 use super::paint_footer::paint_footer;
 use super::paint_grid::paint_grid;
 use super::paint_header::paint_header;
+use super::layout::R_SHELL;
 use super::paint_info::paint_info;
 use super::paint_rows::paint_rows;
 use super::preview_paint::paint_preview;
@@ -32,7 +34,6 @@ use super::sel_band::paint_band;
 use super::state::{Mode, State, ViewKind};
 use super::chrome_card::Plate;
 use super::chrome_glow::glow_in;
-use super::theme::{HAIR, R_SHELL, WIN};
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     if matches!(state.mode, Mode::Help) {
@@ -45,7 +46,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
     }
     let (w, h) = (fb.width, fb.height);
     fb.clear(0);
-    Plate::new(WIN).radius(R_SHELL).line(HAIR).draw(fb, 0, 0, w, h);
+    Plate::new(roles().bg.argb()).radius(R_SHELL).draw(fb, 0, 0, w, h);
     glow_in(fb, 0, 0, w, h, R_SHELL, 6);
     super::paint_sidebar::paint_sidebar(state, fb);
     paint_header(state, fb);

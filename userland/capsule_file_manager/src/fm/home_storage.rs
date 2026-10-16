@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Progress, Rect};
 
 use super::chrome_card::Plate;
 use super::home_cat_geom::CatCell;
@@ -22,9 +24,9 @@ use super::home_stor_geom::{stor_cells, STOR_PLACES};
 use super::home_stor_text::{bar_pct, detail, size_text};
 use super::icon_draw::draw;
 use super::icon_path::Icon;
+use super::layout::R_CARD;
 use super::measure_text::{right_text, truncate_to_width, width_of};
 use super::state::State;
-use super::theme::{CY, INK, INK3, PANEL, RAISE, R_CARD, TINT_BOT, TINT_TOP};
 
 const PAD: u32 = 12;
 const ICON: u32 = 18;
@@ -43,27 +45,20 @@ pub fn paint_storage_row(state: &State, fb: &mut PaintBuffer) {
 
 fn card(state: &State, fb: &mut PaintBuffer, c: &CatCell) {
     let (title, path) = STOR_PLACES[c.idx];
-    Plate::new(PANEL).radius(R_CARD).tint(TINT_TOP, TINT_BOT).draw(fb, c.x, c.y, c.w, c.h);
+    let r = roles();
+    let muted = r.muted.argb();
+    Plate::new(r.surface.argb()).radius(R_CARD).tint().draw(fb, c.x, c.y, c.w, c.h);
     let inner = c.w.saturating_sub(PAD * 2);
     let tx = c.x + PAD;
-    draw(fb, Icon::Cube, tx, c.y + PAD, ICON, CY);
+    draw(fb, Icon::Cube, tx, c.y + PAD, ICON, r.accent.argb());
     let size = size_text(state, c.idx, path);
     let room = inner.saturating_sub(ICON + width_of(fb, size.as_str(), SUB_PX) + PAD * 2);
     let cut = truncate_to_width(fb, title, TITLE_PX, room);
-    let _ = fb.text_ttf((tx + ICON + 10) as i32, (c.y + PAD) as i32, cut, INK, TITLE_PX);
-    right_text(fb, (c.x + c.w).saturating_sub(PAD), c.y + PAD, size.as_str(), SUB_PX, INK3);
-    bar(fb, tx, c.y + PAD + 24, inner, bar_pct(state, c.idx, path));
+    let _ = fb.text_ttf((tx + ICON + 10) as i32, (c.y + PAD) as i32, cut, r.text.argb(), TITLE_PX);
+    right_text(fb, (c.x + c.w).saturating_sub(PAD), c.y + PAD, size.as_str(), SUB_PX, muted);
+    let track = Rect { x: tx, y: c.y + PAD + 24, w: inner, h: BAR_H };
+    Progress::new(bar_pct(state, c.idx, path).min(100), 100).draw(fb, track);
     let line = detail(state, c.idx, path);
     let shown = truncate_to_width(fb, line.as_str(), SUB_PX, inner);
-    let _ = fb.text_ttf(tx as i32, (c.y + PAD + 34) as i32, shown, INK3, SUB_PX);
-}
-
-// Track and fill are both opaque and land inside the plate just drawn, so a
-// rounded fill is safe here; the plate underneath did the blending.
-fn bar(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, pct: u32) {
-    fb.fill_round(x, y, w, BAR_H, BAR_H / 2, RAISE);
-    let filled = w * pct.min(100) / 100;
-    if filled >= BAR_H {
-        fb.fill_round(x, y, filled, BAR_H, BAR_H / 2, CY);
-    }
+    let _ = fb.text_ttf(tx as i32, (c.y + PAD + 34) as i32, shown, muted, SUB_PX);
 }

@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::recents_group::parent_of;
 use super::screen_row::{row_text, LINE_BOX, SUB_PX, TITLE_PX};
 use super::sidebar_rows::base_label;
-use super::theme::PILL_ON;
 
 const HL_PAD: u32 = 3;
 
@@ -64,5 +64,6 @@ fn band(fb: &mut PaintBuffer, x: u32, y: u32, text: &str, query: &str, px: f32) 
     if w == 0 {
         return;
     }
-    fb.fill_round(x + ax, y.saturating_sub(HL_PAD), w + HL_PAD, LINE_BOX, HL_PAD, PILL_ON);
+    let wash = roles().accent_wash.argb();
+    fb.fill_round(x + ax, y.saturating_sub(HL_PAD), w + HL_PAD, LINE_BOX, HL_PAD, wash);
 }

@@ -19,6 +19,7 @@ extern crate alloc;
 use alloc::string::{String, ToString};
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::chrome_card::Plate;
 use super::entries::Entry;
@@ -28,10 +29,7 @@ use super::human_size::human_size;
 use super::icon;
 use super::list_kind_label::kind_label;
 use super::measure_text::{truncate_to_width, width_of};
-use super::theme::{HAIR_CY, INK, INK2, INK3, PANEL, RAISE, TINT_BOT, TINT_TOP};
 
-const IDLE: Plate = Plate::new(PANEL).tint(TINT_TOP, TINT_BOT);
-const LIT: Plate = Plate::new(RAISE).line(HAIR_CY).tint(TINT_TOP, TINT_BOT).glow(3);
 const GLYPH: u32 = 44;
 const GLYPH_DY: u32 = 10;
 const NAME_PX: f32 = 14.0;
@@ -42,8 +40,11 @@ const META_PX: f32 = 13.0;
 /// its filetype glyph rather than faking a preview. The menu affordance is
 /// dimmed: there is no card menu behind it yet.
 pub fn card(fb: &mut PaintBuffer, entry: &Entry, x: u32, y: u32, w: u32, h: u32, lit: bool) {
-    (if lit { LIT } else { IDLE }).draw(fb, x, y, w, h);
-    let bg = if lit { RAISE } else { PANEL };
+    let r = roles();
+    let bg = if lit { r.raised.argb() } else { r.surface.argb() };
+    let plate = Plate::new(bg).tint();
+    let plate = if lit { plate.line(r.accent_edge.argb()).glow(3) } else { plate };
+    plate.draw(fb, x, y, w, h);
     let tint = color(kind_of(entry));
     let (gx, gy) = (x + w.saturating_sub(GLYPH) / 2, y + GLYPH_DY);
     if entry.is_dir {
@@ -53,11 +54,11 @@ pub fn card(fb: &mut PaintBuffer, entry: &Entry, x: u32, y: u32, w: u32, h: u32,
     }
     let name = truncate_to_width(fb, entry.label.trim_end_matches('/'), NAME_PX, w.saturating_sub(16));
     let nx = x + w.saturating_sub(width_of(fb, name, NAME_PX)) / 2;
-    let ink = if lit { INK } else { INK2 };
+    let ink = if lit { r.text } else { r.text_2 }.argb();
     let _ = fb.text_ttf(nx as i32, (gy + GLYPH + 4) as i32, name, ink, NAME_PX);
     let meta = meta_line(entry);
     let mx = x + w.saturating_sub(width_of(fb, &meta, META_PX)) / 2;
-    let _ = fb.text_ttf(mx as i32, (gy + GLYPH + 26) as i32, &meta, INK3, META_PX);
+    let _ = fb.text_ttf(mx as i32, (gy + GLYPH + 26) as i32, &meta, r.muted.argb(), META_PX);
 }
 
 /// A file's size where the walk reported one, and its kind otherwise, so the

@@ -14,19 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::filetype::Kind;
-use super::theme::{AMBER, BLUE, BLUE_LT, CY_DIM, INK, INK2, RED};
+use nonos_toolkit::theme::roles;
 
-/// The filetype tint, drawn from the palette rather than from literals of its
-/// own, so `theme` stays the single home for every colour in the app.
+use super::filetype::Kind;
+
+/// The filetype tint, a categorical scale over theme roles: folders in the
+/// accent, code in its lighter accent text, images in ok, archives in warn,
+/// executables in danger, documents in text and anything else muted.
 pub fn color(kind: Kind) -> u32 {
-    match kind {
-        Kind::Dir => CY_DIM,
-        Kind::Code => BLUE_LT,
-        Kind::Image => BLUE,
-        Kind::Doc => INK,
-        Kind::Archive => AMBER,
-        Kind::Exec => RED,
-        Kind::Other => INK2,
-    }
+    let r = roles();
+    let ink = match kind {
+        Kind::Dir => r.accent,
+        Kind::Code => r.accent_text,
+        Kind::Image => r.ok,
+        Kind::Doc => r.text,
+        Kind::Archive => r.warn,
+        Kind::Exec => r.danger,
+        Kind::Other => r.muted,
+    };
+    ink.argb()
 }

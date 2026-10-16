@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::{measure_ttf, PaintBuffer};
-
-use super::theme::{CY, INK2, RAISE, VOID};
+use nonos_toolkit::theme::roles;
 
 // A pill sized from its measured label, so a chip row and any per-row chip lay
 // out to the same widths.
@@ -36,8 +35,9 @@ pub fn chip_w(label: &str) -> u32 {
 /// gap, so a row lays out by accumulating the return value.
 pub fn chip(fb: &mut PaintBuffer, x: u32, y: u32, label: &str, active: bool) -> u32 {
     let w = chip_w(label);
-    let (fill, ink) = if active { (CY, VOID) } else { (RAISE, INK2) };
-    fb.fill_round(x, y, w, CHIP_H, CHIP_H / 2, fill);
-    let _ = fb.text_ttf((x + CHIP_PAD) as i32, (y + 3) as i32, label, ink, CHIP_PX);
+    let r = roles();
+    let (fill, ink) = if active { (r.accent, r.on_accent) } else { (r.raised, r.muted) };
+    fb.fill_round(x, y, w, CHIP_H, CHIP_H / 2, fill.argb());
+    let _ = fb.text_ttf((x + CHIP_PAD) as i32, (y + 3) as i32, label, ink.argb(), CHIP_PX);
     w + CHIP_GAP
 }

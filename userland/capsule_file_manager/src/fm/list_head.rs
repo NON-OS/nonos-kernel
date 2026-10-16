@@ -15,13 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Rect, Separator};
 
 use super::icon_draw::draw;
 use super::icon_path::Icon;
 use super::list_cols::{cols, HEAD_H, HEAD_PX};
 use super::measure_text::width_of;
 use super::state::{SortMode, State};
-use super::theme::{CY, HAIR, INK3};
 
 const CARET: u32 = 10;
 const CARET_GAP: u32 = 5;
@@ -46,10 +47,10 @@ pub fn active_col(mode: SortMode) -> usize {
 pub fn paint_head(state: &State, fb: &mut PaintBuffer, left: u32, cw: u32, y: u32) {
     let c = cols(left, cw);
     let on = active_col(state.sort_mode);
-    let ty = y + TEXT_DY;
+    let (ty, r) = (y + TEXT_DY, roles());
     for (i, col) in c.cols.iter().enumerate() {
         let lit = i == on;
-        let ink = if lit { CY } else { INK3 };
+        let ink = if lit { r.accent } else { r.muted }.argb();
         let tw = width_of(fb, col.label, HEAD_PX);
         let tx = if i == 0 { col.x } else { (col.x + col.w).saturating_sub(tw) };
         let _ = fb.text_ttf(tx as i32, ty as i32, col.label, ink, HEAD_PX);
@@ -59,8 +60,8 @@ pub fn paint_head(state: &State, fb: &mut PaintBuffer, left: u32, cw: u32, y: u3
             } else {
                 tx.saturating_sub(CARET + CARET_GAP)
             };
-            draw(fb, Icon::Chevron, cx, ty + TEXT_DY, CARET, CY);
+            draw(fb, Icon::Chevron, cx, ty + TEXT_DY, CARET, r.accent.argb());
         }
     }
-    fb.blend_rect(left, y + HEAD_H - 1, cw, 1, HAIR);
+    Separator::new().draw(fb, Rect { x: left, y: y + HEAD_H - 1, w: cw, h: 1 });
 }

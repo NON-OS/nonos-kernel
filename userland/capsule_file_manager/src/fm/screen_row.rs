@@ -15,10 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Rect, Separator};
 
 use super::icon_draw::draw;
 use super::icon_path::Icon;
-use super::theme::{INK, INK2, INK3, LINE};
 
 // Shared line metrics for every non-Browse surface, so Recents, Search and Tags
 // stack identically and a section label always advances by the same amount.
@@ -60,31 +61,32 @@ pub fn screen_row(
     let iy = y + (LIST_ROW_H - ROW_ICON) / 2;
     let kind = if dir { Icon::Folder } else { Icon::Doc };
     draw(fb, kind, x, iy, ROW_ICON, tint);
-    let (tx, ty, sy) = row_text(x, y);
-    let _ = fb.text_ttf(tx as i32, ty as i32, title, INK, TITLE_PX);
-    let _ = fb.text_ttf(tx as i32, sy as i32, sub, INK3, SUB_PX);
+    let ((tx, ty, sy), r) = (row_text(x, y), roles());
+    let _ = fb.text_ttf(tx as i32, ty as i32, title, r.text.argb(), TITLE_PX);
+    let _ = fb.text_ttf(tx as i32, sy as i32, sub, r.muted.argb(), SUB_PX);
     if !meta.is_empty() {
         let mw = fb.measure_ttf(meta, 14.0).max(0) as u32;
         let mx = (x + w).saturating_sub(mw);
-        let _ = fb.text_ttf(mx as i32, (y + 4) as i32, meta, INK3, 14.0);
+        let _ = fb.text_ttf(mx as i32, (y + 4) as i32, meta, r.muted.argb(), 14.0);
     }
-    fb.fill_rect(x, y + LIST_ROW_H - 1, w, 1, LINE);
+    Separator::new().draw(fb, Rect { x, y: y + LIST_ROW_H - 1, w, h: 1 });
     LIST_ROW_H
 }
 
 /// A section heading in the label ink, returning its own advance.
 pub fn section_label(fb: &mut PaintBuffer, x: u32, y: u32, text: &str) -> u32 {
-    let _ = fb.text_ttf(x as i32, y as i32, text, INK3, 13.0);
+    let _ = fb.text_ttf(x as i32, y as i32, text, roles().muted.argb(), 13.0);
     LABEL_ADV
 }
 
 /// A centred two-line honest empty state, measured so it stays centred at any
 /// window width.
 pub fn empty_state(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, title: &str, note: &str) {
-    let iw = 40u32;
-    draw(fb, Icon::Folder, x + w.saturating_sub(iw) / 2, y, iw, INK3);
+    let (iw, r) = (40u32, roles());
+    let (muted, quiet) = (r.muted.argb(), r.quiet.argb());
+    draw(fb, Icon::Folder, x + w.saturating_sub(iw) / 2, y, iw, quiet);
     let tw = fb.measure_ttf(title, 20.0).max(0) as u32;
-    let _ = fb.text_ttf((x + w.saturating_sub(tw) / 2) as i32, (y + 60) as i32, title, INK2, 20.0);
+    let _ = fb.text_ttf((x + w.saturating_sub(tw) / 2) as i32, (y + 60) as i32, title, muted, 20.0);
     let nw = fb.measure_ttf(note, 15.0).max(0) as u32;
-    let _ = fb.text_ttf((x + w.saturating_sub(nw) / 2) as i32, (y + 92) as i32, note, INK3, 15.0);
+    let _ = fb.text_ttf((x + w.saturating_sub(nw) / 2) as i32, (y + 92) as i32, note, quiet, 15.0);
 }

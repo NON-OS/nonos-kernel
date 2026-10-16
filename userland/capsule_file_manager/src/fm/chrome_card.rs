@@ -15,23 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::derive::with_alpha;
+use nonos_toolkit::theme::roles;
+
 use super::chrome_glow::glow_out;
-use super::theme::{HAIR, R_CARD};
+use super::layout::R_CARD;
 
 /// A raised plate: rounded fill, 1px hairline, optional vertical tint, optional
-/// outer glow. `const` setters, so a style table can sit beside layout consts.
+/// outer glow. The hairline starts as the theme's border.
 #[derive(Clone, Copy)]
 pub struct Plate {
     fill: u32,
     line: u32,
     r: u32,
-    tint: Option<(u32, u32)>,
+    tint: bool,
     glow: u32,
 }
 
 impl Plate {
-    pub const fn new(fill: u32) -> Self {
-        Self { fill, line: HAIR, r: R_CARD, tint: None, glow: 0 }
+    pub fn new(fill: u32) -> Self {
+        Self { fill, line: roles().border.argb(), r: R_CARD, tint: false, glow: 0 }
     }
 
     pub const fn radius(mut self, r: u32) -> Self {
@@ -44,8 +47,9 @@ impl Plate {
         self
     }
 
-    pub const fn tint(mut self, top: u32, bottom: u32) -> Self {
-        self.tint = Some((top, bottom));
+    /// A lift of the theme's ink over the plate, strongest at the top.
+    pub const fn tint(mut self) -> Self {
+        self.tint = true;
         self
     }
 
@@ -64,9 +68,10 @@ impl Plate {
             glow_out(fb, x, y, w, h, self.r, self.glow);
         }
         fb.fill_round(x, y, w, h, self.r, self.fill);
-        if let Some((top, bottom)) = self.tint {
-            let cap = self.r.min(h / 2);
+        if self.tint {
+            let (cap, ink) = (self.r.min(h / 2), roles().text.argb());
             if h > cap * 2 {
+                let (top, bottom) = (with_alpha(ink, 0x16), with_alpha(ink, 0x04));
                 fb.gradient_v(x, y + cap, w, h - cap * 2, top, bottom);
             }
         }

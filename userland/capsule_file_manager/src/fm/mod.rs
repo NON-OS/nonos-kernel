@@ -188,7 +188,6 @@ mod tags_reconcile;
 mod tags_toggle;
 mod tags_rows;
 mod text_field;
-mod theme;
 mod toolbar_buttons;
 mod toolbar_new;
 mod toolbar_search;

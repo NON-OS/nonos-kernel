@@ -19,6 +19,7 @@ extern crate alloc;
 use alloc::string::String;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::chrome_card::Plate;
 use super::home_cat_geom::{cat_cells, CatCell};
@@ -26,9 +27,9 @@ use super::home_cats::{Cat, CATS};
 use super::home_count::count_line;
 use super::icon_draw::draw;
 use super::icon_path::Icon;
+use super::layout::R_CARD;
 use super::measure_text::truncate_to_width;
 use super::state::State;
-use super::theme::{INK, INK3, PANEL, R_CARD, TINT_BOT, TINT_TOP};
 
 const PAD: u32 = 11;
 const ICON: u32 = 22;
@@ -47,18 +48,19 @@ pub fn paint_cats(state: &State, fb: &mut PaintBuffer) {
 // glyph and the title drop to the label ink, which is how this crate marks a
 // control that is drawn but not wired to a backend.
 fn card(state: &State, fb: &mut PaintBuffer, c: &CatCell, cat: &Cat) {
-    Plate::new(PANEL).radius(R_CARD).tint(TINT_TOP, TINT_BOT).draw(fb, c.x, c.y, c.w, c.h);
-    let ink = if cat.counted { INK } else { INK3 };
-    let tint = if cat.counted { cat.tint } else { INK3 };
+    let r = roles();
+    Plate::new(r.surface.argb()).radius(R_CARD).tint().draw(fb, c.x, c.y, c.w, c.h);
+    let (muted, ink) = (r.muted.argb(), if cat.counted { r.text } else { r.muted }.argb());
+    let tint = if cat.counted { cat.tint.colour(&r).argb() } else { muted };
     draw(fb, cat.icon, c.x + PAD, c.y + PAD, ICON, tint);
     let cx = c.x + c.w.saturating_sub(PAD + CHEV);
-    draw(fb, Icon::Chevron, cx, c.y + PAD + (ICON - CHEV) / 2, CHEV, INK3);
+    draw(fb, Icon::Chevron, cx, c.y + PAD + (ICON - CHEV) / 2, CHEV, muted);
     let inner = c.w.saturating_sub(PAD * 2);
     let title = truncate_to_width(fb, cat.title, TITLE_PX, inner);
     let _ = fb.text_ttf((c.x + PAD) as i32, (c.y + PAD + ICON + 6) as i32, title, ink, TITLE_PX);
     let line = figure(state, cat);
     let cut = truncate_to_width(fb, line.as_str(), SUB_PX, inner);
-    let _ = fb.text_ttf((c.x + PAD) as i32, (c.y + PAD + ICON + 28) as i32, cut, INK3, SUB_PX);
+    let _ = fb.text_ttf((c.x + PAD) as i32, (c.y + PAD + ICON + 28) as i32, cut, muted, SUB_PX);
 }
 
 // Recents counts the journal already held in state; a prefix card counts the

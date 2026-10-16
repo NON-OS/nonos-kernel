@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::chip::{chip, CHIP_H};
 use super::info_geom::InfoGeom;
@@ -22,7 +23,6 @@ use super::info_sizes::SEC_PX;
 use super::info_tag_add::{add_box, ADD_LABEL};
 use super::info_tag_chip::tag_chip;
 use super::info_tag_geom::tag_slots;
-use super::theme::INK3;
 
 const HEADING: &str = "Tags";
 
@@ -34,7 +34,7 @@ pub fn tag_band(fb: &mut PaintBuffer, g: &InfoGeom, names: &[&str]) {
     if g.chips_y + CHIP_H > g.bottom {
         return;
     }
-    let _ = fb.text_ttf(g.x as i32, g.tags_head as i32, HEADING, INK3, SEC_PX);
+    let _ = fb.text_ttf(g.x as i32, g.tags_head as i32, HEADING, roles().muted.argb(), SEC_PX);
     let slots = tag_slots(names, g.x, g.chips_y, g.w);
     for slot in &slots {
         tag_chip(fb, slot);

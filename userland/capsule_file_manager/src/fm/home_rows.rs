@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Rect, Separator};
 
 use super::file_color::color;
 use super::file_kind::kind_of_name;
@@ -23,7 +25,6 @@ use super::icon_path::Icon;
 use super::measure_text::{right_text, truncate_to_width, width_of};
 use super::recents_group::parent_of;
 use super::sidebar_rows::base_label;
-use super::theme::{CY_DIM, INK, INK3, LINE};
 
 /// Home stacks its journal rows tighter than the full-screen surfaces do, so the
 /// category and storage rows both keep their band at the default window size.
@@ -41,16 +42,17 @@ const SUB_PX: f32 = 13.0;
 /// under the timestamp.
 pub fn recent_row(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, path: &str, meta: &str) {
     let dir = path.ends_with('/');
-    let tint = if dir { CY_DIM } else { color(kind_of_name(path)) };
+    let r = roles();
+    let tint = if dir { r.accent.argb() } else { color(kind_of_name(path)) };
     let glyph = if dir { Icon::Folder } else { Icon::Doc };
     draw(fb, glyph, x, y + (HOME_ROW_H - ROW_ICON) / 2, ROW_ICON, tint);
     let tx = x + ROW_ICON + ICON_GAP;
     let room = (x + w).saturating_sub(tx + width_of(fb, meta, SUB_PX) + META_GAP);
     let title = base_label(path);
     let cut = truncate_to_width(fb, title.as_str(), TITLE_PX, room);
-    let _ = fb.text_ttf(tx as i32, (y + 1) as i32, cut, INK, TITLE_PX);
+    let _ = fb.text_ttf(tx as i32, (y + 1) as i32, cut, r.text.argb(), TITLE_PX);
     let sub = truncate_to_width(fb, parent_of(path), SUB_PX, room);
-    let _ = fb.text_ttf(tx as i32, (y + 22) as i32, sub, INK3, SUB_PX);
-    right_text(fb, x + w, y + 1, meta, SUB_PX, INK3);
-    fb.fill_rect(x, y + HOME_ROW_H - 1, w, 1, LINE);
+    let _ = fb.text_ttf(tx as i32, (y + 22) as i32, sub, r.muted.argb(), SUB_PX);
+    right_text(fb, x + w, y + 1, meta, SUB_PX, r.muted.argb());
+    Separator::new().draw(fb, Rect { x, y: y + HOME_ROW_H - 1, w, h: 1 });
 }

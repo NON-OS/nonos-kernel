@@ -15,20 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::chrome_pill::{pill_r, PillState};
 use super::header_slots::{GLYPH_GAP, GLYPH_S, ICON_PAD, TOOL_H, TOOL_PX};
 use super::icon_draw::draw;
+use super::layout::R_CARD;
 use super::paint_tool_pill::text_y;
 use super::sel_model::SelAction;
 use super::sel_slots::SelSlot;
-use super::theme::{PILL_INK, RED, R_CARD};
 
 /// One action in the band. Delete is the one destructive entry and the only one
-/// that spends the red hue.
+/// that spends the danger hue.
 pub fn action(fb: &mut PaintBuffer, slot: &SelSlot, y: u32, labelled: bool) {
     pill_r(fb, slot.x, y, slot.w, TOOL_H, R_CARD, PillState::Idle);
-    let ink = if slot.action == SelAction::Delete { RED } else { PILL_INK };
+    let r = roles();
+    let ink = if slot.action == SelAction::Delete { r.danger } else { r.muted }.argb();
     let gy = y + TOOL_H.saturating_sub(GLYPH_S) / 2;
     if !labelled {
         let gx = slot.x + slot.w.saturating_sub(GLYPH_S) / 2;

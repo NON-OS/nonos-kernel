@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::chrome_pill::PillState;
 use super::header_bar::clear_slot;
@@ -24,7 +25,6 @@ use super::header_slots::{HeadHit, Slot, UNDO_LABEL};
 use super::icon_path::Icon;
 use super::paint_tool_pill::pill;
 use super::state::{State, ViewKind};
-use super::theme::{INK2, INK3};
 use super::toolbar_buttons::{group_plate, icon_btn};
 use super::toolbar_new::{icon_label, new_btn};
 use super::toolbar_search::search;
@@ -67,12 +67,13 @@ fn paint_nav(state: &State, fb: &mut PaintBuffer, y: u32) {
     }
 }
 
-// Undo dims to the tertiary ink when the stack holds nothing to replay.
+// Undo draws disabled when the stack holds nothing to replay.
 fn undo_ink(state: &State) -> u32 {
+    let r = roles();
     if state.undo.is_empty() {
-        INK3
+        r.disabled.argb()
     } else {
-        INK2
+        r.muted.argb()
     }
 }
 

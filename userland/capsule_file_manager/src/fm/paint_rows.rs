@@ -18,6 +18,7 @@
 //! so a click hit-tests against exactly what was drawn.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::layout::{content_w, content_x, ROW_H};
 use super::list_head::paint_head;
@@ -26,7 +27,6 @@ use super::paint_row::row_body;
 use super::row_geom::{list_top, row_slots};
 use super::screen_row::empty_state;
 use super::state::State;
-use super::theme::SELECT_BG;
 
 pub fn paint_rows(state: &State, fb: &mut PaintBuffer) {
     let left = content_x();
@@ -43,7 +43,7 @@ pub fn paint_rows(state: &State, fb: &mut PaintBuffer) {
         let lit = slot.index == state.cursor
             || state.selected.iter().any(|path| path == &entry.full_path);
         if lit {
-            fb.fill_round(left, slot.y + 2, cw, ROW_H - 4, 10, SELECT_BG);
+            fb.fill_round(left, slot.y + 2, cw, ROW_H - 4, 10, roles().accent_wash.argb());
         }
         row_body(state, fb, slot.index, slot.y, left, cw);
     }

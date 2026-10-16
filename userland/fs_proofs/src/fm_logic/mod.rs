@@ -22,8 +22,6 @@
 mod entries;
 #[path = "../../../capsule_file_manager/src/fm/favorites.rs"]
 pub mod favorites;
-#[path = "../../../capsule_file_manager/src/fm/file_color.rs"]
-mod file_color;
 #[path = "../../../capsule_file_manager/src/fm/file_ext.rs"]
 mod file_ext;
 #[path = "../../../capsule_file_manager/src/fm/file_kind.rs"]
@@ -49,14 +47,10 @@ pub mod state;
 #[path = "../../../capsule_file_manager/src/fm/tags.rs"]
 pub mod tags;
 
-// Pure colour tokens, pulled in because `file_color` maps a file kind onto them.
 // What the name prompt, the filter and the search box take.
 #[path = "../../../capsule_file_manager/src/fm/text_field.rs"]
 pub mod text_field;
 
-#[path = "../../../capsule_file_manager/src/fm/theme.rs"]
-#[allow(dead_code)]
-mod theme;
 #[path = "../../../capsule_file_manager/src/fm/tags_load.rs"]
 mod tags_load;
 #[path = "../../../capsule_file_manager/src/fm/tags_mutate.rs"]
@@ -78,7 +72,6 @@ pub mod nav_trail;
 pub mod tags_toggle;
 
 pub use entries::{build_entries, Entry};
-pub use file_color::color;
 pub use file_ext::ext;
 pub use file_kind::kind_of;
 pub use filetype::Kind;

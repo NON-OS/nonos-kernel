@@ -15,26 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::chrome_card::Plate;
 use super::chrome_pill::{pill_ink, pill_r, PillState};
 use super::header_slots::{Slot, GLYPH_S, TOOL_H};
 use super::icon_draw::draw;
 use super::icon_path::Icon;
-use super::theme::{HAIR, INK3, PANEL, R_CARD, TINT_BOT, TINT_TOP};
-
-/// The ground a group of adjacent controls shares, so the group reads as one
-/// track rather than as neighbouring buttons.
-const GROUND: Plate = Plate::new(PANEL).radius(R_CARD).line(HAIR).tint(TINT_TOP, TINT_BOT);
+use super::layout::R_CARD;
 
 /// Vertical origin that centres a `size`-square glyph in the control band.
 pub fn glyph_y(y: u32, size: u32) -> u32 {
     y + TOOL_H.saturating_sub(size) / 2
 }
 
-/// The shared plate under the slots from `first` to `last` inclusive.
+/// The shared plate under the slots from `first` to `last` inclusive: the
+/// ground a group of adjacent controls shares, so the group reads as one track
+/// rather than as neighbouring buttons.
 pub fn group_plate(fb: &mut PaintBuffer, first: &Slot, last: &Slot, y: u32) {
-    GROUND.draw(fb, first.x, y, (last.x + last.w).saturating_sub(first.x), TOOL_H);
+    let ground = Plate::new(roles().surface.argb()).radius(R_CARD).tint();
+    ground.draw(fb, first.x, y, (last.x + last.w).saturating_sub(first.x), TOOL_H);
 }
 
 /// A bare icon control drawn onto a ground someone else laid down. The active
@@ -45,7 +45,7 @@ pub fn icon_btn(fb: &mut PaintBuffer, slot: &Slot, y: u32, icon: Icon, on: bool,
     if on {
         pill_r(fb, slot.x + 2, y + 2, slot.w.saturating_sub(4), TOOL_H - 4, R_CARD - 4, state);
     }
-    let ink = if dim { INK3 } else { pill_ink(state) };
+    let ink = if dim { roles().disabled.argb() } else { pill_ink(state) };
     let gx = slot.x + slot.w.saturating_sub(GLYPH_S) / 2;
     draw(fb, icon, gx, glyph_y(y, GLYPH_S), GLYPH_S, ink);
 }

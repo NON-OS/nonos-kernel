@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::icon_draw::draw;
 use super::icon_path::Icon;
 use super::list_cols::{Cols, CHECK_S};
-use super::theme::{CY, HAIR, PILL_ON, PILL_ON_LINE};
 
 const BOX_R: u32 = 5;
 const TICK_INSET: u32 = 3;
@@ -29,13 +29,15 @@ const TICK_INSET: u32 = 3;
 /// unchecked is a bare hairline square. Both fills blend, so the box is safe
 /// over a row tile that is already down.
 pub fn check_box(fb: &mut PaintBuffer, x: u32, y: u32, on: bool) {
+    let r = roles();
     if !on {
-        fb.stroke_round(x, y, CHECK_S, CHECK_S, BOX_R, 1, HAIR);
+        fb.stroke_round(x, y, CHECK_S, CHECK_S, BOX_R, 1, r.border_strong.argb());
         return;
     }
-    fb.fill_round(x, y, CHECK_S, CHECK_S, BOX_R, PILL_ON);
-    fb.stroke_round(x, y, CHECK_S, CHECK_S, BOX_R, 1, PILL_ON_LINE);
-    draw(fb, Icon::Check, x + TICK_INSET, y + TICK_INSET, CHECK_S - TICK_INSET * 2, CY);
+    fb.fill_round(x, y, CHECK_S, CHECK_S, BOX_R, r.accent_wash.argb());
+    fb.stroke_round(x, y, CHECK_S, CHECK_S, BOX_R, 1, r.accent_edge.argb());
+    let tick = CHECK_S - TICK_INSET * 2;
+    draw(fb, Icon::Check, x + TICK_INSET, y + TICK_INSET, tick, r.accent.argb());
 }
 
 /// Whether `x` falls in the checkbox, tested against the same gutter column

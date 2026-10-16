@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::layout::SIDEBAR_W;
 use super::sidebar_brand::paint_brand;
@@ -23,7 +24,6 @@ use super::sidebar_row_paint::{nav_row, rule, section_label};
 use super::sidebar_rows::side_rows;
 use super::sidebar_storage::paint_storage;
 use super::state::State;
-use super::theme::{DEEP, LINE};
 
 // Fixed quick-access locations. `(display, path)`; paths match how the vfs
 // reports directory prefixes.
@@ -33,9 +33,9 @@ pub const PLACES: [(&str, &str); 3] =
 /// Draws the rail from the one layout pass `side_hit` also reads, so every mark
 /// on screen has a slot behind it and no slot is left undrawn.
 pub fn paint_sidebar(state: &State, fb: &mut PaintBuffer) {
-    let h = fb.height;
-    fb.fill_rect(0, 0, SIDEBAR_W, h, DEEP);
-    fb.fill_rect(SIDEBAR_W - 1, 0, 1, h, LINE);
+    let (h, r) = (fb.height, roles());
+    fb.fill_rect(0, 0, SIDEBAR_W, h, r.sunken.argb());
+    fb.fill_rect(SIDEBAR_W - 1, 0, 1, h, r.border.argb());
     paint_brand(fb);
     for row in side_rows(state) {
         match row.kind {

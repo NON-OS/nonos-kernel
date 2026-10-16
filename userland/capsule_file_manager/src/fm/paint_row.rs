@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::chip::{chip, chip_w, CHIP_H};
 use super::layout::ROW_H;
@@ -26,7 +27,6 @@ use super::paint_row_tile::row_tile;
 use super::recents_group::parent_of;
 use super::selection_is_selected::is_selected;
 use super::state::State;
-use super::theme::{INK, INK3};
 
 const NAME_PX: f32 = 17.0;
 const SUB_PX: f32 = 14.0;
@@ -44,10 +44,10 @@ pub fn row_body(state: &State, fb: &mut PaintBuffer, index: usize, y: u32, left:
     let name_x = row_tile(fb, entry, y, c.tile_x);
     let room = c.tag_end.saturating_sub(name_x + TAG_GAP);
     let name = truncate_to_width(fb, entry.label.trim_end_matches('/'), NAME_PX, room);
-    let name_w = width_of(fb, name, NAME_PX);
-    let _ = fb.text_ttf(name_x as i32, (y + 1) as i32, name, INK, NAME_PX);
+    let (name_w, r) = (width_of(fb, name, NAME_PX), roles());
+    let _ = fb.text_ttf(name_x as i32, (y + 1) as i32, name, r.text.argb(), NAME_PX);
     let loc = truncate_to_width(fb, parent_of(&entry.full_path), SUB_PX, name_w);
-    let _ = fb.text_ttf(name_x as i32, (y + 22) as i32, loc, INK3, SUB_PX);
+    let _ = fb.text_ttf(name_x as i32, (y + 22) as i32, loc, r.muted.argb(), SUB_PX);
 
     let mut tx = name_x + name_w + TAG_GAP;
     for tag in state.tags.tags_for(&entry.full_path) {

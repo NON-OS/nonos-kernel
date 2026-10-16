@@ -50,6 +50,10 @@ pub const SECTION_GAP: u32 = 26;
 // functions, so the listing and the panel can never overlap.
 pub const INFO_W: u32 = 268;
 
+// Corner radii in logical pixels: the window shell, then every inner plate.
+pub const R_SHELL: u32 = 14;
+pub const R_CARD: u32 = 10;
+
 /// Left edge of the Browse listing.
 pub fn content_x() -> u32 {
     CONTENT_X + PAD_X

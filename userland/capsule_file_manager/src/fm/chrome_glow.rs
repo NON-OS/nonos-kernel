@@ -15,15 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
-use super::theme::GLOW;
-
-/// Soft cyan glow spreading outward from the rounded rect, drawn as concentric
+/// Soft accent glow spreading outward from the rounded rect, drawn as concentric
 /// hairlines that fall off quadratically. Nothing lands inside the rect, so the
 /// caller may paint its plate either side of this call. Rings outside the
 /// buffer are clipped away, so a full-bleed rect glows nowhere: use `glow_in`.
 pub fn glow_out(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32, r: u32, spread: u32) {
-    fb.shadow_round(x, y, w, h, r, spread, GLOW);
+    fb.shadow_round(x, y, w, h, r, spread, roles().accent_wash.argb());
 }
 
 /// The same glow turned inward: rings start `spread` pixels inside the rect and
@@ -40,6 +39,6 @@ pub fn glow_in(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32, r: u32, spr
         h - spread * 2,
         r.saturating_sub(spread),
         spread,
-        GLOW,
+        roles().accent_wash.argb(),
     );
 }

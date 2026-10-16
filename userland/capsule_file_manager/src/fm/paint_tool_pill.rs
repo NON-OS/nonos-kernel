@@ -18,7 +18,7 @@ use nonos_app_skeleton::PaintBuffer;
 
 use super::chrome_pill::{pill_r, PillState};
 use super::header_slots::{Slot, TOOL_H, TOOL_PAD, TOOL_PX};
-use super::theme::R_CARD;
+use super::layout::R_CARD;
 
 // Every slot width came from `pill_w`, which is the measured label plus TOOL_PAD
 // on each side, so padding the pen by TOOL_PAD centres the label exactly.

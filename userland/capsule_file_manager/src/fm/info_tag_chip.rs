@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::chip::{chip, CHIP_H};
 use super::info_tag_geom::{remove_x, TagSlot, X_BOX};
-use super::theme::{INK3, RAISE};
 
 // The icon set has no close mark, so the cross is stroked here from the same
 // anti-aliased line primitive `icon_draw` uses, doubled on one axis for the
@@ -29,7 +29,7 @@ const ARM: i32 = 5;
 /// full slot width first so the box sits inside the chip rather than beside it,
 /// then `chip` lays the label down over its own share of that ground.
 pub fn tag_chip(fb: &mut PaintBuffer, slot: &TagSlot) {
-    fb.fill_round(slot.x, slot.y, slot.w, CHIP_H, CHIP_H / 2, RAISE);
+    fb.fill_round(slot.x, slot.y, slot.w, CHIP_H, CHIP_H / 2, roles().raised.argb());
     let _ = chip(fb, slot.x, slot.y, slot.name, false);
     cross(fb, remove_x(slot), slot.y);
 }
@@ -37,9 +37,9 @@ pub fn tag_chip(fb: &mut PaintBuffer, slot: &TagSlot) {
 fn cross(fb: &mut PaintBuffer, x: u32, y: u32) {
     let px = x as i32;
     let py = (y + CHIP_H.saturating_sub(X_BOX) / 2) as i32;
-    let far = X_BOX as i32 - ARM;
-    fb.line_aa(px + ARM, py + ARM, px + far, py + far, INK3);
-    fb.line_aa(px + ARM + 1, py + ARM, px + far + 1, py + far, INK3);
-    fb.line_aa(px + far, py + ARM, px + ARM, py + far, INK3);
-    fb.line_aa(px + far - 1, py + ARM, px + ARM - 1, py + far, INK3);
+    let (far, ink) = (X_BOX as i32 - ARM, roles().muted.argb());
+    fb.line_aa(px + ARM, py + ARM, px + far, py + far, ink);
+    fb.line_aa(px + ARM + 1, py + ARM, px + far + 1, py + far, ink);
+    fb.line_aa(px + far, py + ARM, px + ARM, py + far, ink);
+    fb.line_aa(px + far - 1, py + ARM, px + ARM - 1, py + far, ink);
 }

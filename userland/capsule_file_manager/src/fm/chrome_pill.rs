@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::chrome_glow::glow_out;
-use super::theme::{HAIR, PILL_IDLE, PILL_INK, PILL_INK_ON, PILL_ON, PILL_ON_LINE};
 
 /// The two states a pill control can be in. `Active` is the only one that
 /// spends the accent hue, so selection stays the one saturated thing on screen.
@@ -35,9 +35,10 @@ pub fn pill_r(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32, r: u32, stat
     if w == 0 || h == 0 {
         return;
     }
+    let theme = roles();
     let (fill, line) = match state {
-        PillState::Idle => (PILL_IDLE, HAIR),
-        PillState::Active => (PILL_ON, PILL_ON_LINE),
+        PillState::Idle => (theme.surface.argb(), theme.border.argb()),
+        PillState::Active => (theme.accent_wash.argb(), theme.accent_edge.argb()),
     };
     if state == PillState::Active {
         glow_out(fb, x, y, w, h, r, 3);
@@ -48,8 +49,9 @@ pub fn pill_r(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32, r: u32, stat
 
 /// The label colour that pairs with a pill drawn in `state`.
 pub fn pill_ink(state: PillState) -> u32 {
+    let r = roles();
     match state {
-        PillState::Active => PILL_INK_ON,
-        _ => PILL_INK,
+        PillState::Active => r.accent.argb(),
+        _ => r.muted.argb(),
     }
 }

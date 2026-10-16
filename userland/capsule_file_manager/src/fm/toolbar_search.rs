@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::chrome_card::Plate;
 use super::header_layout::search_is_field;
@@ -23,14 +24,11 @@ use super::header_slots::{
 };
 use super::icon_draw::draw;
 use super::icon_path::Icon;
+use super::layout::R_CARD;
 use super::measure_text::truncate_to_width;
 use super::paint_tool_pill::text_y;
 use super::state::State;
-use super::theme::{HAIR, HAIR_CY, INK, INK3, PANEL, R_CARD};
 use super::toolbar_buttons::{glyph_y, icon_btn};
-
-const FIELD: Plate = Plate::new(PANEL).radius(R_CARD).line(HAIR);
-const LIVE: Plate = Plate::new(PANEL).radius(R_CARD).line(HAIR_CY);
 
 /// The query control. Where the header is too narrow for a field it collapses to
 /// the bare glyph, which opens the same Search surface; where it is a field, the
@@ -40,15 +38,16 @@ pub fn search(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, clear: O
         icon_btn(fb, slot, y, Icon::Magnifier, false, false);
         return;
     }
-    let empty = state.query.is_empty();
-    let plate = if empty { FIELD } else { LIVE };
-    plate.draw(fb, slot.x, y, slot.w, TOOL_H);
-    draw(fb, Icon::Magnifier, slot.x + ICON_PAD, glyph_y(y, GLYPH_S), GLYPH_S, INK3);
+    let (empty, r) = (state.query.is_empty(), roles());
+    let line = if empty { r.border.argb() } else { r.accent_edge.argb() };
+    Plate::new(r.surface.argb()).radius(R_CARD).line(line).draw(fb, slot.x, y, slot.w, TOOL_H);
+    let gy = glyph_y(y, GLYPH_S);
+    draw(fb, Icon::Magnifier, slot.x + ICON_PAD, gy, GLYPH_S, r.muted.argb());
     let pen = slot.x + ICON_PAD + GLYPH_S + GLYPH_GAP;
     let tail = clear.map(|c| c.w).unwrap_or(ICON_PAD);
     let room = (slot.x + slot.w).saturating_sub(pen + tail);
     let text = if empty { SEARCH_HINT } else { state.query.as_str() };
-    let ink = if empty { INK3 } else { INK };
+    let ink = if empty { r.quiet } else { r.text }.argb();
     let cut = truncate_to_width(fb, text, TOOL_PX, room);
     let _ = fb.text_ttf(pen as i32, text_y(y), cut, ink, TOOL_PX);
     if let Some(slot) = clear {
@@ -61,7 +60,7 @@ pub fn search(state: &State, fb: &mut PaintBuffer, slot: &Slot, y: u32, clear: O
 fn clear_mark(fb: &mut PaintBuffer, slot: &Slot, y: u32) {
     let s = GLYPH_S / 2;
     let x = (slot.x + slot.w.saturating_sub(s) / 2) as i32;
-    let top = glyph_y(y, s) as i32;
-    fb.line_aa(x, top, x + s as i32, top + s as i32, INK3);
-    fb.line_aa(x + s as i32, top, x, top + s as i32, INK3);
+    let (top, ink) = (glyph_y(y, s) as i32, roles().muted.argb());
+    fb.line_aa(x, top, x + s as i32, top + s as i32, ink);
+    fb.line_aa(x + s as i32, top, x, top + s as i32, ink);
 }

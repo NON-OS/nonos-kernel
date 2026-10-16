@@ -22,8 +22,8 @@ use super::header_slots::{
 };
 use super::icon_draw::draw;
 use super::icon_path::Icon;
+use super::layout::R_CARD;
 use super::paint_tool_pill::text_y;
-use super::theme::R_CARD;
 
 /// A pill that leads with a glyph and follows it with a label, laid out from the
 /// same padding `icon_pill_w` measured the slot with.
@@ -43,7 +43,7 @@ pub fn icon_label(
     let _ = fb.text_ttf(pen as i32, text_y(y), label, ink, TOOL_PX);
 }
 
-/// The one accented control in the header: a cyan-hairlined pill that starts a
+/// The one accented control in the header: an accent-hairlined pill that starts a
 /// new file. It is drawn active at rest, which is what marks it as the row's
 /// primary action rather than as a selected state.
 pub fn new_btn(fb: &mut PaintBuffer, slot: &Slot, y: u32) {

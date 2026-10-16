@@ -19,18 +19,19 @@
 //! from `sel_geom` and `sel_slots`, which `sel_hit` tests against.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::chrome_card::Plate;
 use super::header_slots::{GLYPH_GAP, GLYPH_S};
 use super::icon_draw::draw;
 use super::icon_path::Icon;
+use super::layout::R_CARD;
 use super::measure_text::truncate_to_width;
 use super::sel_action_btn::action;
 use super::sel_geom::{action_y, band, summary_y, SelBand, PAD, SUM_PX};
 use super::sel_slots::slots;
 use super::sel_summary::summary;
 use super::state::State;
-use super::theme::{CY, HAIR_CY, INK, PANEL, R_CARD, TINT_BOT, TINT_TOP};
 
 /// Draws nothing at all when the selection is empty, so the listing keeps its
 /// whole height until there is something for the band to act on.
@@ -39,10 +40,11 @@ pub fn paint_band(state: &State, fb: &mut PaintBuffer) {
         return;
     }
     let b = band(fb.width, fb.height);
-    Plate::new(PANEL)
+    let r = roles();
+    Plate::new(r.surface.argb())
         .radius(R_CARD)
-        .line(HAIR_CY)
-        .tint(TINT_TOP, TINT_BOT)
+        .line(r.accent_edge.argb())
+        .tint()
         .glow(6)
         .draw(fb, b.x, b.y, b.w, b.h);
     headline(state, fb, &b);
@@ -53,11 +55,11 @@ pub fn paint_band(state: &State, fb: &mut PaintBuffer) {
 }
 
 fn headline(state: &State, fb: &mut PaintBuffer, b: &SelBand) {
-    let sy = summary_y(b);
-    draw(fb, Icon::Check, b.x + PAD, sy, GLYPH_S, CY);
+    let (sy, r) = (summary_y(b), roles());
+    draw(fb, Icon::Check, b.x + PAD, sy, GLYPH_S, r.accent.argb());
     let x = b.x + PAD + GLYPH_S + GLYPH_GAP;
     let room = b.w.saturating_sub(PAD * 2 + GLYPH_S + GLYPH_GAP);
     let text = summary(state);
     let cut = truncate_to_width(fb, text.as_str(), SUM_PX, room);
-    let _ = fb.text_ttf(x as i32, sy as i32, cut, INK, SUM_PX);
+    let _ = fb.text_ttf(x as i32, sy as i32, cut, r.text.argb(), SUM_PX);
 }

@@ -16,6 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_libc::mk_time_millis;
+use nonos_toolkit::theme::roles;
 
 use super::home_cat_paint::paint_cats;
 use super::home_date::date_line;
@@ -27,15 +28,14 @@ use super::home_storage::paint_storage_row;
 use super::layout::{CONTENT_X, PAD_X};
 use super::screen_row::{section_label, LABEL_ADV};
 use super::state::State;
-use super::theme::{INK, INK2, INK3};
 
 pub fn paint_home(state: &State, fb: &mut PaintBuffer) {
     let x = CONTENT_X + PAD_X;
     let w = fb.width.saturating_sub(CONTENT_X + PAD_X * 2);
-    let now = mk_time_millis().max(0) as u64;
-    let _ = fb.text_ttf(x as i32, greet_y() as i32, greeting(now), INK, GREET_PX);
+    let (now, r) = (mk_time_millis().max(0) as u64, roles());
+    let _ = fb.text_ttf(x as i32, greet_y() as i32, greeting(now), r.text.argb(), GREET_PX);
     let date = date_line(now);
-    let _ = fb.text_ttf(x as i32, date_y() as i32, date.as_str(), INK2, DATE_PX);
+    let _ = fb.text_ttf(x as i32, date_y() as i32, date.as_str(), r.text_2.argb(), DATE_PX);
     section_label(fb, x, cats_label_y(), "CATEGORIES");
     paint_cats(state, fb);
     section_label(fb, x, cards_label_y(), "CONTINUE WORKING");
@@ -61,7 +61,7 @@ fn recent_rows(state: &State, fb: &mut PaintBuffer, x: u32, w: u32, now: u64) {
     if lines.is_empty() {
         let y = cards_label_y() + LABEL_ADV;
         let note = "Nothing opened yet. Files you open land here.";
-        let _ = fb.text_ttf(x as i32, y as i32, note, INK3, 15.0);
+        let _ = fb.text_ttf(x as i32, y as i32, note, roles().quiet.argb(), 15.0);
         return;
     }
     for line in &lines {
