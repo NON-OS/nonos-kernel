@@ -51,7 +51,7 @@ impl Row<'_> {
         if let Some(value) = self.value {
             let line = text::truncate(value, p.value.w, p.px);
             let right = p.value.x.saturating_add(p.value.w);
-            text::right(fb, right, p.value_top, &line, ink(r.text_2), p.px);
+            text::right(fb, right, p.value_top, &line, ink(self.value_ink.colour(&r)), p.px);
         }
         if self.chevron {
             chevron::paint(fb, p.chevron, ink(r.muted));

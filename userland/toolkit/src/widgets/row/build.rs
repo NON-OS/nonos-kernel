@@ -16,23 +16,34 @@
 
 //! The row and the builders that set it up.
 
-use crate::widgets::State;
+use crate::widgets::{Ink, State};
 
-/// A list row with a label, and optionally a note, a value and a chevron.
-/// It draws no hairline; put a `Separator` between rows.
+/// A list row with a label, and optionally a note, a value, room for an app's
+/// own control and a chevron. It draws no hairline; put a `Separator` between
+/// rows.
 #[derive(Clone, Copy, Debug)]
 pub struct Row<'a> {
     pub(super) label: &'a str,
     pub(super) value: Option<&'a str>,
     pub(super) note: Option<&'a str>,
     pub(super) chevron: bool,
+    pub(super) value_ink: Ink,
+    pub(super) trailing: u32,
     pub(super) state: State,
 }
 
 impl<'a> Row<'a> {
     /// A row with only a label.
     pub fn new(label: &'a str) -> Self {
-        Row { label, value: None, note: None, chevron: false, state: State::default() }
+        Row {
+            label,
+            value: None,
+            note: None,
+            chevron: false,
+            value_ink: Ink::Text2,
+            trailing: 0,
+            state: State::default(),
+        }
     }
 
     /// A value shown right-aligned at the row's right end.

@@ -15,14 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! A list row: a label with an optional muted note on the left, and an
-//! optional value and disclosure chevron on the right. A row fills the width
-//! it is given and draws no hairline; separators are the `Separator`
-//! widget's job.
+//! optional value, room for an app's own control and a disclosure chevron on
+//! the right. A row fills the width it is given and draws no hairline;
+//! separators are the `Separator` widget's job.
 
 mod build;
 mod chevron;
 mod geometry;
+mod lanes;
 mod measure;
+mod options;
 mod paint;
 
 pub use build::Row;
