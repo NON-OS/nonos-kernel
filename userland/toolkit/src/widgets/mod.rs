@@ -26,7 +26,9 @@ pub mod rect;
 pub mod row;
 pub mod section_header;
 pub mod separator;
+pub mod slider;
 pub mod state;
+pub mod switch;
 pub mod text;
 
 pub use crate::decorations::Rect;
@@ -36,4 +38,6 @@ pub use label::{Align, Label};
 pub use row::Row;
 pub use section_header::SectionHeader;
 pub use separator::Separator;
+pub use slider::Slider;
 pub use state::State;
+pub use switch::Switch;

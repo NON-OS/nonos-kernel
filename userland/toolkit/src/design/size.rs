@@ -51,6 +51,14 @@ pub const PILL_H: u32 = 26;
 pub const SWITCH_W: u32 = 42;
 /// Height of a switch.
 pub const SWITCH_H: u32 = 24;
+/// Gap between a switch's track and its knob.
+pub const KNOB_INSET: u32 = 2;
+/// Preferred width of a slider.
+pub const SLIDER_W: u32 = 150;
+/// Height of a slider's track.
+pub const TRACK_H: u32 = 4;
+/// Radius of a slider's knob.
+pub const KNOB_R: u32 = 7;
 /// Height of a progress bar.
 pub const PROGRESS_H: u32 = 6;
 /// Width of a scroll bar.
