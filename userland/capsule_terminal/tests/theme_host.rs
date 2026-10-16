@@ -180,6 +180,22 @@ fn light_is_light_and_the_rest_are_dark() {
     }
 }
 
+/// A named profile is a choice made by name, so its selection ground is the
+/// one it always had, a mix of its own ground and accent, and its edges stand
+/// off its ground.
+#[test]
+fn named_selection_is_the_mix_it_always_was() {
+    let mix = |a: u32, b: u32, t: u32| {
+        let ch =
+            |s: u32| ((((b >> s) & 0xFF) * t + ((a >> s) & 0xFF) * (255 - t) + 127) / 255) << s;
+        0xFF00_0000 | ch(16) | ch(8) | ch(0)
+    };
+    for (name, t) in profiles() {
+        assert_eq!(t.selection, mix(t.bg, t.accent, 90), "{name} selection");
+        assert_ne!(t.chrome_edge & 0xFF_FFFF, t.bg & 0xFF_FFFF, "{name} edge");
+    }
+}
+
 /// The default look must not shift underfoot. Only the background is pinned:
 /// DARK's accents deliberately DID move in the refactor (accent 0x3FD0C9 ->
 /// 0x5AE6D0, with path/ok/err following). Do not "fix" this test by adding

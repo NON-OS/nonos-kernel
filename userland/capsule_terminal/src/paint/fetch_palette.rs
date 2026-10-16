@@ -14,14 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::PaintBuffer;
+//! The row of colour swatches under the splash.
 
-pub fn draw_palette(fb: &mut PaintBuffer, x: u32, y: u32) {
-    let colors: [u32; 8] = [
-        0xFF35D07A, 0xFF5AA9E6, 0xFF7CF0A8, 0xFFE5C07B, 0xFFE5484D, 0xFFB87CF0, 0xFF5AE6D0,
-        0xFFB9C2CC,
-    ];
+use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::derive::opaque;
+
+/// One swatch per colour, left to right. The screen's palette carries no
+/// alpha, so each is made opaque before it is filled.
+pub fn draw_palette(fb: &mut PaintBuffer, x: u32, y: u32, colors: &[u32]) {
     for (i, c) in colors.iter().enumerate() {
-        fb.fill_rect(x + i as u32 * 18, y, 14, 10, *c);
+        fb.fill_rect(x + i as u32 * 18, y, 14, 10, opaque(*c));
     }
 }

@@ -15,10 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::Roles;
 
 use super::fit_text::{fit_text, width_of};
-use super::tokens::{DOT_IDLE, DOT_OK, TAB_ACTIVE, TAB_ACTIVE_EDGE, TAB_IDLE};
-use super::tokens::{TOOLBAR_ACTIVE, TOOLBAR_LABEL};
 use crate::layout::Rect;
 
 pub const PILL_W: u32 = 160;
@@ -53,16 +52,25 @@ pub fn plus_rect(n: usize, avail_w: u32) -> Rect {
     Rect { x, y: 0, w: PLUS_W - GAP, h: PILL_H }
 }
 
-pub fn draw_pill(fb: &mut PaintBuffer, r: Rect, label: &[u8], name_len: usize, active: bool) {
+/// One tab: the active one washed and edged in the accent with its dot lit,
+/// the rest bare on the titlebar.
+pub fn draw_pill(
+    fb: &mut PaintBuffer,
+    r: Rect,
+    label: &[u8],
+    name_len: usize,
+    active: bool,
+    c: &Roles,
+) {
     if r.w == 0 {
         return;
     }
-    fb.fill_round(r.x, r.y, r.w, r.h, RADIUS, if active { TAB_ACTIVE } else { TAB_IDLE });
     if active {
-        fb.stroke_round(r.x, r.y, r.w, r.h, RADIUS, 1, TAB_ACTIVE_EDGE);
+        fb.fill_round(r.x, r.y, r.w, r.h, RADIUS, c.accent_wash.argb());
+        fb.stroke_round(r.x, r.y, r.w, r.h, RADIUS, 1, c.accent_edge.argb());
     }
-    fb.circle(r.x + DOT_X, r.y + r.h / 2, 3, if active { DOT_OK } else { DOT_IDLE });
-    let fg = if active { TOOLBAR_ACTIVE } else { TOOLBAR_LABEL };
+    fb.circle(r.x + DOT_X, r.y + r.h / 2, 3, if active { c.ok } else { c.quiet }.argb());
+    let fg = if active { c.accent_text } else { c.muted }.argb();
     let baseline = (r.y + r.h / 2) as i32 - (LABEL_PX as i32) / 2;
     let close = close_rect(r);
     let room = close.x.saturating_sub(r.x + TEXT_X);

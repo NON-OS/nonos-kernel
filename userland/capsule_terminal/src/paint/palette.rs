@@ -15,28 +15,33 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::derive::opaque;
+use nonos_toolkit::theme::roles;
 
 use super::palette_row::draw_row;
 use super::rail_text::{clipped, left, lh, RAIL_GAP, RAIL_PAD, RAIL_PX};
-use super::tokens::{PALETTE_PANEL, SCRIM};
+use super::shade::elevate;
 use crate::layout::Rect;
 use crate::palette::{filter, panel, query_row, row, rows_fit, Index, Palette, MAX_ROWS};
 use crate::term::theme::types::Theme;
 
 const RADIUS: u32 = 10;
 const SHADOW: u32 = 8;
+const PANEL_LIFT: u8 = 12;
 
 /// The first overlay layer in this window. Every pixel is a blend: the panel
 /// sits on paint the frame already laid down, so a raw write would replace it
-/// and punch a hole through to the wallpaper.
+/// and punch a hole through to the wallpaper. The panel is lifted from the
+/// body's own ground, so its text reads in every profile.
 pub fn draw(fb: &mut PaintBuffer, body: Rect, pal: &Palette, ix: &Index, t: &Theme) {
-    fb.blend_rect(body.x, body.y, body.w, body.h, SCRIM);
+    let scrim = roles().scrim.argb();
+    fb.blend_rect(body.x, body.y, body.w, body.h, scrim);
     let row_h = lh() + RAIL_GAP;
     let mut hits = [0usize; MAX_ROWS];
     let n = filter(ix.slice(), pal.needle(), &mut hits);
     let p = panel(body, row_h, n as u32);
-    fb.shadow_round(p.x, p.y, p.w, p.h, RADIUS, SHADOW, SCRIM);
-    fb.fill_round(p.x, p.y, p.w, p.h, RADIUS, PALETTE_PANEL);
+    fb.shadow_round(p.x, p.y, p.w, p.h, RADIUS, SHADOW, scrim);
+    fb.fill_round(p.x, p.y, p.w, p.h, RADIUS, opaque(elevate(t.bg, PANEL_LIFT)));
     let q = query_row(p, row_h);
     draw_query(fb, q, pal, t);
     fb.blend_rect(q.x, q.y + row_h, q.w, 1, t.chrome_edge);

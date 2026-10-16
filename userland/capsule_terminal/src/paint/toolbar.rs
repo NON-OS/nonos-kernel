@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::Roles;
 
 use super::tab_pill::{PILL_H, RADIUS};
-use super::tokens::{TAB_HOVER, TOOLBAR_ACTIVE, TOOLBAR_ICON};
 use super::tool_icon::{icon_new_tab, icon_search, icon_theme};
 use crate::layout::Rect;
 
@@ -46,16 +46,16 @@ fn icon_rect(r: Rect) -> Rect {
     Rect { x: r.x + (r.w - ICON) / 2, y: r.y + (r.h - ICON) / 2, w: ICON, h: ICON }
 }
 
-pub fn draw_toolbar(fb: &mut PaintBuffer, avail_w: u32, active: Option<usize>) {
+pub fn draw_toolbar(fb: &mut PaintBuffer, avail_w: u32, active: Option<usize>, c: &Roles) {
     for i in 0..TOOL_COUNT {
         let r = button_rect(i, avail_w);
         if r.x + r.w > fb.width {
             continue;
         }
         let hot = active == Some(i);
-        let fg = if hot { TOOLBAR_ACTIVE } else { TOOLBAR_ICON };
+        let fg = if hot { c.accent_text } else { c.muted }.argb();
         if hot {
-            fb.fill_round(r.x + 1, r.y, r.w - 2, r.h, RADIUS, TAB_HOVER);
+            fb.fill_round(r.x + 1, r.y, r.w - 2, r.h, RADIUS, c.hover_wash.argb());
         }
         let ic = icon_rect(r);
         match i {

@@ -55,6 +55,7 @@ impl Default for Project {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Prefs {
+    /// An index into `theme::choice`: 0 is System, the default.
     pub theme: u16,
     pub font_scale: u8,
     pub cursor: u8,

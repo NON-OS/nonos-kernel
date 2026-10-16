@@ -18,7 +18,7 @@ use nonos_app_skeleton::EventOutcome;
 
 use super::types::Terminal;
 use crate::palette::{filter, Index, MAX_ROWS};
-use crate::term::theme::profiles;
+use crate::term::theme::choice;
 
 impl Terminal {
     pub(super) fn palette_hits(&self, out: &mut [usize]) -> usize {
@@ -46,7 +46,7 @@ impl Terminal {
     }
 
     pub(super) fn theme_next(&mut self) -> EventOutcome {
-        self.theme = (self.theme + 1) % profiles::COUNT;
+        self.theme = choice::next(self.theme);
         self.prefs_dirty = true;
         EventOutcome::Repaint
     }

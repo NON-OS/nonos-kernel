@@ -23,10 +23,16 @@
 //! who has learned that green passed and red failed should not have to
 //! relearn it because those are also the brand.
 //!
-//! Chrome (header, tab strip, footer, input bar, command blocks) is not stored
-//! but derived from the active profile background via paint::shade::elevate,
-//! so every profile including the translucent ones stays complete.
+//! The choices are System, which follows the OS theme set in Settings and is
+//! the default, then the named profiles with their own fixed colours.
+//!
+//! Chrome in the window body (header, footer, input bar, command blocks) is not
+//! stored but derived from the active background via paint::shade::elevate,
+//! so every profile including the translucent ones stays complete. The tab
+//! strip sits in the titlebar and takes the OS theme's roles.
 
 pub mod ansi;
+pub mod choice;
 pub mod profiles;
+mod system;
 pub mod types;

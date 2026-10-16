@@ -64,7 +64,6 @@ pub mod tab_bar;
 mod tab_chip;
 mod tab_label;
 pub mod tab_pill;
-pub mod tokens;
 mod tool_icon;
 pub mod toolbar;
 mod user_host;

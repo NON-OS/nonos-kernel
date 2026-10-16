@@ -26,6 +26,6 @@ pub struct Scrollback {
     /// the carriage, since the shell and most programs end lines with `\n`
     /// alone. A program that turns output processing off gets bare feeds.
     pub onlcr: bool,
-    /// The theme the palette was last taken from.
-    pub(super) theme_of: Option<u16>,
+    /// The theme the palette was last taken from, as `choice::key` gives it.
+    pub(super) theme_of: Option<(u16, u32)>,
 }

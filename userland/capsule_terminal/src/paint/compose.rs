@@ -31,6 +31,9 @@ use crate::term::prefs::types::Project;
 use crate::term::state::State;
 use crate::term::theme::types::Theme;
 
+/// The splash's swatches: red through white, then bright black.
+const SWATCHES: core::ops::Range<usize> = 1..9;
+
 pub fn paint_tabs(
     tabs: &[State],
     active: usize,
@@ -79,7 +82,7 @@ pub fn paint(
     if owned {
         draw_vt(&f, fb, Rows::Screen, state.shade());
     } else if state.fresh {
-        draw_fetch(fb, text_x, l.body.y, text_r, t);
+        draw_fetch(fb, text_x, l.body.y, text_r, t, &vt.palette().colors[SWATCHES]);
     } else {
         let rows = Rows::Shell { rows: (l.body.h / m.lh.max(1)) as usize, back: vt.view_offset() };
         draw_block_chrome(state, fb, &f.area, rows.first(vt), &m, t);

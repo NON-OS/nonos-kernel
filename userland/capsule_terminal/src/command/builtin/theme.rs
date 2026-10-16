@@ -14,19 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Palette profiles for the terminal. Each names a complete `Theme`; the
+//! Palette profiles for the terminal: `system`, which follows the OS theme set
+//! in Settings, then the named ones. Each names a complete `Theme`; the
 //! translucent ones carry an alpha below 0xFF, which the compositor blends so
 //! the desktop shows through the window.
 
 use crate::command::output::Output;
 use crate::term::state::State;
-use crate::term::theme::profiles;
+use crate::term::theme::choice;
 
-const NAMES: &[&[u8]] = &[b"dark", b"dim", b"light", b"abyss"];
+const NAMES: &[&[u8]] = &[b"system", b"dark", b"dim", b"light", b"abyss"];
 
 pub fn run(state: &mut State, argv: &[&[u8]]) {
     match argv.get(1) {
-        Some(name) => match profiles::by_name(name) {
+        Some(name) => match choice::by_name(name) {
             Some(idx) => state.theme_req = Some(idx),
             None => {
                 Output::new(&mut state.scrollback).writeln(b"theme: unknown profile");

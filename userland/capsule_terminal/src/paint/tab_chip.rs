@@ -15,19 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::Roles;
 
 use super::fit_text::{fit_text, width_of};
 use super::tab_pill::{LABEL_PX, RADIUS};
-use super::tokens::TAB_HOVER;
 use crate::layout::Rect;
 
 /// A compact labelled button inside the titlebar accessory: a soft rounded
 /// ground with its label measured and centred, never counted in glyphs.
-pub fn draw_chip(fb: &mut PaintBuffer, r: Rect, label: &str, fg: u32) {
+pub fn draw_chip(fb: &mut PaintBuffer, r: Rect, label: &str, c: &Roles) {
     if r.w == 0 {
         return;
     }
-    fb.fill_round(r.x, r.y, r.w, r.h, RADIUS, TAB_HOVER);
+    let fg = c.accent_text.argb();
+    fb.fill_round(r.x, r.y, r.w, r.h, RADIUS, c.hover_wash.argb());
     let cut = fit_text(fb, label, LABEL_PX, r.w.saturating_sub(4));
     let x = r.x + r.w / 2 - width_of(fb, cut, LABEL_PX) / 2;
     let y = (r.y + r.h / 2) as i32 - (LABEL_PX as i32) / 2;

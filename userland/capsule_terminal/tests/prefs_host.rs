@@ -21,7 +21,8 @@
 // `codec.rs` reaches for `crate::term::dimensions`. In a `--test` binary the
 // crate root is this file, so the module tree below is laid out to match the
 // shipping one and the `crate::` path resolves against it. The font-scale
-// bounds mirror `src/term/dimensions.rs`.
+// bounds mirror `src/term/dimensions.rs`, and the theme choices
+// `src/term/theme/choice.rs`: System, then the four named profiles.
 
 #[path = "../src/term"]
 mod term {
@@ -31,8 +32,9 @@ mod term {
     }
 
     pub mod theme {
-        pub mod profiles {
-            pub const COUNT: u16 = 4;
+        pub mod choice {
+            pub const SYSTEM: u16 = 0;
+            pub const COUNT: u16 = 5;
         }
     }
 
@@ -70,7 +72,7 @@ fn the_record_shape_is_the_documented_one() {
     assert_eq!(HEAD, 12);
     assert_eq!(LEN, HEAD + 1 + MAX_PROJECTS * (1 + PATH_CAP));
     assert_eq!(MAGIC, *b"NTP1");
-    assert_eq!(VERSION, 2);
+    assert_eq!(VERSION, 3);
 }
 
 /// Every setting a reader can change must survive a save and a reboot; a
@@ -136,7 +138,7 @@ fn out_of_range_values_are_clamped() {
         ..Prefs::default()
     });
     let got = decode(&b);
-    assert!(got.theme < 4, "theme {} out of range", got.theme);
+    assert!(got.theme < 5, "theme {} out of range", got.theme);
     assert!(
         got.font_scale >= 1 && got.font_scale <= 6,
         "font_scale {} out of range",
@@ -154,6 +156,25 @@ fn the_defaults_match_the_historical_hardcoded_values() {
     assert_eq!(d.font_scale, 2);
     assert_eq!(d.theme, 0);
     assert_eq!(d.cursor, 0);
+}
+
+/// A record from before System numbered the named profiles from 0. Each must
+/// still open the profile that was saved, now one place along.
+#[test]
+fn an_older_record_keeps_its_named_profile() {
+    for (old, want) in [(0u16, 1u16), (1, 2), (2, 3), (3, 4), (4, 0), (u16::MAX, 0)] {
+        let mut b = encode(&Prefs::default());
+        b[4] = 2;
+        b[6..8].copy_from_slice(&old.to_le_bytes());
+        assert_eq!(decode(&b).theme, want, "version 2 theme {old}");
+    }
+}
+
+/// A record from this build stores the choice as it is: System stays System.
+#[test]
+fn system_round_trips() {
+    let p = Prefs { theme: 0, ..Prefs::default() };
+    assert_eq!(decode(&encode(&p)).theme, 0);
 }
 
 /// Pinned project paths are settings like any other: dropping them in the codec
@@ -228,7 +249,7 @@ fn a_v1_record_keeps_its_head_fields() {
     let mut b = encode(&p);
     b[4..6].copy_from_slice(&1u16.to_le_bytes());
     let got = decode(&b[..HEAD]);
-    assert_eq!(got.theme, 2, "v1 theme lost");
+    assert_eq!(got.theme, 3, "v1 Light (2) lost; it is 3 once System leads");
     assert_eq!(got.font_scale, 3, "v1 font scale lost");
     assert_eq!(got.project_count, 0, "v1 record cannot carry projects");
 }

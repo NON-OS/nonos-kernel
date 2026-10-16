@@ -19,6 +19,9 @@ use nonos_vt::Palette;
 use super::types::Scrollback;
 use crate::term::theme::types::Theme;
 
+/// The colour bits of an ARGB value; the screen's palette carries no alpha.
+const RGB: u32 = 0x00FF_FFFF;
+
 impl Scrollback {
     /// Match the screen to the window. A resize re-wraps what is there.
     /// True when the size in cells changed.
@@ -33,17 +36,21 @@ impl Scrollback {
     }
 
     /// Program colours start from the window's theme. Only a change of
-    /// theme resets them, so a colour a program set survives a repaint.
-    pub fn follow_theme(&mut self, index: u16, t: &Theme) {
-        if self.theme_of == Some(index) {
+    /// `key` resets them, so a colour a program set survives a repaint. Under
+    /// System the key carries the OS theme's revision, so a theme chosen in
+    /// Settings resets them too.
+    pub fn follow_theme(&mut self, key: (u16, u32), t: &Theme, ansi: &[u32; 16]) {
+        if self.theme_of == Some(key) {
             return;
         }
         let mut p = Palette::xterm();
-        p.colors[..16].copy_from_slice(crate::term::theme::ansi::base16_for(t.bg));
-        p.fg = t.fg & 0x00FF_FFFF;
-        p.bg = t.bg & 0x00FF_FFFF;
-        p.cursor = t.accent & 0x00FF_FFFF;
+        for (slot, &c) in p.colors[..16].iter_mut().zip(ansi) {
+            *slot = c & RGB;
+        }
+        p.fg = t.fg & RGB;
+        p.bg = t.bg & RGB;
+        p.cursor = t.accent & RGB;
         self.vt.set_theme(p);
-        self.theme_of = Some(index);
+        self.theme_of = Some(key);
     }
 }

@@ -17,10 +17,14 @@
 use super::projects;
 use super::types::Prefs;
 use crate::term::dimensions::{MAX_FONT_SCALE, MIN_FONT_SCALE};
-use crate::term::theme::profiles::COUNT as THEME_COUNT;
+use crate::term::theme::choice::{COUNT as THEME_COUNT, SYSTEM};
 
 pub const MAGIC: [u8; 4] = *b"NTP1";
-pub const VERSION: u16 = 2;
+pub const VERSION: u16 = 3;
+/// The first version whose theme index counts System as 0. An older record
+/// numbered the named profiles from 0, so its index moves up one on read and
+/// keeps naming the profile that was saved.
+const SYSTEM_FIRST: u16 = 3;
 pub const HEAD: usize = 12;
 pub const LEN: usize = HEAD + projects::BYTES;
 
@@ -58,12 +62,15 @@ pub fn decode(b: &[u8]) -> Prefs {
     if version == 0 || version > VERSION {
         return Prefs::default();
     }
-    let theme = u16::from_le_bytes([b[6], b[7]]);
+    let mut theme = u16::from_le_bytes([b[6], b[7]]);
+    if version < SYSTEM_FIRST {
+        theme = theme.saturating_add(1);
+    }
     let font_scale = b[8];
     let cursor = b[9];
     let (list, count) = projects::decode_from(&b[HEAD..]);
     Prefs {
-        theme: if theme < THEME_COUNT { theme } else { 0 },
+        theme: if theme < THEME_COUNT { theme } else { SYSTEM },
         font_scale: if font_scale as u32 >= MIN_FONT_SCALE && font_scale as u32 <= MAX_FONT_SCALE {
             font_scale
         } else {

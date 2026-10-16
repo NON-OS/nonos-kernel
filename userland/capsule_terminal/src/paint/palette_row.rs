@@ -17,7 +17,6 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use super::rail_text::{clipped, left, lh, right, RAIL_GAP, RAIL_PAD};
-use super::tokens::TAB_ACTIVE;
 use crate::layout::Rect;
 use crate::palette::Entry;
 use crate::term::theme::types::Theme;
@@ -25,11 +24,11 @@ use crate::term::theme::types::Theme;
 const RADIUS: u32 = 6;
 const TAG_W: u32 = 34;
 
-/// One result row: source tag, label, hint. The selected row is a blend over
-/// the panel, never a raw fill, so the panel keeps showing through it.
+/// One result row: source tag, label, hint. The selected row takes the body's
+/// selection ground, so it reads the way selected text does.
 pub fn draw_row(fb: &mut PaintBuffer, r: Rect, e: &Entry, sel: bool, t: &Theme) {
     if sel {
-        fb.fill_round(r.x, r.y, r.w, r.h, RADIUS, TAB_ACTIVE);
+        fb.fill_round(r.x, r.y, r.w, r.h, RADIUS, t.selection);
     }
     let y = (r.y + r.h.saturating_sub(lh()) / 2) as i32;
     left(fb, r.x + RAIL_PAD, y, e.kind.tag(), t.dim);

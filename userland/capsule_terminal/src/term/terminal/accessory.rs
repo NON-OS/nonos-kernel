@@ -19,7 +19,7 @@ use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind, PaintBuffer};
 use super::types::Terminal;
 use crate::paint::tab_bar::nominal_w;
 use crate::paint::toolbar::toolbar_hit;
-use crate::term::theme::profiles;
+use crate::term::theme::choice;
 
 const LIGHTS_RESERVE: u32 = 128;
 
@@ -50,7 +50,7 @@ impl Terminal {
                 // projects rather than a second history search the keyboard
                 // already has on Ctrl-R.
                 1 => self.palette.show(),
-                _ => self.theme = (self.theme + 1) % profiles::COUNT,
+                _ => self.theme = choice::next(self.theme),
             }
             return EventOutcome::Repaint;
         }

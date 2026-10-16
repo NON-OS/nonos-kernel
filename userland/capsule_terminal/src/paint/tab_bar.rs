@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::tab_chip::draw_chip;
 use super::tab_label::{tab_label, LABEL_CAP};
 use super::tab_pill::{draw_pill, pill_rect, plus_rect, PILL_W, PLUS_W};
-use super::tokens::TOOLBAR_ACTIVE;
 use super::toolbar::{draw_toolbar, TOOLBAR_W};
 use crate::term::state::State;
 
@@ -34,14 +34,17 @@ pub fn nominal_w(tabs: usize) -> u32 {
     tabs as u32 * PILL_W + PLUS_W + TOOLBAR_W
 }
 
+/// The strip sits in the titlebar, so it takes the OS theme's roles whichever
+/// profile the body is in.
 pub fn draw_tab_bar(tabs: &[State], active: usize, fb: &mut PaintBuffer) {
+    let r = roles();
     let avail = tabs_avail(fb.width);
     let mut buf = [0u8; LABEL_CAP];
     for (i, tab) in tabs.iter().enumerate() {
         let (name_len, n) = tab_label(i, tab, &mut buf);
-        draw_pill(fb, pill_rect(i, avail), &buf[..n], name_len, i == active);
+        draw_pill(fb, pill_rect(i, avail), &buf[..n], name_len, i == active, &r);
     }
-    draw_chip(fb, plus_rect(tabs.len(), avail), "+", TOOLBAR_ACTIVE);
+    draw_chip(fb, plus_rect(tabs.len(), avail), "+", &r);
     let w = fb.width;
-    draw_toolbar(fb, w, None);
+    draw_toolbar(fb, w, None, &r);
 }

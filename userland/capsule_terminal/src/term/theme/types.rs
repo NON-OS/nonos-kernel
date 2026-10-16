@@ -28,4 +28,6 @@ pub struct Theme {
     pub err: u32,
     pub run: u32,
     pub chrome_edge: u32,
+    /// The ground under selected cells, opaque.
+    pub selection: u32,
 }

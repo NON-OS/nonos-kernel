@@ -24,7 +24,6 @@ use super::rail_scroll::{clamp, telemetry_top, RailFit};
 use super::rail_telemetry;
 use super::rail_text::RAIL_PAD;
 use super::tab_label::session_name;
-use super::tokens::DOT_IDLE;
 use crate::layout::Rect;
 use crate::rail::Rail;
 use crate::term::prefs::types::Project;
@@ -66,7 +65,7 @@ pub fn draw(
         let n = session_name(i as usize, &mut buf);
         let name = core::str::from_utf8(&buf[..n]).unwrap_or("");
         let sub = core::str::from_utf8(tab.cwd.as_bytes()).unwrap_or("");
-        let dot = if tab.fg_running { t.run } else { DOT_IDLE };
+        let dot = if tab.fg_running { t.run } else { t.dim };
         draw_row(fb, band, dot, name, sub, i as usize == active, t);
     }
     for i in 0..fit.projects {
@@ -75,7 +74,7 @@ pub fn draw(
             continue;
         }
         let path = projects[i as usize].as_str();
-        draw_row(fb, band, DOT_IDLE, base_name(path), path, false, t);
+        draw_row(fb, band, t.dim, base_name(path), path, false, t);
     }
     if telemetry {
         let y = telemetry_top(off, fit);
