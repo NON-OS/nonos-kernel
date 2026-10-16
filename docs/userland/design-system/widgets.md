@@ -21,11 +21,17 @@ userland/toolkit/src/widgets/
 | builders | `pub fn note(self, &'a str) -> Self` and the like | a new option is a new method, so no caller breaks |
 | `state` | `pub fn state(self, State) -> Self` | hover, focus, press, selection, disabled |
 | `size` | `pub fn size(&self) -> (u32, u32)` | the preferred logical size |
-| `draw` | `pub fn draw(&self, fb: &mut PaintBuffer, at: Rect)` | paints inside `at` and nowhere else |
+| `draw` | `pub fn draw(&self, fb: &mut impl Surface, at: Rect)` | paints inside `at` and nowhere else |
 | `hit` | `pub fn hit(&self, at: Rect, x: i32, y: i32) -> ..` | `bool`, or the part that was hit |
 
 Each widget has one private geometry function from `at` to its parts. `draw` and `hit` both call
 it, and nothing else computes a position.
+
+A `PaintBuffer` is a `Surface`, so `widget.draw(fb, at)` draws at the buffer's own coordinates. A
+scrolled pane draws through `Scrolled::new(fb, scroll)` instead: `at` is then in content
+coordinates, each primitive moves up by `scroll` and is cut to the pane, and a rounded shape
+cut by the edge reads square there. `hit` takes the same coordinates, so the app passes the
+pointer's y plus the scroll.
 
 ## State and input
 
