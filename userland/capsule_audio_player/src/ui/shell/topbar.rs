@@ -19,13 +19,13 @@
 //! scanned from. Clicking the field routes to the Search screen.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::ui::geometry::Rect;
 use crate::ui::icon::{Glyph, Icons};
 use crate::ui::metrics::{pill, ITEM, LABEL, S3, S4, S5, S6};
-use crate::ui::paint::{fill, stroke, text_mid, text_right};
+use crate::ui::paint::{fill, rule, stroke, text_mid, text_right};
 use crate::ui::text::tail_to_width;
-use crate::ui::theme::{alpha, CYAN, DEEP, EDGE, INK, MID, MUTE, PRESS, RAISED};
 
 const FIELD_H: i32 = 34;
 const CHIP_W: i32 = 112;
@@ -40,31 +40,33 @@ pub fn field(r: Rect) -> Rect {
 }
 
 pub fn topbar(fb: &mut PaintBuffer, icons: &Icons, r: Rect, query: &str, focused: bool) {
-    fill(fb, Rect::new(r.x, r.bottom() - 1, r.w, 1), 0, EDGE);
+    let t = roles();
+    let (border, text_2) = (t.border.argb(), t.text_2.argb());
+    rule(fb, Rect::new(r.x, r.bottom() - 1, r.w, 1));
 
     let f = field(r);
-    fill(fb, f, pill(f.h), DEEP);
+    fill(fb, f, pill(f.h), t.sunken.argb());
     if focused {
-        fill(fb, f, pill(f.h), PRESS);
+        fill(fb, f, pill(f.h), t.accent_wash.argb());
     }
-    stroke(fb, f, pill(f.h), 1, if focused { alpha(CYAN, 0xB0) } else { EDGE });
-    icons.centred(fb, Rect::new(f.x + S3, f.y, 22, f.h), 16, Glyph::Search, MID);
+    stroke(fb, f, pill(f.h), 1, if focused { t.focus_ring.argb() } else { border });
+    icons.centred(fb, Rect::new(f.x + S3, f.y, 22, f.h), 16, Glyph::Search, text_2);
     let tx = f.x + S3 + 22 + S3;
     let text_w = f.right() - tx - S4 - if query.is_empty() { 0 } else { 24 };
-    // A pasted address runs far past the field: its end, the file's name,
-    // is what shows.
+    /* A pasted address runs far past the field: its end, the file's name,
+     * is what shows. */
     let shown = tail_to_width(query, ITEM, text_w);
-    let (label, ink) = if query.is_empty() { ("Search the library", MUTE) } else { (shown.as_str(), INK) };
-    text_mid(fb, Rect::new(tx, f.y, text_w, f.h), label, ink, ITEM);
+    let (label, ink) = if query.is_empty() { ("Search the library", t.quiet) } else { (shown.as_str(), t.text) };
+    text_mid(fb, Rect::new(tx, f.y, text_w, f.h), label, ink.argb(), ITEM);
     if !query.is_empty() {
-        icons.centred(fb, clear(r), 14, Glyph::Close, MID);
+        icons.centred(fb, clear(r), 14, Glyph::Close, text_2);
     }
 
-    // The folder the library reads, as a label: there is no other source to
-    // pick and no notifications to show, so no menu or bell beside it.
+    /* The folder the library reads, as a label: there is no other source to
+     * pick and no notifications to show, so no menu or bell beside it. */
     let chip = Rect::new(r.right() - S6 - CHIP_W, r.cy() - FIELD_H / 2, CHIP_W, FIELD_H);
-    fill(fb, chip, pill(chip.h), RAISED);
-    stroke(fb, chip, pill(chip.h), 1, EDGE);
-    icons.centred(fb, Rect::new(chip.x + S3, chip.y, 20, chip.h), 15, Glyph::Download, CYAN);
-    text_right(fb, Rect::new(chip.x, chip.y, chip.w - S4, chip.h), "My music", MID, LABEL);
+    fill(fb, chip, pill(chip.h), t.raised.argb());
+    stroke(fb, chip, pill(chip.h), 1, border);
+    icons.centred(fb, Rect::new(chip.x + S3, chip.y, 20, chip.h), 15, Glyph::Download, t.accent.argb());
+    text_right(fb, Rect::new(chip.x, chip.y, chip.w - S4, chip.h), "My music", text_2, LABEL);
 }

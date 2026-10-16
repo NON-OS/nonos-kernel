@@ -17,12 +17,13 @@
 //! Button in the three section-03 variants: solid, glow and ghost.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::derive::with_alpha;
+use nonos_toolkit::theme::roles;
 
 use crate::ui::geometry::Rect;
 use crate::ui::icon::{Glyph, Icons};
 use crate::ui::metrics::{pill, ITEM, R_CTL, S3};
 use crate::ui::paint::{fill, mid_top, panel, shadow, text, width};
-use crate::ui::theme::{alpha, rgb, CYAN, EDGE, INK, VOID};
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum Variant {
@@ -48,17 +49,21 @@ pub fn button(
         Variant::Ghost => R_CTL,
         _ => pill(r.h),
     };
+    let t = roles();
+    let (ink, accent) = (t.text.argb(), t.accent.argb());
     let fg = match v {
-        Variant::Ghost => INK,
-        _ => VOID,
-    };
+        Variant::Solid => t.bg,
+        Variant::Glow => t.on_accent,
+        Variant::Ghost => t.text,
+    }
+    .argb();
     match v {
-        Variant::Solid => fill(fb, r, rad, INK),
+        Variant::Solid => fill(fb, r, rad, ink),
         Variant::Glow => {
-            shadow(fb, r, rad, (r.h / 3) as u32, alpha(rgb(CYAN), 0x4C));
-            fill(fb, r, rad, CYAN);
+            shadow(fb, r, rad, (r.h / 3) as u32, with_alpha(accent, 0x4C));
+            fill(fb, r, rad, accent);
         }
-        Variant::Ghost => panel(fb, r, rad, alpha(rgb(INK), 0x0F), EDGE),
+        Variant::Ghost => panel(fb, r, rad, with_alpha(ink, 0x0F), t.border.argb()),
     }
     let icon_w = if glyph.is_some() { ITEM as i32 + S3 } else { 0 };
     let run = width(label, ITEM) + icon_w;

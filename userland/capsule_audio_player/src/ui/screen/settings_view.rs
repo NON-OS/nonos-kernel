@@ -22,6 +22,7 @@ extern crate alloc;
 
 use alloc::string::String;
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::decode::DECODERS;
 use crate::library::{Library, Queue};
@@ -30,9 +31,8 @@ use crate::resample::OUT_RATE;
 use crate::ui::geometry::Rect;
 use crate::ui::icon::{Glyph, Icons};
 use crate::ui::metrics::{ITEM, LABEL, S2};
-use crate::ui::paint::{fill, text_mid, text_right};
+use crate::ui::paint::{rule, text_mid, text_right};
 use crate::ui::text::push_u32;
-use crate::ui::theme::{EDGE, INK, MUTE};
 use crate::ui::widget::{
     card_panel, page_header, slider, stat_tile, storage_meter, switch, SWITCH_H, SWITCH_W,
 };
@@ -50,23 +50,24 @@ fn num(v: u32) -> String {
 fn fact(fb: &mut PaintBuffer, r: Rect, i: i32, key: &str, value: &str) {
     let h = (r.h / 4).min(FACT_H).max(1);
     let row = r.row(i * h, h);
-    text_mid(fb, row, key, MUTE, LABEL);
-    text_right(fb, row, value, INK, ITEM);
-    fill(fb, Rect::new(row.x, row.bottom() - 1, row.w, 1), 0, EDGE);
+    let t = roles();
+    text_mid(fb, row, key, t.muted.argb(), LABEL);
+    text_right(fb, row, value, t.text.argb(), ITEM);
+    rule(fb, Rect::new(row.x, row.bottom() - 1, row.w, 1));
 }
 
 fn playback(fb: &mut PaintBuffer, r: Rect, v: &PlayerView) {
     card_panel(fb, panel_rect(r), "Playback");
-    let states = [v.shuffle, v.repeat, v.muted];
+    let (states, ink) = ([v.shuffle, v.repeat, v.muted], roles().text.argb());
     for (i, label) in TOGGLES.iter().enumerate() {
         let row = toggle_row(r, i);
-        text_mid(fb, row, label, INK, ITEM);
+        text_mid(fb, row, label, ink, ITEM);
         let sw = Rect::new(row.right() - SWITCH_W, row.cy() - SWITCH_H / 2, SWITCH_W, SWITCH_H);
         switch(fb, sw, states[i]);
-        fill(fb, Rect::new(row.x, row.bottom() - 1, row.w, 1), 0, EDGE);
+        rule(fb, Rect::new(row.x, row.bottom() - 1, row.w, 1));
     }
     let vol = toggle_row(r, 3);
-    text_mid(fb, vol, "Volume", INK, ITEM);
+    text_mid(fb, vol, "Volume", ink, ITEM);
     slider(fb, volume_rect(r), v.volume_q15.max(0) as u64, 32768, true);
 }
 

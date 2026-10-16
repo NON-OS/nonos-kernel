@@ -17,10 +17,11 @@
 //! The four-bar equalizer that replaces the index on a playing row.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::derive::with_alpha;
+use nonos_toolkit::theme::roles;
 
 use crate::ui::geometry::Rect;
 use crate::ui::paint::fill;
-use crate::ui::theme::{alpha, CYAN};
 
 /// Output levels, of 32767, at which each bar lights: about -24, -18, -12
 /// and -6 dB.
@@ -33,10 +34,11 @@ const LIT_AT: [u16; 4] = [2064, 4125, 8231, 16423];
 pub fn equalizer(fb: &mut PaintBuffer, r: Rect, level: u16) {
     let bw = (r.w / 7).max(2);
     let gap = (r.w - bw * 4) / 3;
+    let accent = roles().accent.argb();
     for (i, at) in LIT_AT.iter().enumerate() {
         let h = (r.h * (i as i32 + 1) / 4).max(2);
         let x = r.x + i as i32 * (bw + gap);
-        let ink = if level >= *at { CYAN } else { alpha(CYAN, 0x40) };
+        let ink = if level >= *at { accent } else { with_alpha(accent, 0x40) };
         fill(fb, Rect::new(x, r.bottom() - h, bw, h), 1, ink);
     }
 }

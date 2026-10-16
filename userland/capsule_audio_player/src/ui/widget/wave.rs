@@ -19,11 +19,14 @@
 //! progress read-out without a second control.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::derive::mix;
+use nonos_toolkit::theme::roles;
 
 use crate::ui::geometry::Rect;
 use crate::ui::metrics::S1;
 use crate::ui::paint::fill;
-use crate::ui::theme::{mix, rgb, CYAN, CYAN_DIM, MUTE};
+
+use super::slider::accent_dim;
 
 const BAR: i32 = 5;
 
@@ -34,15 +37,12 @@ pub fn waveform(fb: &mut PaintBuffer, r: Rect, buckets: &[u8], num: u64, den: u6
     let step = BAR + S1 / 2;
     let n = (r.w / step).max(1);
     let head = if den == 0 { 0 } else { (num * n as u64 / den) as i32 };
+    let (t, dim) = (roles(), accent_dim());
     for i in 0..n {
         let b = buckets[(i as usize * buckets.len() / n as usize).min(buckets.len() - 1)];
         let h = ((b as i32 * r.h / 255).max(2) / 2) * 2;
         let bar = Rect::new(r.x + i * step, r.cy() - h / 2, BAR, h);
-        let c = if i <= head {
-            0xFF00_0000 | mix(rgb(CYAN_DIM), rgb(CYAN), (i * 255 / n) as u32)
-        } else {
-            MUTE
-        };
+        let c = if i <= head { mix(dim, t.accent.argb(), (i * 255 / n) as u8) } else { t.muted.argb() };
         fill(fb, bar, 2, c);
     }
 }

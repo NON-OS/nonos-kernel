@@ -17,27 +17,29 @@
 //! Pill chips for filters, genres and metadata stamps.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::ui::geometry::Rect;
 use crate::ui::metrics::{pill, LABEL, S4};
 use crate::ui::paint::{panel, text_centre, width};
-use crate::ui::theme::{CYAN, CYAN_WASH, EDGE, MID, RAISED, VOID};
 
 pub fn measure(label: &str) -> i32 {
     width(label, LABEL) + S4 * 2
 }
 
 pub fn chip(fb: &mut PaintBuffer, r: Rect, label: &str, pressed: bool) {
+    let t = roles();
     let (bg, border, fg) = if pressed {
-        (CYAN_WASH, CYAN, CYAN)
+        (t.accent_wash.argb(), t.accent.argb(), t.accent.argb())
     } else {
-        (RAISED, EDGE, MID)
+        (t.raised.argb(), t.border.argb(), t.text_2.argb())
     };
     panel(fb, r, pill(r.h), bg, border);
     text_centre(fb, r, label, fg, LABEL);
 }
 
 pub fn stamp(fb: &mut PaintBuffer, r: Rect, label: &str) {
-    panel(fb, r, pill(r.h), VOID, EDGE);
-    text_centre(fb, r, label, CYAN, LABEL);
+    let t = roles();
+    panel(fb, r, pill(r.h), t.bg.argb(), t.border.argb());
+    text_centre(fb, r, label, t.accent.argb(), LABEL);
 }

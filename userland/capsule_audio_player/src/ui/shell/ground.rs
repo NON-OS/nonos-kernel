@@ -24,15 +24,22 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 use nonos_app_skeleton::PaintBuffer;
-
-use crate::ui::theme::{mix, rgb, CYAN, PANEL, VIOLET, VOID};
+use nonos_toolkit::theme::derive::{mix, opaque};
+use nonos_toolkit::theme::roles;
 
 const GRID: i32 = 46;
 
 pub struct Ground {
     w: i32,
     h: i32,
+    seeds: [u32; 3],
     px: Vec<u32>,
+}
+
+/// The roles the ground is baked from, so a theme change rebuilds it.
+fn seeds() -> [u32; 3] {
+    let r = roles();
+    [r.bg.argb(), r.surface.argb(), r.accent.argb()]
 }
 
 fn radial(base: u32, tint: u32, dx: i64, dy: i64, rx: i64, ry: i64, peak: u32) -> u32 {
@@ -41,29 +48,29 @@ fn radial(base: u32, tint: u32, dx: i64, dy: i64, rx: i64, ry: i64, peak: u32) -
         return base;
     }
     let fall = (10_000 - d) as u32;
-    mix(base, tint, fall * peak / 10_000 / 100)
+    mix(base, tint, (fall * peak / 10_000 / 100) as u8)
 }
 
 impl Ground {
     pub fn build(w: i32, h: i32) -> Ground {
         let mut px = Vec::with_capacity((w * h).max(0) as usize);
-        let (cyan, violet) = (rgb(CYAN), rgb(VIOLET));
+        let seeds @ [bg, surface, accent] = seeds();
         for y in 0..h {
             for x in 0..w {
-                let mut c = mix(rgb(VOID), rgb(PANEL), (y * 255 / h.max(1)) as u32);
-                c = radial(c, cyan, (x - w / 2) as i64, (y + h / 10) as i64, 550, 310, 16);
-                c = radial(c, violet, (x - w * 88 / 100) as i64, (y - h * 108 / 100) as i64, 380, 260, 14);
+                let mut c = mix(bg, surface, (y * 255 / h.max(1)) as u8);
+                c = radial(c, accent, (x - w / 2) as i64, (y + h / 10) as i64, 550, 310, 16);
+                c = radial(c, accent, (x - w * 88 / 100) as i64, (y - h * 108 / 100) as i64, 380, 260, 14);
                 if x % GRID == 0 || y % GRID == 0 {
-                    c = mix(c, cyan, 5);
+                    c = mix(c, accent, 5);
                 }
-                px.push(0xFF00_0000 | c);
+                px.push(opaque(c));
             }
         }
-        Ground { w, h, px }
+        Ground { w, h, seeds, px }
     }
 
     pub fn fits(&self, w: u32, h: u32) -> bool {
-        self.w == w as i32 && self.h == h as i32
+        self.w == w as i32 && self.h == h as i32 && self.seeds == seeds()
     }
 
     pub fn blit(&self, fb: &mut PaintBuffer) {

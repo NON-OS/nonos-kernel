@@ -18,6 +18,8 @@
 //! card carries in place of hover.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::derive::with_alpha;
+use nonos_toolkit::theme::roles;
 
 use crate::ui::art::{cover_scrimmed, tint};
 use crate::ui::geometry::Rect;
@@ -27,7 +29,6 @@ use crate::ui::paint::{disc, shadow, text};
 use crate::ui::text::truncate_to_width;
 
 use super::chip::{measure as chip_w, stamp};
-use crate::ui::theme::{alpha, rgb, INK, MID, VOID};
 
 pub fn card_h(w: i32) -> i32 {
     w + S3 + line_h(ITEM) + line_h(SECONDARY)
@@ -48,20 +49,20 @@ pub fn card(
     sub: &str,
     playing: bool,
 ) {
-    let art = art_rect(r);
+    let (art, t) = (art_rect(r), roles());
     cover_scrimmed(fb, art, id, R_COVER);
     stamp(fb, Rect::new(art.x + S3, art.y + S3, chip_w(badge), 22), badge);
     if playing {
         let s = (art.w / 4).max(20);
         let c = Rect::new(art.right() - s - S3, art.bottom() - s - S3, s, s);
         let accent = tint(id);
-        shadow(fb, c, (s / 2) as u32, (s / 3) as u32, alpha(rgb(accent), 0x55));
+        shadow(fb, c, (s / 2) as u32, (s / 3) as u32, with_alpha(accent, 0x55));
         disc(fb, c.cx(), c.cy(), s / 2, accent);
-        icons.centred(fb, c, s / 2, Glyph::Play, VOID);
+        icons.centred(fb, c, s / 2, Glyph::Play, t.on_accent.argb());
     }
     let ty = art.bottom() + S3;
-    let t = truncate_to_width(title, ITEM, r.w);
-    text(fb, r.x, ty, &t, INK, ITEM);
+    let title = truncate_to_width(title, ITEM, r.w);
+    text(fb, r.x, ty, &title, t.text.argb(), ITEM);
     let s = truncate_to_width(sub, SECONDARY, r.w);
-    text(fb, r.x, ty + line_h(ITEM) - S2, &s, MID, SECONDARY);
+    text(fb, r.x, ty + line_h(ITEM) - S2, &s, t.text_2.argb(), SECONDARY);
 }

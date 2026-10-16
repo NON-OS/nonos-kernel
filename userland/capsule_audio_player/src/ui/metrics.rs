@@ -40,7 +40,6 @@ pub const R_WIN: u32 = 20;
 pub const R_CARD: u32 = 14;
 pub const R_COVER: u32 = 10;
 pub const R_CTL: u32 = 9;
-pub const R_TILE: u32 = 12;
 pub const R_THUMB: u32 = 7;
 
 pub fn line_h(px: f32) -> i32 {

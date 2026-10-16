@@ -17,38 +17,41 @@
 //! Stat tiles and the storage meter.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::derive::with_alpha;
+use nonos_toolkit::theme::roles;
 
 use crate::ui::geometry::Rect;
 use crate::ui::icon::{Glyph, Icons};
-use crate::ui::metrics::{line_h, DATA, LABEL, R_TILE, S3, S4};
-use crate::ui::paint::{fill, panel, text, text_right};
+use crate::ui::metrics::{line_h, DATA, LABEL, S3, S4};
+use crate::ui::paint::{card, fill, text, text_right};
 use crate::ui::text::upper;
-use crate::ui::theme::{alpha, rgb, AMBER, CYAN, CYAN_DIM, DEEP, EDGE, GREEN, INK, MUTE, RAISED};
 
 pub const TILE_H: i32 = 96;
 
 pub fn stat_tile(fb: &mut PaintBuffer, icons: &Icons, r: Rect, value: &str, label: &str, g: Glyph) {
-    panel(fb, r, R_TILE, RAISED, EDGE);
+    let t = roles();
+    card(fb, r);
     let inner = r.pad(S4, (r.h - 20).max(0) / 2);
-    icons.draw(fb, Rect::new(inner.x, inner.y, 20, 20), g, alpha(rgb(CYAN), 0xCC));
+    icons.draw(fb, Rect::new(inner.x, inner.y, 20, 20), g, with_alpha(t.accent.argb(), 0xCC));
     let lx = inner.x + 20 + S3;
-    text(fb, lx, inner.y + (20 - line_h(LABEL)) / 2, &upper(label), MUTE, LABEL);
+    text(fb, lx, inner.y + (20 - line_h(LABEL)) / 2, &upper(label), t.muted.argb(), LABEL);
     let vr = Rect::new(lx, inner.y + (20 - line_h(DATA)) / 2, inner.right() - lx, line_h(DATA));
-    text_right(fb, vr, value, INK, DATA);
+    text_right(fb, vr, value, t.text.argb(), DATA);
 }
 
 pub fn storage_meter(fb: &mut PaintBuffer, r: Rect, used: u32, total: u32, used_label: &str) {
-    panel(fb, r, R_TILE, RAISED, EDGE);
+    let t = roles();
+    card(fb, r);
     let inner = r.pad(S4, S4);
-    text(fb, inner.x, inner.y, &upper("Storage"), MUTE, LABEL);
-    text_right(fb, Rect::new(inner.x, inner.y, inner.w, line_h(LABEL)), used_label, INK, LABEL);
+    text(fb, inner.x, inner.y, &upper("Storage"), t.muted.argb(), LABEL);
+    text_right(fb, Rect::new(inner.x, inner.y, inner.w, line_h(LABEL)), used_label, t.text.argb(), LABEL);
     let bar = Rect::new(inner.x, inner.bottom() - 10, inner.w, 8);
-    fill(fb, bar, 4, DEEP);
+    fill(fb, bar, 4, t.sunken.argb());
     let pct = if total == 0 { 0 } else { (used * 100 / total).min(100) };
     let w = bar.w * pct as i32 / 100;
-    let c = if pct > 80 { AMBER } else if pct > 40 { CYAN } else { GREEN };
+    let c = if pct > 80 { t.warn } else if pct > 40 { t.accent } else { t.ok };
     if w > 0 {
-        fill(fb, Rect::new(bar.x, bar.y, w, bar.h), 4, c);
+        fill(fb, Rect::new(bar.x, bar.y, w, bar.h), 4, c.argb());
     }
-    fill(fb, Rect::new(bar.x, bar.y - S3 - 2, inner.w, 1), 0, alpha(rgb(CYAN_DIM), 0x22));
+    fill(fb, Rect::new(bar.x, bar.y - S3 - 2, inner.w, 1), 0, t.border_soft.argb());
 }

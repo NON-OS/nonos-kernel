@@ -19,6 +19,7 @@
 //! the content column inset by the layout's gutter.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::library::{Library, Queue};
 use crate::model::PlayerView;
@@ -31,7 +32,6 @@ use super::paint::stroke;
 use super::screen;
 use super::shell::{rail, sidebar, topbar, transport, Ground};
 use super::state::{UiState, View};
-use super::theme::EDGE;
 
 pub struct Frame {
     pub icons: Icons,
@@ -67,7 +67,7 @@ impl Frame {
         }
 
         let sh = shell(w, h);
-        stroke(fb, sh.frame, R_WIN, 1, EDGE);
+        stroke(fb, sh.frame, R_WIN, 1, roles().border.argb());
         sidebar(fb, &self.icons, sh.sidebar, ui.view);
         topbar(fb, &self.icons, sh.topbar, &ui.query, ui.view == View::Search);
         transport(fb, &self.icons, sh.transport, s.view, s.id);

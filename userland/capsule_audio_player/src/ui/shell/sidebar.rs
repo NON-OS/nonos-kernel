@@ -21,13 +21,13 @@
 extern crate alloc;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::ui::geometry::Rect;
 use crate::ui::icon::{Glyph, Icons};
 use crate::ui::metrics::{cap_h, pill, ITEM, S1, S2, S3, S4, S5, S6, SECTION};
-use crate::ui::paint::{fill, stroke, text, text_mid};
+use crate::ui::paint::{fill, rule, stroke, text, text_mid};
 use crate::ui::state::{View, NAV};
-use crate::ui::theme::{CYAN, CYAN_WASH, EDGE, INK, MID, PANEL, VIOLET};
 
 pub const ROW_H: i32 = 42;
 const BRAND_H: i32 = 68;
@@ -50,30 +50,32 @@ pub fn row_at(r: Rect, x: i32, y: i32) -> Option<View> {
 }
 
 fn entry(fb: &mut PaintBuffer, icons: &Icons, r: Rect, label: &str, g: Glyph, on: bool) {
+    let t = roles();
     if on {
-        fill(fb, r, pill(r.h), CYAN_WASH);
-        stroke(fb, r, pill(r.h), 1, EDGE);
+        fill(fb, r, pill(r.h), t.accent_wash.argb());
+        stroke(fb, r, pill(r.h), 1, t.accent_edge.argb());
     }
-    let ink = if on { INK } else { MID };
+    let ink = if on { t.text } else { t.text_2 }.argb();
     icons.centred(fb, Rect::new(r.x + S3, r.y, 30, r.h), 19, g, ink);
     let tx = S3 + 30 + S2;
     text_mid(fb, Rect::new(r.x + tx, r.y, r.w - tx, r.h), label, ink, ITEM);
 }
 
 pub fn sidebar(fb: &mut PaintBuffer, icons: &Icons, r: Rect, view: View) {
-    fill(fb, r, 0, PANEL);
-    fill(fb, Rect::new(r.right() - 1, r.y, 1, r.h), 0, EDGE);
+    let t = roles();
+    fill(fb, r, 0, t.surface.argb());
+    fill(fb, Rect::new(r.right() - 1, r.y, 1, r.h), 0, t.border.argb());
 
     let mark = Rect::new(r.x + S5, r.y + S6, 30, 30);
-    fill(fb, mark, 9, VIOLET);
-    fill(fb, mark.inset(5), 5, CYAN);
-    text(fb, mark.right() + S3, mark.cy() - cap_h(SECTION), "Resonare", INK, SECTION);
+    fill(fb, mark, 9, t.accent_edge.argb());
+    fill(fb, mark.inset(5), 5, t.accent.argb());
+    text(fb, mark.right() + S3, mark.cy() - cap_h(SECTION), "Resonare", t.text.argb(), SECTION);
 
     for (i, (v, label)) in NAV.iter().enumerate() {
         entry(fb, icons, nav_row(r, i), label, GLYPHS[i], *v == view);
     }
 
     let foot = settings_row(r);
-    fill(fb, Rect::new(r.x + S5, foot.y - S4, r.w - S5 * 2, 1), 0, EDGE);
+    rule(fb, Rect::new(r.x + S5, foot.y - S4, r.w - S5 * 2, 1));
     entry(fb, icons, foot, "Settings", Glyph::Gear, view == View::Settings);
 }

@@ -17,27 +17,27 @@
 //! Deterministic album artwork. Section 04 in one call: ground, motif, scrim.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::derive::with_alpha;
 
 use super::hue::{ground_bottom, ground_top, hue, motif, stroke_rgb};
 use super::{ground, motif_a, motif_b};
 use crate::ui::geometry::Rect;
-use crate::ui::theme::alpha;
 
 pub fn tint(id: &str) -> u32 {
-    alpha(stroke_rgb(hue(id)), 0xFF)
+    with_alpha(stroke_rgb(hue(id)), 0xFF)
 }
 
 pub fn cover(fb: &mut PaintBuffer, r: Rect, id: &str, rad: u32) {
     if r.w <= 0 || r.h <= 0 {
         return;
     }
-    // The playing track's own cover, when its tags carry one.
+    /* The playing track's own cover, when its tags carry one. */
     if super::picture::draw_if_current(fb, r, id) {
         return;
     }
     let h = hue(id);
     ground::ground(fb, r, rad, ground_top(h), ground_bottom(h));
-    let c = alpha(stroke_rgb(h), 0xE6);
+    let c = with_alpha(stroke_rgb(h), 0xE6);
     match motif(id) {
         0 => motif_a::ring(fb, r, c),
         1 => motif_a::city(fb, r, c),

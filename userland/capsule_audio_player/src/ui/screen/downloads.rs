@@ -22,15 +22,16 @@
 extern crate alloc;
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::derive::with_alpha;
+use nonos_toolkit::theme::roles;
 
 use crate::fetch::list::{Act, Row, State};
 use crate::fetch::row_text::{label, permille, status};
 use crate::ui::geometry::Rect;
 use crate::ui::icon::{Glyph, Icons};
-use crate::ui::metrics::{line_h, BODY, ITEM, PAGE, R_CARD, S3, S4, S6, SECONDARY};
-use crate::ui::paint::{fill, panel, text, text_mid};
+use crate::ui::metrics::{line_h, BODY, ITEM, PAGE, S3, S4, S6, SECONDARY};
+use crate::ui::paint::{card, fill, text, text_mid};
 use crate::ui::text::{count, truncate_to_width};
-use crate::ui::theme::{alpha, rgb, CYAN, EDGE, GREEN, INK, MID, RAISED, RED};
 use crate::ui::widget::{button, button_w, page_header, slider, Variant};
 
 const CLEAR: &str = "Clear finished";
@@ -110,29 +111,31 @@ pub fn paint(fb: &mut PaintBuffer, icons: &Icons, r: Rect, rows: &[Row], scroll:
 }
 
 fn one(fb: &mut PaintBuffer, icons: &Icons, rr: Rect, row: &Row) {
-    panel(fb, rr, R_CARD, RAISED, EDGE);
+    let t = roles();
+    card(fb, rr);
     let (glyph, tint) = match row.state {
-        State::Done(_) => (Glyph::Check, GREEN),
-        State::Failed { resumable: false, .. } => (Glyph::Close, RED),
-        _ => (Glyph::Download, CYAN),
+        State::Done(_) => (Glyph::Check, t.ok),
+        State::Failed { resumable: false, .. } => (Glyph::Close, t.danger),
+        _ => (Glyph::Download, t.accent),
     };
     let badge = Rect::new(rr.x + S4, rr.cy() - 22, 44, 44);
-    fill(fb, badge, 12, alpha(rgb(tint), 0x22));
-    icons.centred(fb, badge, 22, glyph, tint);
+    fill(fb, badge, 12, with_alpha(tint.argb(), 0x22));
+    icons.centred(fb, badge, 22, glyph, tint.argb());
 
     let acts = row.acts();
     let left_of_buttons = buttons(rr, acts).last().map_or(rr.right() - S4, |(_, b)| b.x - S4);
     let tx = badge.right() + S4;
     let tw = (left_of_buttons - tx).max(0);
     let top = rr.y + S4;
-    text(fb, tx, top, &truncate_to_width(&row.name, ITEM, tw), INK, ITEM);
+    text(fb, tx, top, &truncate_to_width(&row.name, ITEM, tw), t.text.argb(), ITEM);
     let said = status(row);
     let ink = match row.state {
-        State::Failed { .. } => RED,
-        State::Done(_) => GREEN,
-        _ => MID,
+        State::Failed { .. } => t.danger,
+        State::Done(_) => t.ok,
+        _ => t.text_2,
     };
-    text(fb, tx, top + line_h(ITEM) + 2, &truncate_to_width(&said, SECONDARY, tw), ink, SECONDARY);
+    let line = truncate_to_width(&said, SECONDARY, tw);
+    text(fb, tx, top + line_h(ITEM) + 2, &line, ink.argb(), SECONDARY);
     if matches!(row.state, State::Running | State::Stopping) {
         let bar = Rect::new(tx, rr.bottom() - S4 - 6, tw, 8);
         match permille(row) {
@@ -148,15 +151,15 @@ fn one(fb: &mut PaintBuffer, icons: &Icons, rr: Rect, row: &Row) {
 
 /// No downloads yet: how music gets here.
 fn empty(fb: &mut PaintBuffer, icons: &Icons, r: Rect) {
-    let card = Rect::new(r.x, list_top(r), r.w.min(760), 220);
-    panel(fb, card, R_CARD, RAISED, EDGE);
-    let badge = Rect::new(card.x + S6, card.y + S6, 56, 56);
-    fill(fb, badge, 14, alpha(rgb(CYAN), 0x22));
-    icons.centred(fb, badge, 28, Glyph::Download, CYAN);
+    let (body, t) = (Rect::new(r.x, list_top(r), r.w.min(760), 220), roles());
+    card(fb, body);
+    let badge = Rect::new(body.x + S6, body.y + S6, 56, 56);
+    fill(fb, badge, 14, with_alpha(t.accent.argb(), 0x22));
+    icons.centred(fb, badge, 28, Glyph::Download, t.accent.argb());
     let tx = badge.right() + S6;
-    let tw = card.right() - S6 - tx;
-    let mut y = card.y + S6;
-    text(fb, tx, y, "Bring your own music", INK, ITEM);
+    let tw = body.right() - S6 - tx;
+    let mut y = body.y + S6;
+    text(fb, tx, y, "Bring your own music", t.text.argb(), ITEM);
     y += line_h(ITEM) + S3;
     let lines = [
         "1.  Copy the link to an MP3 file.",
@@ -165,7 +168,8 @@ fn empty(fb: &mut PaintBuffer, icons: &Icons, r: Rect) {
         "Files you copy into /home/nonos/music appear in the Library too.",
     ];
     for l in lines {
-        text_mid(fb, Rect::new(tx, y, tw, line_h(BODY)), &truncate_to_width(l, BODY, tw), MID, BODY);
+        let line = truncate_to_width(l, BODY, tw);
+        text_mid(fb, Rect::new(tx, y, tw, line_h(BODY)), &line, t.text_2.argb(), BODY);
         y += line_h(BODY) + S3 / 2;
     }
 }

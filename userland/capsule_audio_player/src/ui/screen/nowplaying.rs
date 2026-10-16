@@ -19,6 +19,7 @@
 //! bar rather than being duplicated here.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::model::PlayerView;
 use crate::ui::art::cover;
@@ -26,7 +27,6 @@ use crate::ui::geometry::Rect;
 use crate::ui::metrics::{line_h, DISPLAY, HERO, ITEM, LABEL, R_CARD, S3, S4, S6};
 use crate::ui::paint::{fill, stroke, text};
 use crate::ui::text::{mmss, truncate_to_width, upper};
-use crate::ui::theme::{CYAN, EDGE, INK, MID, MUTE, VIOLET_WASH};
 use crate::ui::widget::{chip_w, chip, waveform};
 use crate::waveform::Waveform;
 
@@ -47,23 +47,24 @@ pub fn wave_rect(r: Rect) -> Rect {
 }
 
 fn stat(fb: &mut PaintBuffer, r: Rect, label: &str, value: &str) {
-    text(fb, r.x, r.y, &upper(label), MUTE, LABEL);
-    text(fb, r.x, r.y + line_h(LABEL), value, INK, HERO);
+    let t = roles();
+    text(fb, r.x, r.y, &upper(label), t.muted.argb(), LABEL);
+    text(fb, r.x, r.y + line_h(LABEL), value, t.text.argb(), HERO);
 }
 
 pub fn paint(fb: &mut PaintBuffer, r: Rect, v: &PlayerView, w: &Waveform, id: &str) {
-    let a = art_rect(r);
-    fill(fb, a.inset(-S3), R_CARD + 4, VIOLET_WASH);
+    let (a, t) = (art_rect(r), roles());
+    fill(fb, a.inset(-S3), R_CARD + 4, t.accent_wash.argb());
     cover(fb, a, id, R_CARD);
-    stroke(fb, a, R_CARD, 1, EDGE);
+    stroke(fb, a, R_CARD, 1, t.border.argb());
 
     let tx = a.right() + S6;
     let tw = r.right() - tx;
-    text(fb, tx, a.y + S3, &upper("Now playing"), CYAN, LABEL);
+    text(fb, tx, a.y + S3, &upper("Now playing"), t.accent.argb(), LABEL);
     let title = truncate_to_width(&v.title, DISPLAY, tw);
-    text(fb, tx, a.y + S3 + line_h(LABEL), &title, INK, DISPLAY);
+    text(fb, tx, a.y + S3 + line_h(LABEL), &title, t.text.argb(), DISPLAY);
     let artist = truncate_to_width(&v.artist, ITEM, tw);
-    text(fb, tx, a.y + S3 + line_h(LABEL) + line_h(DISPLAY), &artist, MID, ITEM);
+    text(fb, tx, a.y + S3 + line_h(LABEL) + line_h(DISPLAY), &artist, t.text_2.argb(), ITEM);
 
     let cy = a.y + S3 + line_h(LABEL) + line_h(DISPLAY) + line_h(ITEM) + S4;
     let cw = chip_w(&v.format);
@@ -76,7 +77,7 @@ pub fn paint(fb: &mut PaintBuffer, r: Rect, v: &PlayerView, w: &Waveform, id: &s
 
     let wr = wave_rect(r);
     if wr.h > 20 {
-        text(fb, wr.x, wr.y, &upper("Waveform"), MUTE, LABEL);
+        text(fb, wr.x, wr.y, &upper("Waveform"), t.muted.argb(), LABEL);
         let bars = Rect::new(wr.x, wr.y + line_h(LABEL), wr.w, wr.h - line_h(LABEL));
         waveform(fb, bars, &w.buckets, v.pos_ms as u64, v.dur_ms.max(1) as u64);
     }

@@ -19,6 +19,7 @@
 //! the buffer before handing whole-pixel coordinates down.
 
 use nonos_app_skeleton::{measure_ttf, PaintBuffer};
+use nonos_toolkit::widgets::{Card, Separator};
 
 use super::geometry::Rect;
 use super::metrics::cap_h;
@@ -49,6 +50,20 @@ pub fn stroke(fb: &mut PaintBuffer, r: Rect, rad: u32, t: u32, argb: u32) {
 pub fn panel(fb: &mut PaintBuffer, r: Rect, rad: u32, fill_argb: u32, border: u32) {
     fill(fb, r, rad, fill_argb);
     stroke(fb, r, rad, 1, border);
+}
+
+/// A bare toolkit `Card` over the part of `r` on the surface.
+pub fn card(fb: &mut PaintBuffer, r: Rect) {
+    if let Some((x, y, w, h)) = clip(fb, r) {
+        Card::new().draw(fb, nonos_toolkit::widgets::Rect { x, y, w, h });
+    }
+}
+
+/// A toolkit `Separator` across the part of `r` on the surface.
+pub fn rule(fb: &mut PaintBuffer, r: Rect) {
+    if let Some((x, y, w, h)) = clip(fb, r) {
+        Separator::new().draw(fb, nonos_toolkit::widgets::Rect { x, y, w, h });
+    }
 }
 
 pub fn shadow(fb: &mut PaintBuffer, r: Rect, rad: u32, spread: u32, argb: u32) {

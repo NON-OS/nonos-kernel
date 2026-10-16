@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Resonare interface. `theme`, `metrics` and `geometry` are the design
-//! tokens; `paint` is the clipping facade over the toolkit; `art`, `icon` and
+//! The Resonare interface. `metrics` and `geometry` are the design tokens,
+//! and every colour is a toolkit theme role; `paint` is the clipping facade
+//! over the toolkit; `art`, `icon` and
 //! `widget` are the drawn vocabulary; `shell` and `screen` compose them; `hit`
 //! maps a pointer back onto whatever those painters put on the glass.
 
@@ -36,7 +37,6 @@ pub mod shell;
 mod sprite;
 pub mod state;
 pub mod text;
-pub mod theme;
 pub mod widget;
 
 pub use control::Control;

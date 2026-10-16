@@ -20,9 +20,10 @@
 
 use nonos_app_skeleton::paint::radius::coverage;
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::derive::{mix, with_alpha};
+use nonos_toolkit::theme::roles;
 
 use crate::ui::geometry::Rect;
-use crate::ui::theme::{alpha, mix, SCRIM};
 
 fn row_span(fb: &mut PaintBuffer, r: Rect, rad: u32, row: i32, argb: u32) {
     let (w, h) = (r.w as u32, r.h as u32);
@@ -57,17 +58,17 @@ pub fn ground(fb: &mut PaintBuffer, r: Rect, rad: u32, top: u32, bottom: u32) {
     }
     for row in 0..r.h {
         let t = (row as u32 * 255) / r.h as u32;
-        row_span(fb, r, rad, row, alpha(mix(top, bottom, t), 0xFF));
+        row_span(fb, r, rad, row, with_alpha(mix(top, bottom, t as u8), 0xFF));
     }
 }
 
 pub fn scrim(fb: &mut PaintBuffer, r: Rect, rad: u32) {
     let start = r.h * 45 / 100;
-    let span = (r.h - start).max(1);
+    let (span, scrim) = ((r.h - start).max(1), roles().scrim.argb());
     for row in start..r.h {
-        let a = ((row - start) as u32 * (SCRIM >> 24) / span as u32) as u8;
+        let a = ((row - start) as u32 * (scrim >> 24) / span as u32) as u8;
         if a > 0 {
-            row_span(fb, r, rad, row, alpha(0, a));
+            row_span(fb, r, rad, row, with_alpha(scrim, a));
         }
     }
 }
