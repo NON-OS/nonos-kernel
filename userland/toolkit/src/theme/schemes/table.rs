@@ -16,7 +16,7 @@
 
 //! The scheme table, in the order `THEME_LABELS` lists the names.
 
-use super::{house, published};
+use super::{house, light, published};
 
 /// The five roles every scheme has to fill. Anything the desktop draws resolves
 /// to one of these, which is what keeps a new theme from being a half of one.
@@ -35,7 +35,7 @@ pub struct Scheme {
  * added to one without the other would paint a window in another theme's colours.
  * `every_theme_name_has_a_scheme` in `theme_proofs` fails if the two lengths part.
  */
-pub const SCHEMES: [Scheme; 8] = [
+pub const SCHEMES: [Scheme; 9] = [
     house::AURORA,
     house::SLATE,
     published::NORD,
@@ -44,6 +44,7 @@ pub const SCHEMES: [Scheme; 8] = [
     house::MONO,
     house::FOREST,
     house::SUNSET,
+    light::LIGHT,
 ];
 
 /// The scheme for a stored index. An index past the table falls back to the

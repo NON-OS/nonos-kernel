@@ -15,4 +15,4 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub const THEME_LABELS: &[&[u8]] =
-    &[b"Aurora", b"Slate", b"Nord", b"Dracula", b"Solar", b"Mono", b"Forest", b"Sunset"];
+    &[b"Aurora", b"Slate", b"Nord", b"Dracula", b"Solar", b"Mono", b"Forest", b"Sunset", b"Light"];

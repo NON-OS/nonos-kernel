@@ -18,6 +18,7 @@
 
 mod contrast;
 mod house;
+mod light;
 mod published;
 mod table;
 
