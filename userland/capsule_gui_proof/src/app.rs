@@ -19,6 +19,7 @@ use nonos_app_skeleton::{
 };
 use nonos_std::collections::HashMap;
 use nonos_std::format;
+use nonos_toolkit::theme::roles;
 
 pub struct GuiProof {
     clicks: u32,
@@ -59,11 +60,12 @@ impl App for GuiProof {
     }
 
     fn paint(&mut self, fb: &mut PaintBuffer) {
-        fb.clear(0xFF10_1820);
-        fb.fill_rect(20, 20, 320, 60, 0xFF2A_7FFF);
+        let r = roles();
+        fb.clear(r.bg.argb());
+        fb.fill_rect(20, 20, 320, 60, r.accent.argb());
         let label = self.labels.get(&0).copied().unwrap_or("");
-        fb.text(34, 44, label.as_bytes(), 0xFFFF_FFFF);
+        fb.text(34, 44, label.as_bytes(), r.on_accent.argb());
         let line = format!("clicks: {}", self.clicks);
-        fb.text(34, 120, line.as_bytes(), 0xFFCF_E8FF);
+        fb.text(34, 120, line.as_bytes(), r.text_2.argb());
     }
 }

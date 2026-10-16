@@ -86,6 +86,7 @@ version = "0.3.0"
 dependencies = [
  "nonos-std",
  "nonos_app_skeleton",
+ "nonos_toolkit",
  "nonos_userland_libc",
 ]
 
