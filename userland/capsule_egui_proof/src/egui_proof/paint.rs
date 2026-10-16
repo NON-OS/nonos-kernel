@@ -15,20 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::frame::Stats;
 use super::manifest::WIDTH;
 
-const BG: u32 = 0xFF10161C;
-const ACCENT: u32 = 0xFF00D4AA;
-const TEXT: u32 = 0xFFE8F0F8;
-const DIM: u32 = 0xFF667788;
-const FAIL: u32 = 0xFFFF5566;
-
 pub fn paint(fb: &mut PaintBuffer, frames: u32, stats: Stats) {
-    fb.clear(BG);
-    fb.fill_rect(0, 0, WIDTH, 4, ACCENT);
-    fb.text_ttf(20, 30, "egui 0.35 tessellating at CPL=3", ACCENT, 18.0);
+    let r = roles();
+    fb.clear(r.bg.argb());
+    fb.fill_rect(0, 0, WIDTH, 4, r.accent.argb());
+    fb.text_ttf(20, 30, "egui 0.35 tessellating at CPL=3", r.accent.argb(), 18.0);
 
     let rows = [
         format!("shapes    {}", stats.shapes),
@@ -41,16 +37,16 @@ pub fn paint(fb: &mut PaintBuffer, frames: u32, stats: Stats) {
     ];
     let mut y = 70;
     for row in &rows {
-        fb.text_ttf_mono(24, y, row, TEXT, 15.0);
+        fb.text_ttf_mono(24, y, row, r.text.argb(), 15.0);
         y += 22;
     }
 
     let ok = stats.verts > 0 && stats.idxs > 0;
     let (verdict, colour) = if ok {
-        ("EGUI PROOF PASS", ACCENT)
+        ("EGUI PROOF PASS", r.ok.argb())
     } else {
-        ("EGUI PROOF FAIL", FAIL)
+        ("EGUI PROOF FAIL", r.danger.argb())
     };
     fb.text_ttf(24, y + 8, verdict, colour, 20.0);
-    fb.text_ttf(24, y + 38, "click to drive another frame", DIM, 13.0);
+    fb.text_ttf(24, y + 38, "click to drive another frame", r.quiet.argb(), 13.0);
 }

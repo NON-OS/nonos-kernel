@@ -12,6 +12,7 @@ path = "src/main.rs"
 
 [dependencies]
 nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
+nonos_toolkit = { path = "../toolkit", default-features = false }
 egui = "0.35"
 
 [profile.release]
