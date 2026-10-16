@@ -25,6 +25,7 @@ use super::super::store::{snapshot, Theme};
 use super::fixed::fixed;
 use super::light::is_light;
 use super::on_accent::on_accent;
+use super::status::status;
 use super::table::Roles;
 
 const BLACK: u32 = 0xFF00_0000;
@@ -65,9 +66,9 @@ pub fn from_theme(t: &Theme) -> Roles {
         accent_edge: Translucent::new(with_alpha(accent, 0x59)),
         focus_ring: Translucent::new(with_alpha(accent, 0x80)),
         hover_wash: Translucent::new(with_alpha(text, 0x14)),
-        ok: f.ok,
-        warn: f.warn,
-        danger: f.danger,
+        ok: status(f.ok, text, &grounds),
+        warn: status(f.warn, text, &grounds),
+        danger: status(f.danger, text, &grounds),
         warn_soft: f.warn_soft,
         shadow: f.shadow,
         scrim: f.scrim,

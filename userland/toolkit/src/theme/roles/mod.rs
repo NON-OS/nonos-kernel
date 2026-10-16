@@ -20,6 +20,7 @@ mod fixed;
 mod from_theme;
 mod light;
 mod on_accent;
+mod status;
 mod table;
 
 pub use from_theme::{from_theme, roles};
