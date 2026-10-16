@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::about::data::trust;
-use crate::about::theme::{FOREGROUND, MUTED};
 
 use super::super::card::{self, titled};
 use super::super::kv::{kv, ROW_H};
@@ -35,6 +35,7 @@ pub fn height(inner: u32) -> u32 {
 }
 
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
+    let r = roles();
     let inner = card::inner(w);
     let top = titled(fb, 0, y, w, height(inner), b"Signing chain");
     let mut hops: [&'static [u8]; 4] = [b""; 4];
@@ -50,6 +51,6 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
         kv(fb, CARD_PAD, first + (i as u32 * ROW_H) as i32, inner, label, value, false);
     }
     let ev = first + (ROW_H * 3 + EVIDENCE_GAP) as i32;
-    line(fb, CARD_PAD, ev, b"Evidence", MUTED, BODY_PX);
-    prose::paint(fb, CARD_PAD, ev + PAIR_LINE as i32, inner, trust::STATUS, FOREGROUND);
+    line(fb, CARD_PAD, ev, b"Evidence", r.muted.argb(), BODY_PX);
+    prose::paint(fb, CARD_PAD, ev + PAIR_LINE as i32, inner, trust::STATUS, r.text_2.argb());
 }

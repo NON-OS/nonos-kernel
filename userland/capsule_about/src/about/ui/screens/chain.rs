@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-
-use crate::about::theme::{ACCENT, FOREGROUND, PILL_BG, PILL_BORDER, RULE};
+use nonos_toolkit::theme::roles;
 
 use super::super::metrics::{BODY_PX, CHAIN_H, CHAIN_LINK, CHIP_PAD_X, CHIP_RADIUS};
 use super::super::text::{self, line, top_of};
@@ -28,14 +27,15 @@ fn pill_w(label: &[u8]) -> u32 {
 // A left-to-right chain of pills joined by hairlines. The last node is the thing
 // the chain is about, so it carries the accent and the ones before it do not.
 pub fn paint(fb: &mut PaintBuffer, x: u32, y: i32, nodes: &[&[u8]]) {
+    let r = roles();
     let mut cx = x;
     let last = nodes.len().saturating_sub(1);
     for (i, node) in nodes.iter().enumerate() {
         let w = pill_w(node);
-        let fg = if i == last { ACCENT } else { FOREGROUND };
+        let fg = if i == last { r.accent.argb() } else { r.text_2.argb() };
         if y >= 0 && y + CHAIN_H as i32 <= fb.height as i32 {
-            fb.fill_round(cx, y as u32, w, CHAIN_H, CHIP_RADIUS, PILL_BG);
-            fb.stroke_round(cx, y as u32, w, CHAIN_H, CHIP_RADIUS, 1, PILL_BORDER);
+            fb.fill_round(cx, y as u32, w, CHAIN_H, CHIP_RADIUS, r.raised.argb());
+            fb.stroke_round(cx, y as u32, w, CHAIN_H, CHIP_RADIUS, 1, r.border_strong.argb());
         }
         line(fb, cx + CHIP_PAD_X, top_of(y, CHAIN_H, BODY_PX), node, fg, BODY_PX);
         cx += w;
@@ -47,10 +47,11 @@ pub fn paint(fb: &mut PaintBuffer, x: u32, y: i32, nodes: &[&[u8]]) {
 }
 
 fn link(fb: &mut PaintBuffer, x: u32, y: i32) {
+    let r = roles();
     let mid = y + (CHAIN_H / 2) as i32;
     if mid < 0 || mid >= fb.height as i32 {
         return;
     }
-    fb.fill_rect(x, mid as u32, CHAIN_LINK, 1, RULE);
-    fb.circle(x + CHAIN_LINK - 3, mid as u32, 3, RULE);
+    fb.fill_rect(x, mid as u32, CHAIN_LINK, 1, r.border.argb());
+    fb.circle(x + CHAIN_LINK - 3, mid as u32, 3, r.border.argb());
 }

@@ -21,9 +21,9 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_route_proof::{route_verdict, Latest, Network, ROUTE_ANYONE, ROUTE_NYM};
+use nonos_toolkit::theme::roles;
 
 use crate::about::data::proofs::{words, Snapshot};
-use crate::about::theme::MUTED;
 
 use super::super::card::{self, titled};
 use super::super::kv::ROW_H;
@@ -60,6 +60,7 @@ fn set_to(chosen: Option<u8>) -> &'static [u8] {
 }
 
 fn transport(fb: &mut PaintBuffer, y: i32, w: u32, n: Network, latest: Latest, board: bool) {
+    let muted = roles().muted.argb();
     let as_chosen = match n {
         Network::Nym => ROUTE_NYM,
         Network::Anyone => ROUTE_ANYONE,
@@ -82,7 +83,7 @@ fn transport(fb: &mut PaintBuffer, y: i32, w: u32, n: Network, latest: Latest, b
     let mut line1 = [0u8; 96];
     let valid = words::duration(r.valid_for_ms.saturating_sub(ms), &mut left);
     let n1 = join3(&mut line1, words::directory(&r, &mut d), b", valid for ", valid);
-    line(fb, x, top_of(y + ROW_H as i32, ROW_H, BODY_PX), &line1[..n1], MUTED, BODY_PX);
+    line(fb, x, top_of(y + ROW_H as i32, ROW_H, BODY_PX), &line1[..n1], muted, BODY_PX);
     let mut h = [0u8; 48];
     let mut line2 = [0u8; 96];
     let hops = words::hops(&r, &mut h);
@@ -91,7 +92,7 @@ fn transport(fb: &mut PaintBuffer, y: i32, w: u32, n: Network, latest: Latest, b
         Network::Nym => join(&mut line2, hops, b", ", b"cover traffic off"),
         Network::Anyone => join(&mut line2, hops, b"", b""),
     };
-    line(fb, x, top_of(y + 2 * ROW_H as i32, ROW_H, BODY_PX), &line2[..n2], MUTED, BODY_PX);
+    line(fb, x, top_of(y + 2 * ROW_H as i32, ROW_H, BODY_PX), &line2[..n2], muted, BODY_PX);
 }
 
 fn silent(board: bool) -> &'static [u8] {

@@ -21,11 +21,11 @@
 //! the subtitle says so for the same reason the card above does.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::about::data::verify::{loader, Loader};
 use crate::about::format::u64_decimal;
 use crate::about::format_hex::hex_bytes;
-use crate::about::theme::MUTED;
 
 use super::super::card::{self, titled};
 use super::super::kv::{pair, ROW_H};
@@ -38,10 +38,11 @@ use super::verify_row::row;
 pub const HEIGHT: u32 = card::OVERHEAD + ROW_H * 2 + HASH_GAP + PAIR_H * 2;
 
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
+    let muted = roles().muted.argb();
     let inner = card::inner(w);
     let top = titled(fb, 0, y, w, HEIGHT, b"Checked by the kernel at boot");
     let note = b"The kernel's check of its bootloader. Reading it here does not re-check it.";
-    line(fb, CARD_PAD, top_of(top, ROW_H, BODY_PX), note, MUTED, BODY_PX);
+    line(fb, CARD_PAD, top_of(top, ROW_H, BODY_PX), note, muted, BODY_PX);
     let l = loader();
     let mut ev = [0u8; 32];
     row(fb, CARD_PAD, top + ROW_H as i32, inner, l.verdict, l.claim, evidence(&l, &mut ev));

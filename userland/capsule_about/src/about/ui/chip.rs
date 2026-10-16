@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-
-use crate::about::theme::{DANGER, MUTED, OK, OK_TINT, PILL_BG, PILL_BORDER};
+use nonos_toolkit::theme::derive::with_alpha;
+use nonos_toolkit::theme::roles;
 
 use super::metrics::{BODY_PX, CHIP_DOT, CHIP_DOT_GAP, CHIP_H, CHIP_PAD_X, CHIP_RADIUS};
 use super::text;
@@ -31,14 +31,15 @@ pub fn width_of(label: &[u8]) -> u32 {
 // A granted/denied pill. The dot carries the state and the label carries the
 // name, so the two never depend on colour alone to be told apart.
 pub fn chip(fb: &mut PaintBuffer, x: u32, y: u32, label: &[u8], on: bool) -> u32 {
-    let w = width_of(label);
-    let bg = if on { OK_TINT } else { PILL_BG };
+    let (r, w) = (roles(), width_of(label));
+    let bg = if on { with_alpha(r.ok.argb(), 0x20) } else { r.raised.argb() };
     fb.fill_round(x, y, w, CHIP_H, CHIP_RADIUS, bg);
-    fb.stroke_round(x, y, w, CHIP_H, CHIP_RADIUS, 1, PILL_BORDER);
+    fb.stroke_round(x, y, w, CHIP_H, CHIP_RADIUS, 1, r.border_strong.argb());
     let dot_x = x + CHIP_PAD_X + CHIP_DOT / 2;
-    fb.circle(dot_x, y + CHIP_H / 2, CHIP_DOT / 2, if on { OK } else { DANGER });
+    let dot = if on { r.ok } else { r.danger };
+    fb.circle(dot_x, y + CHIP_H / 2, CHIP_DOT / 2, dot.argb());
     let top = text::top_of(y as i32, CHIP_H, BODY_PX);
-    let fg = if on { OK } else { MUTED };
+    let fg = if on { r.ok.argb() } else { r.muted.argb() };
     text::line(fb, x + CHIP_PAD_X + CHIP_DOT + CHIP_DOT_GAP, top, label, fg, BODY_PX);
     w
 }

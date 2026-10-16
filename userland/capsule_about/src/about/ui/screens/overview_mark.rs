@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-
-use crate::about::theme::TRACK_BG;
+use nonos_toolkit::theme::roles;
 
 use super::super::metrics::{CARD_PAD, HERO_H, HERO_MARK_R};
 
@@ -36,6 +35,7 @@ const ICON_H: u32 = 556;
 const RING_GAP: u32 = 7;
 
 pub fn mark(fb: &mut PaintBuffer, y: i32) {
+    let r = roles();
     let cy = y + (HERO_H / 2) as i32;
     let reach = (HERO_MARK_R + RING_GAP + 1) as i32;
     if cy < reach || cy + reach >= fb.height as i32 {
@@ -43,11 +43,13 @@ pub fn mark(fb: &mut PaintBuffer, y: i32) {
     }
     let cx = CARD_PAD + HERO_MARK_R + 8;
     let cy = cy as u32;
-    fb.ring(cx, cy, HERO_MARK_R + RING_GAP, 1, TRACK_BG);
+    fb.ring(cx, cy, HERO_MARK_R + RING_GAP, 1, r.border_strong.argb());
 
-    // Fitted to the ring's inner diameter and centred on the same point, with the
-    // mark's own 512:556 aspect kept: scaling it to a square would flatten the
-    // logo, which is the sort of small wrongness this change exists to remove.
+    /*
+     * Fitted to the ring's inner diameter and centred on the same point, with the
+     * mark's own 512:556 aspect kept: scaling it to a square would flatten the
+     * logo, which is the sort of small wrongness this change exists to remove.
+     */
     let box_h = HERO_MARK_R * 2;
     let dh = box_h;
     let dw = (box_h * ICON_W / ICON_H).max(1);

@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::about::data::license::TEXT;
-use crate::about::theme::FOREGROUND;
 
 use super::super::card::{self, titled};
 use super::super::metrics::{BODY_PX, CARD_PAD, LINE_STEP};
@@ -35,12 +35,13 @@ pub fn height() -> u32 {
 // show are walked: the first index comes from how far the card top sits above the
 // pane, and one extra row on each side covers the partially visible ones.
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
+    let r = roles();
     let top = titled(fb, 0, y, w, height(), b"License text");
     let first = if top < 0 { (-top) as u32 / LINE_STEP } else { 0 };
     let count = fb.height / LINE_STEP + 2;
     let body = TEXT.lines().enumerate().skip(first as usize).take(count as usize);
     for (i, row) in body {
         let row_y = top + (i as u32 * LINE_STEP) as i32;
-        line(fb, CARD_PAD, row_y, row.as_bytes(), FOREGROUND, BODY_PX);
+        line(fb, CARD_PAD, row_y, row.as_bytes(), r.text_2.argb(), BODY_PX);
     }
 }

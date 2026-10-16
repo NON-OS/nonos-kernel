@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::about::section::Section;
 use crate::about::state::State;
-use crate::about::theme::BACKGROUND;
 
 use super::chrome::{self, Rect};
 use super::screens;
@@ -31,7 +31,8 @@ use super::sidebar;
 // the only place the pane rect and the section's content height are both known,
 // and the scroll clamp needs the pair.
 pub fn paint(state: &mut State, fb: &mut PaintBuffer) {
-    fb.clear(BACKGROUND);
+    let r = roles();
+    fb.clear(r.bg.argb());
     let (w, h) = (fb.width, fb.height);
     state.fb_w = w;
     state.fb_h = h;

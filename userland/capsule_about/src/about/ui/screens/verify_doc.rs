@@ -17,9 +17,9 @@
 //! What the machine would hand a verifier who asked what it is running.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::about::data::attest_doc::Attestation;
-use crate::about::theme::MUTED;
 
 use super::super::card::{self, titled};
 use super::super::kv::ROW_H;
@@ -46,5 +46,6 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, att: &Attestation) {
 }
 
 fn note(fb: &mut PaintBuffer, top: i32, msg: &[u8]) {
-    line(fb, CARD_PAD, top_of(top, ROW_H, BODY_PX), msg, MUTED, BODY_PX);
+    let r = roles();
+    line(fb, CARD_PAD, top_of(top, ROW_H, BODY_PX), msg, r.muted.argb(), BODY_PX);
 }

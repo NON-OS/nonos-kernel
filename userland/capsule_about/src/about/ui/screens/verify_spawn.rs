@@ -22,9 +22,9 @@
 //! signed, which gets a dash and says so.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::about::data::verify::Attested;
-use crate::about::theme::MUTED;
 
 use super::super::card::{self, titled};
 use super::super::kv::ROW_H;
@@ -38,10 +38,11 @@ pub fn height(list: Option<&[Attested]>) -> u32 {
 }
 
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, list: Option<&[Attested]>) {
+    let r = roles();
     let inner = card::inner(w);
     let top = titled(fb, 0, y, w, height(list), b"Proved at spawn");
     let note = b"Running now. Each row says whether a STARK proof or a signature admitted it.";
-    line(fb, CARD_PAD, top_of(top, ROW_H, BODY_PX), note, MUTED, BODY_PX);
+    line(fb, CARD_PAD, top_of(top, ROW_H, BODY_PX), note, r.muted.argb(), BODY_PX);
     let first = top + ROW_H as i32;
     let msg: &[u8] = match list {
         Some(l) if !l.is_empty() => {
@@ -54,5 +55,5 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, list: Option<&[Attested]>) {
         /* A refusal is not an empty registry, and must not read as one. */
         None => b"the kernel did not list them: reading the registry needs AttestRead",
     };
-    line(fb, CARD_PAD, top_of(first, ROW_H, BODY_PX), msg, MUTED, BODY_PX);
+    line(fb, CARD_PAD, top_of(first, ROW_H, BODY_PX), msg, r.muted.argb(), BODY_PX);
 }

@@ -19,11 +19,11 @@
 //! admitted it.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::about::data::verify::{Attested, Verdict};
 use crate::about::format::u64_decimal;
 use crate::about::format_hex::hex_bytes;
-use crate::about::theme::{FOREGROUND, MUTED};
 
 use super::super::kv::ROW_H;
 use super::super::metrics::{BODY_PX, NUM_PX};
@@ -37,19 +37,20 @@ const PID_W: u32 = 96;
 const PUBLISHER: u8 = 255;
 
 pub(super) fn row(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, a: &Attested) {
+    let r = roles();
     let v = if a.authority == PUBLISHER { Verdict::Unknown } else { Verdict::Holds };
     mark(fb, x, y, v);
     let top = top_of(y, ROW_H, BODY_PX);
     let name: &[u8] = if a.name_len == 0 { b"unnamed" } else { &a.name[..a.name_len] };
     let name_x = x + MARK_W;
-    line(fb, name_x, top, fit(fb, name, BODY_PX, NAME_W - 12), FOREGROUND, BODY_PX);
+    line(fb, name_x, top, fit(fb, name, BODY_PX, NAME_W - 12), r.text_2.argb(), BODY_PX);
     let (mut pid, mut digits) = ([0u8; 24], [0u8; 20]);
     let n = put(&mut pid, b"pid ");
     let n = n + put(&mut pid[n..], u64_decimal(u64::from(a.pid), &mut digits));
-    mono(fb, name_x + NAME_W, top, &pid[..n], MUTED, NUM_PX);
+    mono(fb, name_x + NAME_W, top, &pid[..n], r.muted.argb(), NUM_PX);
     let mut hex = [0u8; 16];
     let short = hex_bytes(&a.measurement, &mut hex);
-    mono(fb, name_x + NAME_W + PID_W, top, short, FOREGROUND, NUM_PX);
+    mono(fb, name_x + NAME_W + PID_W, top, short, r.text_2.argb(), NUM_PX);
     right(fb, x + w, top, authority(a.authority), tint(v), BODY_PX);
 }
 

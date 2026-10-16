@@ -23,9 +23,9 @@
 //! the claim in words, and, on the right, the count that settled it.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::about::data::verify::Verdict;
-use crate::about::theme::{DANGER, FOREGROUND, MUTED, OK};
 
 use super::super::kv::ROW_H;
 use super::super::metrics::{BODY_PX, NUM_PX};
@@ -37,10 +37,11 @@ use super::verify_mark::mark;
 pub const MARK_W: u32 = 22;
 
 pub fn tint(v: Verdict) -> u32 {
+    let r = roles();
     match v {
-        Verdict::Holds => OK,
-        Verdict::Broken => DANGER,
-        Verdict::Unknown => MUTED,
+        Verdict::Holds => r.ok.argb(),
+        Verdict::Broken => r.danger.argb(),
+        Verdict::Unknown => r.muted.argb(),
     }
 }
 
@@ -48,6 +49,7 @@ pub fn tint(v: Verdict) -> u32 {
 /// in already formatted because only the caller knows whether it is a count, a
 /// hash or nothing at all.
 pub fn row(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, v: Verdict, claim: &[u8], ev: &[u8]) {
+    let r = roles();
     let top = top_of(y, ROW_H, BODY_PX);
     mark(fb, x, y, v);
 
@@ -55,7 +57,7 @@ pub fn row(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, v: Verdict, claim: &[u8
     let text_x = x + MARK_W;
     let room = w.saturating_sub(MARK_W + ev_w + 12);
     let cut = text::fit(fb, claim, BODY_PX, room);
-    line(fb, text_x, top, cut, FOREGROUND, BODY_PX);
+    line(fb, text_x, top, cut, r.text_2.argb(), BODY_PX);
 
     if !ev.is_empty() {
         mono(fb, x + w.saturating_sub(ev_w), top, ev, tint(v), NUM_PX);

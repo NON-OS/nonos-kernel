@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-
-use crate::about::theme::{MUTED, OK};
+use nonos_toolkit::theme::roles;
 
 use super::chip;
 use super::metrics::{BODY_PX, CHIP_GAP, CHIP_H};
@@ -46,6 +45,7 @@ pub fn wrap_h(labels: &[&[u8]], w: u32) -> u32 {
 // loses its pill: the pill is a rounded fill that cannot be placed above zero, and
 // half a pill reads worse than none.
 pub fn wrap(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, labels: &[&[u8]], on: bool) -> u32 {
+    let r = roles();
     let mut cx = x;
     let mut cy = y;
     for label in labels {
@@ -57,7 +57,7 @@ pub fn wrap(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, labels: &[&[u8]], on: 
         if cy >= 0 {
             chip::chip(fb, cx, cy as u32, label, on);
         } else if cy + CHIP_H as i32 > 0 {
-            line(fb, cx, cy, label, if on { OK } else { MUTED }, BODY_PX);
+            line(fb, cx, cy, label, if on { r.ok.argb() } else { r.muted.argb() }, BODY_PX);
         }
         cx += cw + CHIP_GAP;
     }

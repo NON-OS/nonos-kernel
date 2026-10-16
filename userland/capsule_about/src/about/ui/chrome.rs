@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::about::state::State;
-use crate::about::theme::{MUTED, TITLE};
 
 use super::metrics::{
     BODY_PX, HEAD_H, HEAD_META_GAP, PANE_PAD_TOP, PANE_PAD_X, SIDEBAR_W, STATUS_H, TITLE_PX,
@@ -50,14 +50,15 @@ pub fn pane_rect(fb_w: u32, fb_h: u32) -> Rect {
 // the window. If the two would collide the meta yields: the name identifies the
 // screen, the meta only describes it.
 pub fn page_head(fb: &mut PaintBuffer, state: &State) {
+    let r = roles();
     let title_top = text::top_of(PANE_PAD_TOP as i32, HEAD_H, TITLE_PX);
     let label = state.section.nav_label();
-    text::line(fb, SIDEBAR_W + PANE_PAD_X, title_top, label, TITLE, TITLE_PX);
+    text::line(fb, SIDEBAR_W + PANE_PAD_X, title_top, label, r.text.argb(), TITLE_PX);
     let meta = state.section.head_meta();
     let meta_top = text::top_of(PANE_PAD_TOP as i32, HEAD_H, BODY_PX);
     let right_x = state.fb_w.saturating_sub(PANE_PAD_X);
     let title_end = SIDEBAR_W + PANE_PAD_X + text::width(fb, label, TITLE_PX) + HEAD_META_GAP;
     if title_end + text::width(fb, meta, BODY_PX) <= right_x {
-        text::right(fb, right_x, meta_top, meta, MUTED, BODY_PX);
+        text::right(fb, right_x, meta_top, meta, r.muted.argb(), BODY_PX);
     }
 }

@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::about::data::third_party::COMPONENTS;
-use crate::about::theme::{FOREGROUND, MUTED, RULE};
 
 use super::super::card::{self, titled};
 use super::super::kv::{fit_mono, ROW_H};
@@ -33,14 +33,16 @@ const HEAD_RULE_GAP: u32 = 6;
 pub const HEIGHT: u32 = card::OVERHEAD + ROW_H + HEAD_RULE_GAP + ROW_H * COMPONENTS.len() as u32;
 
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
+    let r = roles();
+    let (value, muted) = (r.text_2.argb(), r.muted.argb());
     let top = titled(fb, 0, y, w, HEIGHT, b"Third-party components");
     let (role_x, license_x) = columns();
     let inner = card::inner(w);
     let head = top_of(top, ROW_H, BODY_PX);
-    line(fb, CARD_PAD, head, HEAD_COMPONENT, MUTED, BODY_PX);
-    line(fb, role_x, head, HEAD_ROLE, MUTED, BODY_PX);
-    line(fb, license_x, head, HEAD_LICENSE, MUTED, BODY_PX);
-    rule(fb, CARD_PAD, top + (ROW_H + HEAD_RULE_GAP / 2) as i32, inner, RULE);
+    line(fb, CARD_PAD, head, HEAD_COMPONENT, muted, BODY_PX);
+    line(fb, role_x, head, HEAD_ROLE, muted, BODY_PX);
+    line(fb, license_x, head, HEAD_LICENSE, muted, BODY_PX);
+    rule(fb, CARD_PAD, top + (ROW_H + HEAD_RULE_GAP / 2) as i32, inner, r.border.argb());
     let first = top + (ROW_H + HEAD_RULE_GAP) as i32;
     let name_w = role_x.saturating_sub(CARD_PAD + KV_GAP);
     let license_w = (CARD_PAD + inner).saturating_sub(license_x);
@@ -50,8 +52,8 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
             band(fb, row_y, inner);
         }
         let cell = top_of(row_y, ROW_H, BODY_PX);
-        line(fb, CARD_PAD, cell, text::fit(fb, c.name, BODY_PX, name_w), FOREGROUND, BODY_PX);
-        mono(fb, role_x, cell, fit_mono(fb, c.role, license_x - role_x - KV_GAP), MUTED, NUM_PX);
-        mono(fb, license_x, cell, fit_mono(fb, c.license, license_w), FOREGROUND, NUM_PX);
+        line(fb, CARD_PAD, cell, text::fit(fb, c.name, BODY_PX, name_w), value, BODY_PX);
+        mono(fb, role_x, cell, fit_mono(fb, c.role, license_x - role_x - KV_GAP), muted, NUM_PX);
+        mono(fb, license_x, cell, fit_mono(fb, c.license, license_w), value, NUM_PX);
     }
 }

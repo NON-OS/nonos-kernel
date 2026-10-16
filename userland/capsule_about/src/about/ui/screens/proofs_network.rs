@@ -21,10 +21,10 @@
 //! service refuses a caller without Network.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::about::data::proofs::Snapshot;
 use crate::about::data::verify::Attested;
-use crate::about::theme::MUTED;
 
 use super::super::card::{self, titled};
 use super::super::kv::ROW_H;
@@ -37,19 +37,20 @@ pub fn height(s: &Snapshot) -> u32 {
 }
 
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, s: &Snapshot) {
+    let r = roles();
     let inner = card::inner(w);
     let top = titled(fb, 0, y, w, height(s), b"Can reach the network");
     let note = b"The only programs that can send a packet. Each was proved before it started.";
-    line(fb, CARD_PAD, top_of(top, ROW_H, BODY_PX), note, MUTED, BODY_PX);
+    line(fb, CARD_PAD, top_of(top, ROW_H, BODY_PX), note, r.muted.argb(), BODY_PX);
     let first = top + ROW_H as i32;
     if s.census.is_none() {
         let msg = b"the kernel did not list them: reading the registry needs AttestRead";
-        line(fb, CARD_PAD, top_of(first, ROW_H, BODY_PX), msg, MUTED, BODY_PX);
+        line(fb, CARD_PAD, top_of(first, ROW_H, BODY_PX), msg, r.muted.argb(), BODY_PX);
         return;
     }
     if s.holders.is_empty() {
         let msg = b"no running capsule holds Network";
-        line(fb, CARD_PAD, top_of(first, ROW_H, BODY_PX), msg, MUTED, BODY_PX);
+        line(fb, CARD_PAD, top_of(first, ROW_H, BODY_PX), msg, r.muted.argb(), BODY_PX);
         return;
     }
     for (i, h) in s.holders.iter().enumerate() {

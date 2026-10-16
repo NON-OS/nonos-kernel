@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-
-use crate::about::theme::{BACKGROUND, CARD_BG, CARD_BORDER, LABEL, RULE_SOFT};
+use nonos_toolkit::theme::roles;
 
 use super::metrics::{BODY_PX, CARD_HEAD_H, CARD_PAD, CARD_RADIUS};
 use super::text;
@@ -39,8 +38,9 @@ pub fn panel(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, h: u32) -> i32 {
         return content;
     }
     if y >= 0 {
-        fb.fill_round(x, y as u32, w, h, CARD_RADIUS, CARD_BG);
-        fb.stroke_round(x, y as u32, w, h, CARD_RADIUS, 1, CARD_BORDER);
+        let r = roles();
+        fb.fill_round(x, y as u32, w, h, CARD_RADIUS, r.surface.argb());
+        fb.stroke_round(x, y as u32, w, h, CARD_RADIUS, 1, r.border.argb());
         return content;
     }
     cut_top(fb, x, (bottom as u32).min(fb.height), w);
@@ -51,19 +51,21 @@ pub fn panel(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, h: u32) -> i32 {
 // the pane; stroke_round would leave a hairline across the body where its own top
 // edge lands, so that one row is painted back out before the sides go down.
 fn cut_top(fb: &mut PaintBuffer, x: u32, vis: u32, w: u32) {
-    fb.fill_rect(x, 0, w, vis, CARD_BG);
+    let theme = roles();
+    let (ground, body, edge) = (theme.bg.argb(), theme.surface.argb(), theme.border.argb());
+    fb.fill_rect(x, 0, w, vis, body);
     let r = CARD_RADIUS;
     let footed = vis > r * 2 && vis < fb.height;
     let sides = if footed { vis - r * 2 } else { vis };
     if footed {
         let foot = vis - r * 2;
-        fb.fill_rect(x, foot, w, r * 2, BACKGROUND);
-        fb.fill_round(x, foot, w, r * 2, r, CARD_BG);
-        fb.stroke_round(x, foot, w, r * 2, r, 1, CARD_BORDER);
-        fb.fill_rect(x + 1, foot, w.saturating_sub(2), 1, CARD_BG);
+        fb.fill_rect(x, foot, w, r * 2, ground);
+        fb.fill_round(x, foot, w, r * 2, r, body);
+        fb.stroke_round(x, foot, w, r * 2, r, 1, edge);
+        fb.fill_rect(x + 1, foot, w.saturating_sub(2), 1, body);
     }
-    fb.fill_rect(x, 0, 1, sides, CARD_BORDER);
-    fb.fill_rect(x + w.saturating_sub(1), 0, 1, sides, CARD_BORDER);
+    fb.fill_rect(x, 0, 1, sides, edge);
+    fb.fill_rect(x + w.saturating_sub(1), 0, 1, sides, edge);
 }
 
 // The drawable width inside a card, which every screen needs and none should
@@ -76,11 +78,13 @@ pub fn inner(w: u32) -> u32 {
 // sliced-safe space as the panel under it. The returned value is the first
 // content row, not the card top.
 pub fn titled(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, h: u32, title: &[u8]) -> i32 {
+    let r = roles();
     let top = panel(fb, x, y, w, h);
     let inner_w = inner(w);
     let cut = text::fit(fb, title, BODY_PX, inner_w);
-    text::line(fb, x + CARD_PAD, text::top_of(top, CARD_HEAD_H, BODY_PX), cut, LABEL, BODY_PX);
+    let head = text::top_of(top, CARD_HEAD_H, BODY_PX);
+    text::line(fb, x + CARD_PAD, head, cut, r.text.argb(), BODY_PX);
     let rule_y = top + CARD_HEAD_H as i32;
-    text::rule(fb, x + CARD_PAD, rule_y, inner_w, RULE_SOFT);
+    text::rule(fb, x + CARD_PAD, rule_y, inner_w, r.border_soft.argb());
     rule_y + CARD_PAD as i32
 }

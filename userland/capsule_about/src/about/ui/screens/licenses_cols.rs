@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::about::data::third_party::COMPONENTS;
-use crate::about::theme::RULE_SOFT;
 
 use super::super::kv::ROW_H;
 use super::super::metrics::{BODY_PX, CARD_PAD, KV_GAP, NUM_PX};
@@ -44,10 +44,11 @@ pub fn columns() -> (u32, u32) {
 // survives, or not at all. `fill_rect` would not blend and would punch the band
 // straight through the card.
 pub fn band(fb: &mut PaintBuffer, y: i32, w: u32) {
+    let r = roles();
     let bottom = y + ROW_H as i32;
     if bottom <= 0 || y >= fb.height as i32 {
         return;
     }
     let top = y.max(0) as u32;
-    fb.blend_rect(CARD_PAD, top, w, bottom as u32 - top, RULE_SOFT);
+    fb.blend_rect(CARD_PAD, top, w, bottom as u32 - top, r.border_soft.argb());
 }

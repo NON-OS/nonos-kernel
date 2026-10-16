@@ -17,10 +17,10 @@
 //! The answer, and the four checks it is made of.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::about::data::proofs::session::{admitted_mark, boot_mark, headline, proven_mark};
 use crate::about::data::proofs::{words, Snapshot};
-use crate::about::theme::MUTED;
 
 use super::super::card::{self, titled};
 use super::super::kv::ROW_H;
@@ -36,6 +36,7 @@ const CHECKS: u32 = 4;
 pub const HEIGHT: u32 = card::OVERHEAD + HEAD_H + ROW_H * CHECKS + ROW_H + 4;
 
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, s: &Snapshot) {
+    let r = roles();
     let inner = card::inner(w);
     let top = titled(fb, 0, y, w, HEIGHT, b"This session");
     let boot = boot_mark(&s.boot);
@@ -72,7 +73,7 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, s: &Snapshot) {
     let note_y = rows + (ROW_H * CHECKS) as i32;
     let mut note = [0u8; 96];
     let n = census_note(s, &mut note);
-    line(fb, CARD_PAD, top_of(note_y, ROW_H, BODY_PX), &note[..n], MUTED, BODY_PX);
+    line(fb, CARD_PAD, top_of(note_y, ROW_H, BODY_PX), &note[..n], r.muted.argb(), BODY_PX);
 }
 
 /* Counted, not tested: the processes outside the registry by design. */

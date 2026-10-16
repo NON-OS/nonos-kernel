@@ -15,8 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-
-use crate::about::theme::{FOREGROUND, MUTED};
+use nonos_toolkit::theme::roles;
 
 use super::metrics::{BODY_PX, KV_GAP, KV_LABEL_W, KV_ROW_H, NUM_PX, PAIR_LINE};
 use super::text::{self, line, mono, top_of};
@@ -30,34 +29,36 @@ pub const ROW_H: u32 = KV_ROW_H;
 // the column. The row is placed in i32 so one that has left the pane simply does
 // not land rather than being clamped to its top edge.
 pub fn kv(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, label: &[u8], value: &[u8], num: bool) {
+    let r = roles();
     let top = top_of(y, KV_ROW_H, BODY_PX);
     let label_w = KV_LABEL_W.min(w);
     let cut = text::fit(fb, label, BODY_PX, label_w.saturating_sub(KV_GAP));
-    line(fb, x, top, cut, MUTED, BODY_PX);
+    line(fb, x, top, cut, r.muted.argb(), BODY_PX);
     let value_x = x + label_w;
     let value_w = w.saturating_sub(label_w);
     if num {
         let cut = fit_mono(fb, value, value_w);
-        mono(fb, value_x, top, cut, FOREGROUND, NUM_PX);
+        mono(fb, value_x, top, cut, r.text_2.argb(), NUM_PX);
         return;
     }
     let cut = text::fit(fb, value, BODY_PX, value_w);
-    line(fb, value_x, top, cut, FOREGROUND, BODY_PX);
+    line(fb, value_x, top, cut, r.text_2.argb(), BODY_PX);
 }
 
 // A label over its value. Long values that would be cut to nothing in a kv row's
 // share of a narrow card get the card's whole width here instead.
 pub fn pair(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, label: &[u8], value: &[u8], num: bool) {
+    let r = roles();
     let cut = text::fit(fb, label, BODY_PX, w);
-    line(fb, x, y, cut, MUTED, BODY_PX);
+    line(fb, x, y, cut, r.muted.argb(), BODY_PX);
     let vy = y + PAIR_LINE as i32;
     if num {
         let cut = fit_mono(fb, value, w);
-        mono(fb, x, vy, cut, FOREGROUND, NUM_PX);
+        mono(fb, x, vy, cut, r.text_2.argb(), NUM_PX);
         return;
     }
     let cut = text::fit(fb, value, BODY_PX, w);
-    line(fb, x, vy, cut, FOREGROUND, BODY_PX);
+    line(fb, x, vy, cut, r.text_2.argb(), BODY_PX);
 }
 
 // `text::fit` measures with the proportional face, which under-reports the mono

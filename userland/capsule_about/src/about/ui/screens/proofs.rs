@@ -25,10 +25,10 @@
 //! proven on the host.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::about::data::proofs::Snapshot;
 use crate::about::state::State;
-use crate::about::theme::MUTED;
 
 use super::super::card;
 use super::super::chrome::Rect;
@@ -69,7 +69,8 @@ fn paint_all(fb: &mut PaintBuffer, y: i32, w: u32, s: &Snapshot) {
 }
 
 fn waiting(fb: &mut PaintBuffer, y: i32, w: u32) {
+    let r = roles();
     let top = card::titled(fb, 0, y, w, card::OVERHEAD + ROW_H, b"This session");
     let msg = b"reading the kernel and the route board";
-    line(fb, CARD_PAD, top_of(top, ROW_H, BODY_PX), msg, MUTED, BODY_PX);
+    line(fb, CARD_PAD, top_of(top, ROW_H, BODY_PX), msg, r.muted.argb(), BODY_PX);
 }

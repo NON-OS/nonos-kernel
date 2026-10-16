@@ -16,8 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
-
-use crate::about::theme::{ACCENT, LABEL, MUTED, TITLE, TRACK_BG};
+use nonos_toolkit::theme::roles;
 
 use super::card;
 use super::metrics::{
@@ -41,19 +40,20 @@ pub fn tile(
     num: u64,
     den: u64,
 ) {
+    let r = roles();
     card::panel(fb, x, y as i32, w, TILE_H);
     let cx = x + w / 2;
     let cy = y + TILE_RING_TOP + TILE_RING_R;
-    fb.ring(cx, cy, TILE_RING_R, TILE_RING_T, TRACK_BG);
-    fb.ring_arc(cx, cy, TILE_RING_R, TILE_RING_T, num, den.max(1), ACCENT);
+    fb.ring(cx, cy, TILE_RING_R, TILE_RING_T, r.border_strong.argb());
+    fb.ring_arc(cx, cy, TILE_RING_R, TILE_RING_T, num, den.max(1), r.accent.argb());
     let value_top = text::top_of((cy - TILE_RING_R) as i32, TILE_RING_R * 2, VALUE_PX);
     let value_w = text::width(fb, value, VALUE_PX);
-    text::line(fb, cx.saturating_sub(value_w / 2), value_top, value, TITLE, VALUE_PX);
+    text::line(fb, cx.saturating_sub(value_w / 2), value_top, value, r.text.argb(), VALUE_PX);
     let inner = card::inner(w);
     let label_y = cy + TILE_RING_R + CARD_PAD;
-    label_line(fb, x, label_y, inner, label, LABEL);
+    label_line(fb, x, label_y, inner, label, r.text.argb());
     let step = line_height(BODY_PX).max(1) as u32 + TILE_SUB_GAP;
-    label_line(fb, x, label_y + step, inner, sub, MUTED);
+    label_line(fb, x, label_y + step, inner, sub, r.muted.argb());
 }
 
 // Both lines under the ring are centred on the card, which means measuring the

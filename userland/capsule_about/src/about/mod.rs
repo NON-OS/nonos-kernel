@@ -23,7 +23,6 @@ mod manifest;
 mod scroll_wheel;
 mod section;
 mod state;
-mod theme;
 mod ui;
 
 pub use app::About;

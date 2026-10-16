@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::about::data::runtime::Runtime;
-use crate::about::theme::{ACCENT, TRACK_BG};
 
 use super::super::metrics::{CARD_PAD, METER_H};
 
@@ -30,8 +30,9 @@ pub fn meter(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, r: &Runtime) {
     }
     let used = r.mem_used_kb.min(r.mem_total_kb);
     let fill = ((used * w as u64) / r.mem_total_kb) as u32;
-    fb.fill_round(x + CARD_PAD, y as u32, w, METER_H, METER_H / 2, TRACK_BG);
+    let theme = roles();
+    fb.fill_round(x + CARD_PAD, y as u32, w, METER_H, METER_H / 2, theme.border_strong.argb());
     if fill >= METER_H {
-        fb.fill_round(x + CARD_PAD, y as u32, fill, METER_H, METER_H / 2, ACCENT);
+        fb.fill_round(x + CARD_PAD, y as u32, fill, METER_H, METER_H / 2, theme.accent.argb());
     }
 }
