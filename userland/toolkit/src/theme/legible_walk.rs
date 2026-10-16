@@ -35,15 +35,20 @@ use super::derive::mix;
 const STEP: u8 = 8;
 
 pub(super) fn walk(text: u32, bg: u32, surface: u32, target: u8, floor: u32) -> u32 {
+    walk_on(text, bg, &[bg, surface], target, floor)
+}
+
+/// Mixes `text` towards `toward`, stepping back until it clears `floor` on every
+/// one of `grounds`. A scheme whose own text fails against its own surface is
+/// broken, and unmuted text is the most legible thing available to say so.
+pub(super) fn walk_on(text: u32, toward: u32, grounds: &[u32], target: u8, floor: u32) -> u32 {
     let mut t = target;
     loop {
-        let candidate = mix(text, bg, t);
-        if at_least(candidate, bg, floor) && at_least(candidate, surface, floor) {
+        let candidate = mix(text, toward, t);
+        if grounds.iter().all(|&g| at_least(candidate, g, floor)) {
             return candidate;
         }
         if t < STEP {
-            // A scheme whose own text fails against its own surface is broken,
-            // and unmuted text is the most legible thing available to say so.
             return text;
         }
         t -= STEP;
