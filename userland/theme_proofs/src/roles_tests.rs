@@ -40,14 +40,16 @@ fn check(fails: &mut Vec<String>, theme: &str, pair: (&str, u32, &str, u32), flo
     }
 }
 
-/* Body copy, secondary copy and captions must read on every ground a widget puts
+/* Body copy, secondary copy, captions and status text must read on every ground a widget puts
  * them on, and so must a label on a filled accent button. The 4.5:1 floor from
  * docs/userland/design-system/colours.md "Readability". */
 #[test]
 fn body_inks_hold_the_body_floor() {
     let mut fails = Vec::new();
     for (name, r) in every_theme() {
-        for (role, ink) in [("text", r.text), ("text_2", r.text_2), ("muted", r.muted)] {
+        let inks = [("text", r.text), ("text_2", r.text_2), ("muted", r.muted)];
+        let status = [("ok", r.ok), ("warn", r.warn), ("danger", r.danger)];
+        for (role, ink) in inks.into_iter().chain(status) {
             let grounds = [("bg", r.bg), ("surface", r.surface), ("sunken", r.sunken)];
             for (where_, ground) in grounds.into_iter().chain([("raised", r.raised)]) {
                 check(&mut fails, &name, (role, ink.argb(), where_, ground.argb()), BODY);
