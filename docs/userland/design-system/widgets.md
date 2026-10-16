@@ -6,8 +6,12 @@
 userland/toolkit/src/widgets/
 ├── mod.rs       the widget list: `mod` and `pub use` lines, nothing else
 ├── state.rs     State, shared by every widget
-├── rect.rs      rectangle helpers: inset, split, centre
-├── text/        measure, place, truncate, wrap
+├── ink.rs       Ink and Tone, the meanings an app picks
+├── rect.rs      rectangle helpers: inset, split, centre, contains, share
+├── surface.rs   Surface, what a widget draws on
+├── scrolled/    Scrolled, a Surface for a scrolled pane
+├── draw/        the painters widgets share
+├── text/        measure, place, truncate, tail, wrap
 └── <name>.rs    one file per widget, or a folder when it outgrows 75 lines
 ```
 
@@ -65,7 +69,8 @@ and runs on the host:
 - **Hit agrees with draw:** `hit` is true on drawn pixels of the hit part, and false outside `at`.
 - **Readable:** for every scheme and state, the widget's ink reads on its fill at the floor in
   [Colours](colours.md).
-- **No literals:** a static check fails on any `0x` ARGB literal under `toolkit/src/widgets/`.
+- **No literals:** `scripts/check_ui_literals.py` fails on any new `0x` ARGB literal under
+  `toolkit/src/widgets/` or in a migrated app's UI, against a baseline that only shrinks.
 
 ## Adding a widget
 

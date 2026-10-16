@@ -4,7 +4,9 @@ The shared look of NONOS apps: one set of theme colours, one list of widgets, an
 person picks reaching every app. An app imports a widget and draws it. It names no colour and does
 no drawing arithmetic of its own.
 
-**Status:** proposed, not built. The decision behind it is
+**Status:** built on `feat/toolkit-design-system`: the roles, sizes, 15 widgets, the theme
+following, and every app in [Migration](migration.md) moved over. Settings' two theme rows land
+last; until then the policy store's default theme is in force. The decision behind it is
 [ADR 0001](../../../adr/0001-toolkit-design-system.md).
 
 ## Goals
@@ -27,14 +29,15 @@ no drawing arithmetic of its own.
 | Part | What it is | Where | Page |
 |---|---|---|---|
 | Seeds | the 5 colours that define a theme | `toolkit/src/theme/schemes/`, exists | [Colours](colours.md) |
-| Roles | the named colours widgets draw with, worked out from the seeds | `toolkit/src/theme/chrome/`, exists, unused | [Colours](colours.md) |
-| Sizes and scale | spacing, radii, text sizes, logical to screen pixels | `toolkit`, new | [Sizes](sizes.md) |
-| Widgets | `new`, builder methods, `draw`, `hit` | `toolkit/src/widgets/`, new | [Widgets](widgets.md), [Widget list](widget-list.md) |
-| Theme choice | the setting, carried from Settings to every app | `app_skeleton`, new wiring | [Themes](themes.md) |
+| Roles | the named colours widgets draw with, worked out from the seeds | `toolkit/src/theme/roles/` | [Colours](colours.md) |
+| Sizes and scale | spacing, radii, text sizes, logical to screen pixels | `toolkit/src/design/{size,text_role,scale}.rs` | [Sizes](sizes.md) |
+| Widgets | `new`, builder methods, `draw`, `hit` | `toolkit/src/widgets/` | [Widgets](widgets.md), [Widget list](widget-list.md) |
+| Theme choice | the setting, carried from Settings to every app | `app_skeleton/src/runner/theme_follow.rs` | [Themes](themes.md) |
 
 ## Rules
 
 - An app writes no ARGB literal. Its colours come from `roles()`, through the widgets.
+  `scripts/check_ui_literals.py` fails on a new one in the widgets or a migrated app's UI.
 - Every widget lives in `nonos_toolkit::widgets`. An app keeps no private widgets.
 - A widget's painter and its hit test call the same geometry function, so a click lands on what
   was drawn.

@@ -11,14 +11,14 @@ Manager's `Progress`. Sizes are from [Sizes](sizes.md). Every widget also takes
 | Widget | `new` | Builders | `hit` returns | Draws |
 |---|---|---|---|---|
 | `Label` | `(text)` | `.role(Body/Title/Headline)`, `.ink(Ink)`, `.align(Left/Centre/Right)` | none | one line, truncated to `at` |
-| `Card` | `()` | `.title(&str)`, `.note(&str)` | `bool` | `surface`, `border`, `card` radius |
+| `Card` | `()` | `.title(&str)`, `.note(&str)` | `bool` | `surface`, `border`, `card` radius; `content` is the area under its head |
 | `SectionHeader` | `(title)` | `.note(&str)` | none | a title over its rows |
 | `Separator` | `()` | `.soft()` | none | a `border` or `border_soft` hairline |
-| `Row` | `(label)` | `.value(&str)`, `.note(&str)`, `.chevron()` | `bool` | label left, value right, note below |
+| `Row` | `(label)` | `.value(&str)`, `.value_ink(Ink)`, `.note(&str)`, `.chevron()`, `.trailing(w)` | `bool` | label left, value right, note below; `trailing_rect` is the room for an app's control |
 | `Button` | `(label)` | `.kind(Primary/Secondary/Plain/Danger)` | `bool` | a `control`-radius button |
-| `Field` | `(text)` | `.placeholder(&str)`, `.caret(Option<usize>)` | `bool` | text or placeholder; shows the tail when long |
+| `Field` | `(text)` | `.icon(IconId)`, `.placeholder(&str)`, `.caret(Option<usize>)` | `bool` | text or placeholder; shows the tail when long |
 | `Tabs` | `(&[&str], selected)` | `.hovered(Option<usize>)` | `Option<usize>` | a segmented strip |
-| `NavItem` | `(label)` | `.active(bool)` | `bool` | a sidebar entry |
+| `NavItem` | `(label)` | `.icon(IconId)`, `.active(bool)` | `bool` | a sidebar entry |
 | `Pill` | `(label)` | `.tone(Tone)`, `.dot()` | `bool` | a `pill`-radius chip |
 | `Progress` | `(done, total)` | `.tone(Tone)` | none | a bar filled `done / total` |
 | `Switch` | `(on)` | none | `bool` | the switch from Settings' `ui/switch.rs` |

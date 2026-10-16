@@ -13,6 +13,9 @@ then move over one per commit, in this order.
 | 6 | Browser, Text Editor, Terminal, Audio player | own palettes; the first three gain "System" |
 | 7 | desktop shell | its own loop, translucent glass and raw fills; needs a boot |
 
+Steps 1 to 7 are done, one commit per app, and need a boot to confirm on screen. Toasts, the
+shell's Delete button and its shadow keep their literals for a follow-up.
+
 The installer, the wallet and `boot_splash` keep their own brand look and are not migrated. The
 setup wizard keeps its own constants: it runs before any choice exists.
 
@@ -54,8 +57,9 @@ setup wizard keeps its own constants: it runs before any choice exists.
 
 ## Keeping it clean
 
-- A new `scripts/check_ui_literals.py`, beside `check_allows.py`, fails on an ARGB literal under
-  `toolkit/src/widgets/` and in each migrated app's UI folder. Each app is added to it as it moves.
+- `scripts/check_ui_literals.py`, beside `check_allows.py`, fails on a new ARGB literal under
+  `toolkit/src/widgets/` and in each migrated app's UI folder, against
+  `scripts/baselines/ui-literals.txt`. An app joins its `SCOPES` as it moves.
 - `theme_proofs` and the check are proposed for CI in a separate change, since that binds everyone.
 
 ## Done when

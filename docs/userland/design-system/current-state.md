@@ -1,7 +1,8 @@
 # Current state
 
 Measured on `feat/toolkit-design-system` at `7c7d0f925`, which is #621's head plus ADR 0001.
-Paths are under `userland/`.
+Paths are under `userland/`. This page records that starting point; only the last column of
+the defects table follows the work since.
 
 ## How apps draw today
 
@@ -55,15 +56,15 @@ own constants anyway.
 
 ## Defects found
 
-| Where | Defect |
-|---|---|
-| `app_skeleton/src/clients/toolkit/theme.rs:46` | `mk_ipc_call` with no timeout: a silent toolkit stalls the app for the kernel's 5 s default |
-| `app_skeleton/src/runner/paint_frame.rs` | the damage path skips the theme check, so a new theme waits for a full paint |
-| `toolkit/src/theme/schemes/mod.rs` | holds a struct, a const and a function; its comment names `schemes_match_the_labels`, which is `every_theme_name_has_a_scheme` in `theme_proofs` |
-| `toolkit/src/theme/legible.rs:22-23` | the doc comment on `MUTED_TARGET` stops mid-sentence |
-| Settings `SUBLABEL_FG` | 4.26:1 on `CARD_BG`, under the 4.5:1 floor for body text |
-| desktop shell `TEXT_MUTED` | 2.58:1 on the panel, under the 3:1 floor for large text |
-| desktop shell top bar and `LINE` | translucent colours written with `fill_rect`, which does not blend |
-| `capsule_desktop_shell/src/render/consent.rs:22` | a private opaque `PANEL` shadows `palette::PANEL` |
-| Process Manager `WARNING` | a grey, used as muted text |
-| the toolkit service's wire | not described in `docs/userland/ipc-services.md` or `abi/` |
+| Where | Defect | Now |
+|---|---|---|
+| `app_skeleton/src/clients/toolkit/theme.rs:46` | `mk_ipc_call` with no timeout: a silent toolkit stalls the app for the kernel's 5 s default | gone with the handshake, `fedaeaff1` |
+| `app_skeleton/src/runner/paint_frame.rs` | the damage path skips the theme check, so a new theme waits for a full paint | handshake removed; `theme_follow` forces a full paint, `d603a7ca7` |
+| `toolkit/src/theme/schemes/mod.rs` | holds a struct, a const and a function; its comment names `schemes_match_the_labels`, which is `every_theme_name_has_a_scheme` in `theme_proofs` | fixed, `67d8000c3` |
+| `toolkit/src/theme/legible.rs:22-23` | the doc comment on `MUTED_TARGET` stops mid-sentence | fixed, `66652c2b8` |
+| Settings `SUBLABEL_FG` | 4.26:1 on `CARD_BG`, under the 4.5:1 floor for body text | now `quiet`, `650a6c202` |
+| desktop shell `TEXT_MUTED` | 2.58:1 on the panel, under the 3:1 floor for large text | now `quiet` on glass held to 3:1, `3ca5aa358` |
+| desktop shell top bar and `LINE` | translucent colours written with `fill_rect`, which does not blend | blended, `3ca5aa358` |
+| `capsule_desktop_shell/src/render/consent.rs:22` | a private opaque `PANEL` shadows `palette::PANEL` | roles, `3ca5aa358` |
+| Process Manager `WARNING` | a grey, used as muted text | roles, `47f45ccaa` |
+| the toolkit service's wire | not described in `docs/userland/ipc-services.md` or `abi/` | in `ipc-services.md`, `2f9233dd5` |

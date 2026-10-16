@@ -1,8 +1,9 @@
 # Sizes and scale
 
-Every size here is logical: 1 at a display scale of 1x. Sizes live in `nonos_toolkit::design`,
-which already holds `SpacingScale`, `TextStyle` and `Radius`. No app reads that module yet; only
-its 4-role `color.rs` is retired.
+Every size here is logical: 1 at a display scale of 1x. Sizes live in `nonos_toolkit::design`:
+`size.rs` holds `SPACE` and the heights and radii below, `text_role.rs` the text sizes and
+`scale.rs` the display scale. The widgets read them, and so does `capsule_hello`. The module's
+older 4-role `color.rs` is to be retired.
 
 ## Spacing
 

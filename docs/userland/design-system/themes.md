@@ -3,12 +3,13 @@
 ## The design
 
 1. Settings gets two rows in `capsule_settings/src/settings/schema/blocks/appearance.rs`:
-   `Row::Field(Field::Theme)` and `Row::Field(Field::HighContrast)`. The policy store already
+   `Row::Field(Field::Theme)` and `Row::Field(Field::HighContrast)`. They land last, once every
+   app follows the choice. The policy store already
    keeps both. Only Settings and the setup wizard may write them
    (`capsule_policy/src/server/handle_set.rs`, `SETTERS`).
 2. `app_skeleton` reads both fields with `nonos_policy_client` (`get_u8`, `get_bool`). These go
-   through `mk_ipc_call_timeout` with a 200 ms timeout. It reads them at start and then at most
-   once a second, the way the keyboard drivers follow `KeyboardLayout` with `Watch`.
+   through `mk_ipc_call_timeout` with a 200 ms timeout. Its frame loop and `run_loop` call
+   `theme_follow::follow` on every pass, and it reads the store at most once a second.
 3. When either value changes, it calls `theme::store::replace(theme_of(index, high_contrast))` in
    its own process. The store moves its revision.
 4. A moved revision forces a full repaint, so the damage path cannot keep drawing old colours.
@@ -37,24 +38,23 @@ with no further change.
 
 | Capsule | Today | Plan |
 |---|---|---|
-| `capsule_desktop_shell` | own server loop; constants in `render/palette.rs` | reads the same two fields in its loop; colours move to roles during migration |
+| `capsule_desktop_shell` | own server loop | done: calls the skeleton's `runner::follow_theme` each pass and repaints its chrome; colours in `render/palette/` |
 | `setup_wizard` | own loop, runs before setup is done | keeps the default; no choice exists yet |
 | `boot_splash`, `wallpaper` | toolkit only | keep the default |
 | `capsule_linux` | `linux::run` | out of scope |
 
-## To retire later, as its own decision
+## Retired
 
-Once no app reads the 5-colour store over the wire, the frame handshake in
-`app_skeleton/src/runner/paint_frame.rs` goes, along with `TOOLKIT_OP_THEME_GET` and
-`TOOLKIT_OP_THEME_APPLY`. Until then, `theme_get` moves to `mk_ipc_call_timeout`, as every client
-that expects a reply must.
+The frame handshake in `app_skeleton/src/runner/paint_frame.rs` is gone, and with it the
+skeleton's `ui_frame` and `theme_get`. The toolkit service still answers `TOOLKIT_OP_THEME_GET`
+and `TOOLKIT_OP_THEME_APPLY`, which nothing calls; removing them is a wire change of its own.
+Apps still look the service up at start and wait for it, which no longer buys them anything.
 
 ## Open
 
-- ❓ Whether the `app_skeleton` frame loop wakes up while an app is idle. If it does not, the
-  once-a-second check rides on `on_tick` and `tick_interval_ms`. This must be checked before the
-  wiring is built.
-- `Watch` covers only u8 fields. `HighContrast` is a bool, so it is either read beside `Watch` with
-  `get_bool`, or `Watch` gains a bool form.
-- Decided: the Browser (#621), the Text Editor and the Terminal keep their own picker and gain a
-  "System" option, the default, that follows this setting ([Migration](migration.md)).
+- Closed: the frame loop blocks at most until the app's next tick, so the check needs no
+  `on_tick` of its own. An app with a long `tick_interval_ms` sees a new theme that much later.
+- Closed: `HighContrast` is read with `get_bool` beside `get_u8`; `Watch` is not used.
+- Done: the Browser (#621), the Text Editor and the Terminal keep their own picker and gained a
+  "System" option, first and the default, that follows this setting. A choice saved before keeps
+  naming what it named.
