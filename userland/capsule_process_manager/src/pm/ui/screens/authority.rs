@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::Separator;
 
 use crate::pm::state::State;
-use crate::pm::theme::{CARD_BORDER, HEADER_BG, MUTED, RULE, TABLE_BG};
 
 use super::super::chrome::Rect;
 use super::super::matrix_geom::{self as geom, MATRIX};
@@ -31,7 +32,8 @@ use super::{auth_legend, auth_row};
 // nobody decodes. Every rect on it comes out of matrix_geom, which is also what
 // the hit test reads, so a click cannot land on a cell other than the drawn one.
 pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect) {
-    fb.fill_round(r.x, r.y, r.w, r.h, TBL_RADIUS, TABLE_BG);
+    let c = roles();
+    fb.fill_round(r.x, r.y, r.w, r.h, TBL_RADIUS, c.inset.argb());
     head(fb, r);
     let rows = state.filtered();
     for slot in 0..geom::visible_rows(r.h) {
@@ -41,21 +43,23 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect) {
         }
     }
     auth_legend::paint(fb, r);
-    fb.stroke_round(r.x, r.y, r.w, r.h, TBL_RADIUS, 1, CARD_BORDER);
+    fb.stroke_round(r.x, r.y, r.w, r.h, TBL_RADIUS, 1, c.border.argb());
 }
 
 // The header band is rounded at the top and squared at the bottom so it meets the
 // first row flush. Each abbreviation takes its risk-class colour, which is what
 // ties a column to the legend without spelling the name out twice.
 fn head(fb: &mut PaintBuffer, r: &Rect) {
-    fb.fill_round(r.x, r.y, r.w, geom::HEAD_H, TBL_RADIUS, HEADER_BG);
-    fb.fill_rect(r.x, r.y + geom::HEAD_H - TBL_RADIUS, r.w, TBL_RADIUS, HEADER_BG);
-    fb.fill_rect(r.x, r.y + geom::HEAD_H, r.w, 1, RULE);
+    let c = roles();
+    fb.fill_round(r.x, r.y, r.w, geom::HEAD_H, TBL_RADIUS, c.sunken.argb());
+    fb.fill_rect(r.x, r.y + geom::HEAD_H - TBL_RADIUS, r.w, TBL_RADIUS, c.sunken.argb());
+    Separator::new().draw(fb, Rect { y: r.y + geom::HEAD_H, h: 1, ..*r });
     let top = text::centred_top(r.y, geom::HEAD_H, BODY_PX);
-    text::left(fb, r.x + geom::PAD_X, top, b"PROCESS", MUTED, BODY_PX);
+    text::left(fb, r.x + geom::PAD_X, top, b"PROCESS", c.muted, BODY_PX);
     let cw = geom::cell_w(r.w);
     for (col, (bit, label)) in MATRIX.iter().enumerate() {
         let pad = cw.saturating_sub(text::width(fb, label, BODY_PX)) / 2;
-        text::left(fb, r.x + geom::cell_x(r.w, col) + pad, top, label, cap_tint(*bit), BODY_PX);
+        let ink = cap_tint(*bit).colour(&c);
+        text::left(fb, r.x + geom::cell_x(r.w, col) + pad, top, label, ink, BODY_PX);
     }
 }

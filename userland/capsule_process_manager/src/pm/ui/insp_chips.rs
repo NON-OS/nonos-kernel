@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Tone;
 
 use crate::pm::format_caps::CAP_TABLE;
-use crate::pm::theme::MUTED;
 
 use super::insp_chip::{chip, chip_w, more, more_w};
 use super::metrics::{CHIP_GAP, CHIP_H};
@@ -46,6 +46,6 @@ pub fn paint(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, bottom: u32, caps: u6
     if shown < total && cy + CHIP_H <= bottom {
         let mut buf = [0u8; 16];
         let n = more(total - shown, &mut buf);
-        chip(fb, cx, cy, &buf[..n], MUTED);
+        chip(fb, cx, cy, &buf[..n], Tone::Plain);
     }
 }

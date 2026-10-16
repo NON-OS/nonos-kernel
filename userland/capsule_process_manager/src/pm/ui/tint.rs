@@ -14,26 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::pm::theme::{ACCENT, AMBER, DANGER, MUTED, OK, WARNING};
+use nonos_toolkit::widgets::Tone;
 
 use super::risk_strip::CLASSES;
 
 // Scheduler state coloured by what it means to the user: running is healthy,
 // idle is parked and answers the moment a message arrives, stopped and zombie
-// are the two states worth noticing.
-pub fn state_tint(state: u8) -> u32 {
+// are the two states worth noticing. Idle and an unknown code are plain, which
+// draws muted.
+pub fn state_tint(state: u8) -> Tone {
     match state {
-        1 => ACCENT,
-        2 => OK,
-        3 => MUTED,
-        4 => AMBER,
-        5 => DANGER,
-        _ => WARNING,
+        1 => Tone::Accent,
+        2 => Tone::Ok,
+        4 => Tone::Warn,
+        5 => Tone::Danger,
+        _ => Tone::Plain,
     }
 }
 
-// A grant chip takes the colour of the sensitive class it belongs to, so the
+// A grant chip takes the tone of the sensitive class it belongs to, so the
 // inspector's chip list and the table's risk strip agree at a glance.
-pub fn cap_tint(bit: u64) -> u32 {
-    CLASSES.iter().find(|(mask, _)| bit & mask != 0).map(|(_, argb)| *argb).unwrap_or(MUTED)
+pub fn cap_tint(bit: u64) -> Tone {
+    CLASSES.iter().find(|(mask, _)| bit & mask != 0).map(|(_, tone)| *tone).unwrap_or(Tone::Plain)
 }

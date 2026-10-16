@@ -16,10 +16,10 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
+use nonos_toolkit::theme::roles;
 
 use crate::pm::format::{state_label, u32_decimal};
 use crate::pm::state::{Row, State};
-use crate::pm::theme::{MUTED, SIDEBAR_BG, SIDEBAR_LINE, TITLE};
 
 use super::insp_geom::{content_w, content_x, pane_x};
 use super::metrics::{
@@ -32,9 +32,9 @@ use super::{insp_actions, insp_chips, insp_fields, insp_spark, text};
 // trend, its full grant list, and the action. It owns the whole window
 // height, so it paints its own ground instead of sitting inside a content rect.
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
-    let x = pane_x(fb.width);
-    fb.fill_rect(x, 0, INSPECTOR_W, fb.height, SIDEBAR_BG);
-    fb.fill_rect(x, 0, 1, fb.height, SIDEBAR_LINE);
+    let (r, x) = (roles(), pane_x(fb.width));
+    fb.fill_rect(x, 0, INSPECTOR_W, fb.height, r.sunken.argb());
+    fb.fill_rect(x, 0, 1, fb.height, r.border.argb());
     let Some(row) = state.selected_row() else {
         return empty(fb, x);
     };
@@ -51,24 +51,26 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let lines = limit.saturating_sub(y) / INSP_FIELD_H * INSP_FIELD_H;
     let mut clip = fb.sub(0, 0, fb.width, y + lines);
     y = insp_fields::block(&mut clip, left, y, row, state.sys.mem_total_kb) + INSP_SECTION_GAP;
+    let armed = state.pending_pid != 0 && state.pending_pid == row.pid;
+    let protected = state.is_protected(row);
     if y + insp_spark::height() > limit {
-        return insp_actions::paint(fb, state.is_protected(row));
+        return insp_actions::paint(fb, protected, armed);
     }
     y = insp_spark::paint(fb, left, y, w, state.history.get(row.pid));
     if y + INSP_FIELD_H <= limit {
         let mut buf = [0u8; 12];
         let n = u32_decimal(row.caps.count_ones(), &mut buf);
-        y = insp_fields::field(fb, left, y, b"Authority", &buf[..n], TITLE);
+        y = insp_fields::field(fb, left, y, b"Authority", &buf[..n], r.text);
         insp_chips::paint(fb, left, y, w, limit, row.caps);
     }
-    insp_actions::paint(fb, state.is_protected(row));
+    insp_actions::paint(fb, protected, armed);
 }
 
 fn heading(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, row: &Row) -> u32 {
-    let cut = text::fit(fb, row.name(), TITLE_PX, w);
-    text::left(fb, x, y, cut, TITLE, TITLE_PX);
+    let (r, cut) = (roles(), text::fit(fb, row.name(), TITLE_PX, w));
+    text::left(fb, x, y, cut, r.text, TITLE_PX);
     let next = y + line_height(TITLE_PX).max(1) as u32;
-    text::left(fb, x, next, state_label(row.state), state_tint(row.state), BODY_PX);
+    text::left(fb, x, next, state_label(row.state), state_tint(row.state).colour(&r), BODY_PX);
     next + line_height(BODY_PX).max(1) as u32 + INSP_SECTION_GAP
 }
 
@@ -76,5 +78,5 @@ fn empty(fb: &mut PaintBuffer, x: u32) {
     let label = b"No process selected";
     let top = text::centred_top(0, fb.height, BODY_PX);
     let cx = x + INSPECTOR_W.saturating_sub(text::width(fb, label, BODY_PX)) / 2;
-    text::left(fb, cx, top, label, MUTED, BODY_PX);
+    text::left(fb, cx, top, label, roles().muted, BODY_PX);
 }

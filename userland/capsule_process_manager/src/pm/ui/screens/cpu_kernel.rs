@@ -19,10 +19,10 @@
 //! trace is scaled to its own peak, so a quiet machine still shows one.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::pm::format_sys::rate_human;
 use crate::pm::state::{RateRing, State};
-use crate::pm::theme::{ACCENT, FOREGROUND};
 
 use super::super::chrome::Rect;
 use super::super::metrics::{BODY_PX, NUM_PX, PANEL_PAD, SPARK_H};
@@ -35,7 +35,7 @@ const LABEL_W: u32 = 118;
 const VALUE_W: u32 = 60;
 
 pub(super) fn kernel(state: &State, fb: &mut PaintBuffer, r: &Rect) {
-    let mut y = panel(fb, r, b"KERNEL");
+    let (c, mut y) = (roles(), panel(fb, r, b"KERNEL"));
     let w = r.w.saturating_sub(PANEL_PAD * 2);
     let x = r.x + PANEL_PAD;
     let right = x + w;
@@ -50,9 +50,9 @@ pub(super) fn kernel(state: &State, fb: &mut PaintBuffer, r: &Rect) {
     ];
     for (label, ring) in rows {
         let top = text::centred_top(y, TRACE_ROW_H, BODY_PX);
-        text::left(fb, x, top, label, FOREGROUND, BODY_PX);
+        text::left(fb, x, top, label, c.text_2, BODY_PX);
         let n = rate_human(ring.latest(), &mut buf);
-        text::mono_right(fb, right, top, &buf[..n], ACCENT, NUM_PX);
+        text::mono_right(fb, right, top, &buf[..n], c.accent, NUM_PX);
         let sx = x + LABEL_W + GAP;
         let sw = right.saturating_sub(VALUE_W + GAP).saturating_sub(sx);
         spark::rate(
@@ -63,7 +63,7 @@ pub(super) fn kernel(state: &State, fb: &mut PaintBuffer, r: &Rect) {
             SPARK_H,
             ring,
             ring.peak() + ring.peak() / 4 + 1,
-            ACCENT,
+            c.accent,
         );
         y += TRACE_ROW_H;
     }

@@ -15,29 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Card, Pill};
 
-use crate::pm::format::u32_decimal;
 use crate::pm::state::State;
-use crate::pm::theme::{BACKGROUND, CARD_BG, CARD_BORDER, MUTED, TITLE};
 
 use super::super::chrome::Rect;
-use super::super::metrics::{
-    BODY_PX, CHIP_H, CHIP_PAD_X, CHIP_RADIUS, PANEL_HEAD_H, PANEL_PAD, PANEL_RADIUS,
-};
+use super::super::metrics::{BODY_PX, PANEL_HEAD_H, PANEL_PAD};
 use super::super::text;
+use super::ovw_cards::sub_n;
 use super::{sec_geom, sec_row};
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect) {
     let y = r.y + sec_geom::list_y();
-    let h = r.h.saturating_sub(sec_geom::list_y());
-    fb.fill_round(r.x, y, r.w, h, PANEL_RADIUS, CARD_BG);
-    fb.stroke_round(r.x, y, r.w, h, PANEL_RADIUS, 1, CARD_BORDER);
+    let (c, h) = (roles(), r.h.saturating_sub(sec_geom::list_y()));
+    Card::new().draw(fb, Rect { y, h, ..*r });
     let top = text::centred_top(y, PANEL_HEAD_H, BODY_PX);
-    text::left(fb, r.x + PANEL_PAD, top, b"FINDINGS", TITLE, BODY_PX);
+    text::left(fb, r.x + PANEL_PAD, top, b"FINDINGS", c.text, BODY_PX);
     headline(state, fb, r.x + r.w.saturating_sub(PANEL_PAD), y);
     if state.alerts.is_empty() {
         let clear = b"No findings: watched services up, nothing pinned at full cpu, admin held by init alone.";
-        text::left(fb, r.x + PANEL_PAD, y + PANEL_HEAD_H, clear, MUTED, BODY_PX);
+        text::left(fb, r.x + PANEL_PAD, y + PANEL_HEAD_H, clear, c.muted, BODY_PX);
         return;
     }
     for slot in 0..sec_geom::visible(r.h) {
@@ -48,23 +46,20 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect) {
     }
 }
 
-// The worst level and how many findings sit at it, as one pill. Level derives Ord
+// The worst level and how many findings sit at it, as one toolkit pill whose
+// dot carries the level's tone, centred down the head band. Level derives Ord
 // worst-last, so max() is the headline without a ranking table of its own.
 fn headline(state: &State, fb: &mut PaintBuffer, right: u32, y: u32) {
     let level = match state.alerts.iter().map(|a| a.level).max() {
         Some(level) => level,
         None => return,
     };
-    let mut buf = [0u8; 12];
+    let (label, mut buf) = (level.label(), [0u8; 32]);
+    let k = label.len().min(16);
+    buf[..k].copy_from_slice(&label[..k]);
     let count = state.alerts.iter().filter(|a| a.level == level).count();
-    let n = u32_decimal(count as u32, &mut buf);
-    let label = level.label();
-    let w = text::width(fb, label, BODY_PX) + text::mono_width(fb, &buf[..n], BODY_PX);
-    let pill_w = w + CHIP_PAD_X * 3;
-    let x = right.saturating_sub(pill_w);
-    let pill_y = y + (PANEL_HEAD_H - CHIP_H) / 2;
-    fb.fill_round(x, pill_y, pill_w, CHIP_H, CHIP_RADIUS, sec_row::tint(level));
-    let top = text::centred_top(pill_y, CHIP_H, BODY_PX);
-    let after = text::left(fb, x + CHIP_PAD_X, top, label, BACKGROUND, BODY_PX).max(0) as u32;
-    text::mono(fb, after + CHIP_PAD_X, top, &buf[..n], BACKGROUND, BODY_PX);
+    let n = k + sub_n(&mut buf[k..], b" ", count as u32, b"");
+    let pill = Pill::new(text::valid(&buf[..n])).tone(sec_row::tint(level)).dot();
+    let w = pill.size().0;
+    pill.draw(fb, Rect { x: right.saturating_sub(w), y, w, h: PANEL_HEAD_H });
 }

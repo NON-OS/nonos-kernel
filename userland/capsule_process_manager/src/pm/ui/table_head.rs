@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::pm::state::Sort;
-use crate::pm::theme::{ACCENT, HEADER_BG, MUTED, RULE};
 
 use super::chrome::Rect;
 use super::metrics::{BODY_PX, SORT_MARK_GAP, SORT_MARK_H, SORT_MARK_W, TBL_HEAD_H, TBL_RADIUS};
@@ -42,13 +42,14 @@ fn label(col: Col) -> &'static [u8] {
 // maps to a sort takes the accent, and refresh() orders cpu and memory largest
 // first while name and pid run smallest first.
 pub fn paint(fb: &mut PaintBuffer, r: &Rect, cols: &[Col], sort: Sort) {
-    fb.fill_round(r.x, r.y, r.w, TBL_HEAD_H, TBL_RADIUS, HEADER_BG);
-    fb.fill_rect(r.x, r.y + TBL_HEAD_H - TBL_RADIUS, r.w, TBL_RADIUS, HEADER_BG);
-    fb.fill_rect(r.x, r.y + TBL_HEAD_H, r.w, 1, RULE);
+    let c = roles();
+    fb.fill_round(r.x, r.y, r.w, TBL_HEAD_H, TBL_RADIUS, c.sunken.argb());
+    fb.fill_rect(r.x, r.y + TBL_HEAD_H - TBL_RADIUS, r.w, TBL_RADIUS, c.sunken.argb());
+    fb.fill_rect(r.x, r.y + TBL_HEAD_H, r.w, 1, c.border.argb());
     let top = text::centred_top(r.y, TBL_HEAD_H, BODY_PX);
     for col in cols {
         let active = table_geom::sort_for(*col) == Some(sort);
-        let tint = if active { ACCENT } else { MUTED };
+        let tint = if active { c.accent } else { c.muted };
         let x = r.x + table_geom::col_x(cols, r.w, *col);
         let after = text::left(fb, x, top, label(*col), tint, BODY_PX).max(0) as u32;
         if active {
@@ -61,12 +62,12 @@ pub fn paint(fb: &mut PaintBuffer, r: &Rect, cols: &[Col], sort: Sort) {
 // typed. It is still placed from the label's measured advance, never from a
 // glyph count.
 fn mark(fb: &mut PaintBuffer, x: u32, band_y: u32, up: bool) {
-    let y = band_y + (TBL_HEAD_H - SORT_MARK_H) / 2;
+    let (accent, y) = (roles().accent.argb(), band_y + (TBL_HEAD_H - SORT_MARK_H) / 2);
     for i in 0..SORT_MARK_H {
         let step = if up { SORT_MARK_H - 1 - i } else { i };
         let w = SORT_MARK_W.saturating_sub(step * 2);
         if w > 0 {
-            fb.fill_rect(x + step, y + i, w, 1, ACCENT);
+            fb.fill_rect(x + step, y + i, w, 1, accent);
         }
     }
 }

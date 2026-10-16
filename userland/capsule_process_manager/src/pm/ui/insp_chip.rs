@@ -17,19 +17,17 @@
 //! One grant chip, and the "+N more" chip that counts those without room.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{Pill, Rect, Tone};
 
 use crate::pm::format::u32_decimal;
-use crate::pm::theme::{PILL_BG, PILL_BORDER};
 
-use super::metrics::{BODY_PX, CHIP_H, CHIP_PAD_X, CHIP_RADIUS};
+use super::metrics::{BODY_PX, CHIP_H, CHIP_PAD_X};
 use super::text;
 
-pub(super) fn chip(fb: &mut PaintBuffer, x: u32, y: u32, label: &[u8], tint: u32) {
-    let cw = chip_w(fb, label);
-    fb.fill_round(x, y, cw, CHIP_H, CHIP_RADIUS, PILL_BG);
-    fb.stroke_round(x, y, cw, CHIP_H, CHIP_RADIUS, 1, PILL_BORDER);
-    let top = text::centred_top(y, CHIP_H, BODY_PX);
-    text::left(fb, x + CHIP_PAD_X, top, label, tint, BODY_PX);
+/// The toolkit pill in the chip's box, which is exactly as wide as `chip_w`.
+pub(super) fn chip(fb: &mut PaintBuffer, x: u32, y: u32, label: &[u8], tone: Tone) {
+    let at = Rect { x, y, w: chip_w(fb, label), h: CHIP_H };
+    Pill::new(text::valid(label)).tone(tone).draw(fb, at);
 }
 
 pub(super) fn chip_w(fb: &PaintBuffer, label: &[u8]) -> u32 {

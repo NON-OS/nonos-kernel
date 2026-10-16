@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::Separator;
 
 use crate::pm::format_caps::CAP_TABLE;
-use crate::pm::theme::{MUTED, RULE};
 
 use super::super::chrome::Rect;
 use super::super::matrix_geom::{self as geom, MATRIX};
@@ -35,16 +36,16 @@ const PAIR_GAP: u32 = 6;
 // five to a line. The abbreviation keeps its column colour; the spelt-out name
 // is muted, because the eye is meant to come here once and then stop.
 pub fn paint(fb: &mut PaintBuffer, r: &Rect) {
-    let y = r.y + r.h.saturating_sub(geom::LEGEND_H);
-    fb.fill_rect(r.x + 1, y, r.w.saturating_sub(2), 1, RULE);
+    let (c, y) = (roles(), r.y + r.h.saturating_sub(geom::LEGEND_H));
+    Separator::new().draw(fb, Rect { x: r.x + 1, y, w: r.w.saturating_sub(2), h: 1 });
     let col_w = r.w.saturating_sub(geom::PAD_X * 2) / PER_ROW as u32;
     for (i, (bit, short)) in MATRIX.iter().enumerate() {
         let x = r.x + geom::PAD_X + (i % PER_ROW) as u32 * col_w;
         let top = y + TOP_PAD + (i / PER_ROW) as u32 * LINE_H;
-        let after = text::left(fb, x, top, short, cap_tint(*bit), BODY_PX).max(0) as u32;
+        let after = text::left(fb, x, top, short, cap_tint(*bit).colour(&c), BODY_PX).max(0) as u32;
         let used = after.saturating_sub(x) + PAIR_GAP;
         let full = text::fit(fb, full_name(*bit), BODY_PX, col_w.saturating_sub(used));
-        text::left(fb, after + PAIR_GAP, top, full, MUTED, BODY_PX);
+        text::left(fb, after + PAIR_GAP, top, full, c.muted, BODY_PX);
     }
 }
 

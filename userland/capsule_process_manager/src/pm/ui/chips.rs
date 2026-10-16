@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{Pill, Rect, State as Look};
 
 use crate::pm::state::{State, FILTERS};
-use crate::pm::theme::{ACCENT, ACCENT_TINT, MUTED, PILL_BG, PILL_BORDER};
 
-use super::metrics::{BODY_PX, CHIP_GAP, CHIP_H, CHIP_PAD_X, CHIP_RADIUS};
+use super::metrics::{CHIP_GAP, CHIP_H};
 use super::text;
 
 #[path = "chips_geom.rs"]
@@ -27,24 +27,20 @@ mod chips_geom;
 
 pub use chips_geom::{at, origin, width};
 
-// The head band's filter row. Every chip lands over paint the frame already put
-// down, so the fill and the border go through blending primitives; the active
-// one wears the accent wash the sidebar's current row wears.
+/// The head band's filter row: each chip a toolkit pill in the box `at`
+/// hit-tests, the pill being exactly as wide as `chip_w`. The active one is
+/// selected, so it wears the accent wash and edge the sidebar's current row
+/// wears.
 pub fn paint(fb: &mut PaintBuffer, state: &State) {
-    let Some(mut cx) = origin(fb.width, state.screen) else {
+    let Some(mut x) = origin(fb.width, state.screen) else {
         return;
     };
     let y = chips_geom::top();
-    let label_top = text::centred_top(y, CHIP_H, BODY_PX);
     for &filter in FILTERS.iter() {
         let w = chips_geom::chip_w(filter);
-        let active = filter == state.filter;
-        let (bg, ink) = if active { (ACCENT_TINT, ACCENT) } else { (PILL_BG, MUTED) };
-        fb.fill_round(cx, y, w, CHIP_H, CHIP_RADIUS, bg);
-        if !active {
-            fb.stroke_round(cx, y, w, CHIP_H, CHIP_RADIUS, 1, PILL_BORDER);
-        }
-        text::left(fb, cx + CHIP_PAD_X, label_top, filter.label(), ink, BODY_PX);
-        cx += w + CHIP_GAP;
+        let look = Look { selected: filter == state.filter, ..Look::default() };
+        let pill = Pill::new(text::valid(filter.label())).state(look);
+        pill.draw(fb, Rect { x, y, w, h: CHIP_H });
+        x += w + CHIP_GAP;
     }
 }

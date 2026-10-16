@@ -15,13 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::Scrollbar;
 
 use crate::pm::state::notes::empty_table;
 use crate::pm::state::State;
-use crate::pm::theme::{CARD_BORDER, MUTED, TABLE_BG, TRACK_BG};
 
 use super::chrome::Rect;
-use super::metrics::{BODY_PX, ROW_H, SCROLL_MIN_H, SCROLL_PAD, SCROLL_W, TBL_HEAD_H, TBL_RADIUS};
+use super::metrics::{BODY_PX, ROW_H, SCROLL_PAD, SCROLL_W, TBL_HEAD_H, TBL_RADIUS};
 use super::table_geom::{self, Col};
 use super::{table_head, table_row, text};
 
@@ -30,16 +31,19 @@ use super::{table_head, table_row, text};
 // which is also what the hit test reads, so a click cannot land on a row or a
 // column other than the one drawn under it.
 pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect, cols: &[Col]) {
-    fb.fill_round(r.x, r.y, r.w, r.h, TBL_RADIUS, TABLE_BG);
+    let c = roles();
+    fb.fill_round(r.x, r.y, r.w, r.h, TBL_RADIUS, c.inset.argb());
     table_head::paint(fb, r, cols, state.sort);
     let rows = state.filtered();
+    /*
+     * Nothing to draw is never a silent blank card: the table says whether it
+     * is still being read, could not be read, or is filtered to nothing.
+     */
     if let Some(note) = empty_table(state.rows.len(), rows.len(), state.status) {
-        // Nothing to draw is never a silent blank card: the table says whether
-        // it is still being read, could not be read, or is filtered to nothing.
         let top = text::centred_top(r.y + TBL_HEAD_H, r.h.saturating_sub(TBL_HEAD_H), BODY_PX);
         let cut = text::fit(fb, note, BODY_PX, r.w.saturating_sub(SCROLL_PAD * 2));
         let x = r.x + r.w.saturating_sub(text::width(fb, cut, BODY_PX)) / 2;
-        text::left(fb, x, top, cut, MUTED, BODY_PX);
+        text::left(fb, x, top, cut, c.muted, BODY_PX);
     }
     let visible = table_geom::visible_rows(r.h);
     for slot in 0..visible {
@@ -51,21 +55,18 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect, cols: &[Col]) {
         }
     }
     scrollbar(fb, r, state.scroll, rows.len(), visible);
-    fb.stroke_round(r.x, r.y, r.w, r.h, TBL_RADIUS, 1, CARD_BORDER);
+    fb.stroke_round(r.x, r.y, r.w, r.h, TBL_RADIUS, 1, c.border.argb());
 }
 
 // Drawn only when the list is taller than the card: the thumb's height is the
 // visible share of the whole list and its travel is the real scroll offset, so
-// the bar reports the position rather than decorating the edge.
+// the bar reports the position rather than decorating the edge. The toolkit
+// bar, in rows, draws nothing while the list fits.
 fn scrollbar(fb: &mut PaintBuffer, r: &Rect, scroll: usize, total: usize, visible: usize) {
-    if total <= visible || r.h <= TBL_HEAD_H {
+    if r.h <= TBL_HEAD_H {
         return;
     }
-    let top = r.y + TBL_HEAD_H;
-    let track_h = r.h - TBL_HEAD_H;
     let x = r.x + r.w.saturating_sub(SCROLL_PAD + SCROLL_W);
-    fb.fill_rect(x, top, SCROLL_W, track_h, TRACK_BG);
-    let thumb = ((visible as u32 * track_h) / total as u32).max(SCROLL_MIN_H).min(track_h);
-    let travel = (scroll as u32 * (track_h - thumb)) / (total - visible) as u32;
-    fb.fill_rect(x, top + travel, SCROLL_W, thumb, MUTED);
+    let track = Rect { x, y: r.y + TBL_HEAD_H, w: SCROLL_W, h: r.h - TBL_HEAD_H };
+    Scrollbar::new(scroll as u32, total as u32, visible as u32).draw(fb, track);
 }

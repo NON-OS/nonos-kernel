@@ -17,9 +17,10 @@
 //! One class of authority, as one row.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::Tone;
 
 use crate::pm::format::u32_decimal;
-use crate::pm::theme::{AMBER, MUTED, OK, TRACK_BG};
 
 use super::super::metrics::{BODY_PX, CARD_LABEL_GAP, NUM_PX, RISK_SLOT_GAP, RISK_SLOT_W};
 use super::super::text;
@@ -40,15 +41,15 @@ pub(super) fn row(
     h: u32,
     label: &[u8],
     counts: (u32, u32),
-    argb: u32,
+    tone: Tone,
 ) {
-    let (x, y, w) = at;
+    let (r, (x, y, w)) = (roles(), at);
     let (held, was) = counts;
-    let tint = if held == 0 { MUTED } else { argb };
+    let tint = if held == 0 { r.muted } else { tone.colour(&r) };
 
     let key_y = y + h.saturating_sub(KEY_H) / 2;
-    let key = if held == 0 { TRACK_BG } else { argb };
-    fb.fill_rect(x + PAD, key_y, RISK_SLOT_W, KEY_H, key);
+    let key = if held == 0 { r.border_strong } else { tone.colour(&r) };
+    fb.fill_rect(x + PAD, key_y, RISK_SLOT_W, KEY_H, key.argb());
 
     let top = text::centred_top(y, h, BODY_PX);
     let text_x = x + PAD + RISK_SLOT_W + RISK_SLOT_GAP + CARD_LABEL_GAP;
@@ -59,15 +60,17 @@ pub(super) fn row(
     let right = x + w.saturating_sub(PAD);
     text::mono_right(fb, right, top, &buf[..n], tint, NUM_PX);
 
-    // The delta is drawn only when there is one. A column of "+0" would be four
-    // more numbers to read past on a card whose whole point is that a change is
-    // rare enough to be worth noticing.
+    /*
+     * The delta is drawn only when there is one. A column of "+0" would be four
+     * more numbers to read past on a card whose whole point is that a change is
+     * rare enough to be worth noticing.
+     */
     if held != was {
         let count_w = text::mono_width(fb, &buf[..n], NUM_PX);
         let delta_right = right.saturating_sub(count_w + CARD_LABEL_GAP);
         let mut mark = [0u8; 12];
         let m = delta(held, was, &mut mark);
-        let tone = if held > was { AMBER } else { OK };
+        let tone = if held > was { r.warn } else { r.ok };
         text::mono_right(fb, delta_right, top, &mark[..m], tone, NUM_PX);
     }
 }

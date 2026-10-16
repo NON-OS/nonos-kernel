@@ -19,7 +19,6 @@ pub mod card;
 pub mod chips;
 pub mod chrome;
 pub mod fit;
-pub mod frame;
 pub mod help;
 pub mod hit;
 pub mod icon_table;

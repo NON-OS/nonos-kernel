@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::pm::state::Row;
-use crate::pm::theme::{DANGER, RULE};
 
 use super::super::chrome::Rect;
 use super::super::matrix_geom::{self as geom, MATRIX};
@@ -30,23 +30,24 @@ const TICK_H: u32 = 1;
 // A held authority is a filled dot in its risk-class colour; an unheld one leaves
 // a hairline tick, so an empty column still reads as a column rather than as a
 // gap. The ring is the finding this screen exists to surface: a sensitive grant
-// on a process the kernel does not protect. cap_tint, DANGER and RULE are all
-// opaque, and fill_round strokes blend anyway, so nothing punches the row.
+// on a process the kernel does not protect. The class tone, danger and border
+// are all opaque, and fill_round strokes blend anyway, so nothing punches the
+// row.
 pub fn paint(fb: &mut PaintBuffer, r: &Rect, row: &Row, y: u32, protected: bool) {
-    let cw = geom::cell_w(r.w);
+    let (c, cw) = (roles(), geom::cell_w(r.w));
     let dot = geom::CELL_DOT;
     for (col, (bit, _)) in MATRIX.iter().enumerate() {
         let cx = r.x + geom::cell_x(r.w, col) + cw.saturating_sub(dot) / 2;
         let cy = y + (geom::ROW_H - dot) / 2;
         if row.caps & bit == 0 {
-            fb.fill_rect(cx, cy + dot / 2, dot, TICK_H, RULE);
+            fb.fill_rect(cx, cy + dot / 2, dot, TICK_H, c.border.argb());
             continue;
         }
-        fb.fill_round(cx, cy, dot, dot, DOT_RADIUS, cap_tint(*bit));
+        fb.fill_round(cx, cy, dot, dot, DOT_RADIUS, cap_tint(*bit).colour(&c).argb());
         if !protected {
             let ring = dot + RING_PAD * 2;
             let (rx, ry) = (cx.saturating_sub(RING_PAD), cy.saturating_sub(RING_PAD));
-            fb.stroke_round(rx, ry, ring, ring, DOT_RADIUS + RING_PAD, 1, DANGER);
+            fb.stroke_round(rx, ry, ring, ring, DOT_RADIUS + RING_PAD, 1, c.danger.argb());
         }
     }
 }

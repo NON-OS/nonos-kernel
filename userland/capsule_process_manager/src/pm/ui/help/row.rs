@@ -17,8 +17,7 @@
 //! One binding: the key, then what it does.
 
 use nonos_app_skeleton::PaintBuffer;
-
-use crate::pm::theme::{ACCENT, FOREGROUND, PILL_BG};
+use nonos_toolkit::theme::roles;
 
 use super::super::metrics::BODY_PX;
 use super::super::text;
@@ -27,13 +26,13 @@ use super::geom::{KEY_W, ROW_H};
 /// The key is drawn in a pill so a column of them reads as keys rather than as
 /// the first word of each sentence.
 pub fn paint(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, key: &[u8], label: &[u8]) {
-    let cap_w = text::width(fb, key, BODY_PX) + 14;
+    let (r, cap_w) = (roles(), text::width(fb, key, BODY_PX) + 14);
     let cap_h = ROW_H.saturating_sub(4);
-    fb.fill_round(x, y, cap_w.min(KEY_W), cap_h, 5, PILL_BG);
+    fb.fill_round(x, y, cap_w.min(KEY_W), cap_h, 5, r.raised.argb());
     let top = text::centred_top(y, cap_h, BODY_PX);
-    text::left(fb, x + 7, top, key, ACCENT, BODY_PX);
+    text::left(fb, x + 7, top, key, r.accent, BODY_PX);
     let text_x = x + KEY_W;
     let room = w.saturating_sub(KEY_W);
     let cut = text::fit(fb, label, BODY_PX, room);
-    text::left(fb, text_x, top, cut, FOREGROUND, BODY_PX);
+    text::left(fb, text_x, top, cut, r.text_2, BODY_PX);
 }

@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::pm::format::u32_decimal;
 use crate::pm::state::{Screen, State};
-use crate::pm::theme::BACKGROUND;
 
 use super::chrome::{self, Rect};
 use super::hit;
@@ -30,7 +30,7 @@ use super::sidebar;
 // then the status strip over the full width. Order is load-bearing, since the
 // window is opaque and every later layer paints over the one before it.
 pub fn paint(state: &mut State, fb: &mut PaintBuffer) {
-    fb.clear(BACKGROUND);
+    fb.clear(roles().bg.argb());
     let (w, h) = (fb.width, fb.height);
     sidebar::paint(fb, state.screen, h, state.refreshes);
     let docked = super::fit::inspector(state.screen, w);
@@ -47,8 +47,10 @@ pub fn paint(state: &mut State, fb: &mut PaintBuffer) {
         inspector::paint(state, fb);
     }
     chrome::status_bar(fb, state);
-    // Last, so it covers the frame as well as the pane: an overlay the sidebar
-    // punched through would read as part of the window rather than over it.
+    /*
+     * Last, so it covers the frame as well as the pane: an overlay the sidebar
+     * punched through would read as part of the window rather than over it.
+     */
     if state.help_open {
         super::help::paint(fb, w, h);
     }

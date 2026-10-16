@@ -15,11 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::Tone;
 
 use crate::pm::format::u32_decimal;
 use crate::pm::security::{Alert, Level};
 use crate::pm::state::State;
-use crate::pm::theme::{ACCENT, AMBER, BAND, DANGER, FOREGROUND, MUTED, SELECT_BG};
 
 use super::super::chrome::Rect;
 use super::super::metrics::{BODY_PX, CHIP_RADIUS, NUM_PX, PANEL_PAD};
@@ -31,44 +32,45 @@ const TOP_PAD: u32 = 3;
 const GAP: u32 = 9;
 const PID_W: u32 = 76;
 
-pub fn tint(level: Level) -> u32 {
+pub fn tint(level: Level) -> Tone {
     match level {
-        Level::Info => ACCENT,
-        Level::Warn => AMBER,
-        Level::Critical => DANGER,
+        Level::Info => Tone::Accent,
+        Level::Warn => Tone::Warn,
+        Level::Critical => Tone::Danger,
     }
 }
 
-// BAND is opaque and may be written; SELECT_BG carries alpha and must blend, or
-// the card would punch through the panel it sits on. Selection reads the same
+// The row's ground is the opaque inset, a step down from the card it sits on,
+// and may be written; the accent wash carries alpha and must blend, or the card
+// would punch through the panel it sits on. Selection reads the same
 // here as in the table: a wash plus an accent bar down the left edge.
 pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect, alert: &Alert, slot: usize) {
-    let y = r.y + sec_geom::row_y(slot);
+    let (c, y) = (roles(), r.y + sec_geom::row_y(slot));
     let x = r.x + PANEL_PAD;
     let w = r.w.saturating_sub(PANEL_PAD * 2);
     let selected = state.alert_scroll + slot == state.alert_sel;
-    fb.fill_round(x, y, w, ALERT_H, CHIP_RADIUS, BAND);
+    fb.fill_round(x, y, w, ALERT_H, CHIP_RADIUS, c.inset.argb());
     if selected {
-        fb.blend_rect(x, y, w, ALERT_H, SELECT_BG);
+        fb.blend_rect(x, y, w, ALERT_H, c.accent_wash.argb());
     }
-    let bar = if selected { ACCENT } else { tint(alert.level) };
-    fb.fill_rect(x, y, LEVEL_BAR_W, ALERT_H, bar);
+    let bar = if selected { c.accent } else { tint(alert.level).colour(&c) };
+    fb.fill_rect(x, y, LEVEL_BAR_W, ALERT_H, bar.argb());
     head(fb, alert, x + LEVEL_BAR_W + GAP, y, x + w.saturating_sub(GAP));
     let msg = text::fit(fb, alert.msg, BODY_PX, w.saturating_sub(LEVEL_BAR_W + GAP * 2));
-    text::left(fb, x + LEVEL_BAR_W + GAP, y + TOP_PAD + LINE_H, msg, MUTED, BODY_PX);
+    text::left(fb, x + LEVEL_BAR_W + GAP, y + TOP_PAD + LINE_H, msg, c.muted, BODY_PX);
 }
 
 // Level tag, the process the finding is about, and its pid right-aligned. A
 // system-wide finding carries pid 0, which prints as a dash rather than a zero
 // nobody can look up.
 fn head(fb: &mut PaintBuffer, alert: &Alert, x: u32, y: u32, right: u32) {
-    let top = y + TOP_PAD;
-    let after = text::left(fb, x, top, alert.level.label(), tint(alert.level), BODY_PX);
+    let (c, top) = (roles(), y + TOP_PAD);
+    let after = text::left(fb, x, top, alert.level.label(), tint(alert.level).colour(&c), BODY_PX);
     let name_x = after.max(0) as u32 + GAP;
     let name = text::fit(fb, alert.name(), BODY_PX, right.saturating_sub(name_x + PID_W));
-    text::left(fb, name_x, top, name, FOREGROUND, BODY_PX);
+    text::left(fb, name_x, top, name, c.text_2, BODY_PX);
     let mut buf = [0u8; 12];
     let n = u32_decimal(alert.pid, &mut buf);
     let pid: &[u8] = if alert.pid == 0 { b"-" } else { &buf[..n] };
-    text::mono_right(fb, right, top, pid, MUTED, NUM_PX);
+    text::mono_right(fb, right, top, pid, c.muted, NUM_PX);
 }

@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::pm::state::{Screen, State};
-use crate::pm::theme::{MUTED, TITLE};
 
 use super::chips;
 use super::fit::sidebar_w;
@@ -29,16 +29,12 @@ use super::text;
 
 pub use super::status_bar::paint as status_bar;
 
+/// The toolkit's box, so a screen painter can hand its rect to a widget.
+pub use nonos_toolkit::widgets::Rect;
+
 // The content box for the active screen: everything right of the sidebar, below
 // the page head, above the status bar, and left of the inspector when one is
 // docked. Every screen painter takes this rect and never recomputes it.
-pub struct Rect {
-    pub x: u32,
-    pub y: u32,
-    pub w: u32,
-    pub h: u32,
-}
-
 pub fn pane_rect(fb_w: u32, fb_h: u32, inspector: bool) -> Rect {
     let right = if inspector { fb_w.saturating_sub(INSPECTOR_W) } else { fb_w };
     let side = sidebar_w(fb_w);
@@ -54,13 +50,14 @@ pub fn pane_rect(fb_w: u32, fb_h: u32, inspector: bool) -> Rect {
 // right, and the meta line is measured back from the field's left edge, so a
 // wider count shifts neither of them.
 pub fn page_head(fb: &mut PaintBuffer, state: &State, meta: &[u8]) {
+    let r = roles();
     let title_top = text::centred_top(PANE_PAD_TOP, HEAD_H, TITLE_PX);
     let label = state.screen.nav_label();
-    text::left(fb, sidebar_w(fb.width) + PANE_PAD_X, title_top, label, TITLE, TITLE_PX);
+    text::left(fb, sidebar_w(fb.width) + PANE_PAD_X, title_top, label, r.text, TITLE_PX);
     let meta_top = text::centred_top(PANE_PAD_TOP, HEAD_H, BODY_PX);
     let right_x = search::rect(fb.width, state.screen).0.saturating_sub(SEARCH_META_GAP);
     if meta_fits(fb.width, state.screen, right_x, text::width(fb, meta, BODY_PX)) {
-        text::right(fb, right_x, meta_top, meta, MUTED, BODY_PX);
+        text::right(fb, right_x, meta_top, meta, r.muted, BODY_PX);
     }
     chips::paint(fb, state);
     search::paint(fb, state);

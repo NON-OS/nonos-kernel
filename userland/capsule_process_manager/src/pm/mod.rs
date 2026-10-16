@@ -25,7 +25,6 @@ mod format_sys;
 mod manifest;
 mod security;
 mod state;
-mod theme;
 mod ui;
 
 pub use app::ProcessManager;

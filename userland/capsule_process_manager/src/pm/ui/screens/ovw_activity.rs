@@ -21,17 +21,17 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::icons::IconId;
+use nonos_toolkit::theme::roles;
 
 use crate::pm::format_sys::rate_human;
 use crate::pm::state::State;
-use crate::pm::theme::{MUTED, TITLE};
 
 use super::super::card;
 use super::super::metrics::{BODY_PX, CARD_PAD};
 use super::super::text;
 
 pub(super) fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32) {
-    let mut row_y = card::head(fb, x, y, w, IconId::Processes, b"ACTIVITY / S");
+    let (r, mut row_y) = (roles(), card::head(fb, x, y, w, IconId::Processes, b"ACTIVITY / S"));
     let line = line_height(BODY_PX).max(1) as u32 + 2;
     let (left, right) = (x + CARD_PAD, x + w.saturating_sub(CARD_PAD));
     let rows: [(&[u8], u32); 4] = [
@@ -41,10 +41,10 @@ pub(super) fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32)
         (b"interrupts", state.sys.irq_ps),
     ];
     for (label, value) in rows {
-        text::left(fb, left, row_y, label, MUTED, BODY_PX);
+        text::left(fb, left, row_y, label, r.muted, BODY_PX);
         let mut buf = [0u8; 16];
         let n = rate_human(value, &mut buf);
-        text::mono_right(fb, right, row_y, &buf[..n], TITLE, BODY_PX);
+        text::mono_right(fb, right, row_y, &buf[..n], r.text, BODY_PX);
         row_y += line;
     }
 }

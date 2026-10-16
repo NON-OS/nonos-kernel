@@ -15,33 +15,37 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::Tone;
 
 use crate::pm::format;
 use crate::pm::security::sensitive::{ADMIN, DEBUG, RAW_HW, SPAWN};
-use crate::pm::theme::{ACCENT, AMBER, DANGER, MUTED, TRACK_BG};
 
 use super::metrics::{NUM_PX, RISK_SLOT_GAP, RISK_SLOT_H, RISK_SLOT_W};
 use super::text;
 
-// The four sensitive classes, in the order a row prints them.
-pub const CLASSES: [(u64, u32); 4] =
-    [(ADMIN, DANGER), (RAW_HW, AMBER), (SPAWN, ACCENT), (DEBUG, MUTED)];
+// The four sensitive classes, in the order a row prints them, each with the
+// tone it is drawn in: admin danger, raw hardware warn, spawn accent and debug
+// the plain, muted tone.
+pub const CLASSES: [(u64, Tone); 4] =
+    [(ADMIN, Tone::Danger), (RAW_HW, Tone::Warn), (SPAWN, Tone::Accent), (DEBUG, Tone::Plain)];
 
-// One letter per class, in the class colour when held and in the track tone
-// when not, at a fixed advance so a scanning eye compares rows by position.
+// One letter per class, in the class colour when held and in border_strong,
+// the track colour, when not, at a fixed advance so a scanning eye compares
+// rows by position.
 // Admin, raw Hardware, Spawn, Debug.
 const LETTERS: [&[u8]; 4] = [b"A", b"H", b"S", b"D"];
 
 pub fn paint(fb: &mut PaintBuffer, x: u32, y: u32, caps: u64) -> u32 {
-    let top = text::centred_top(y, RISK_SLOT_H, NUM_PX);
+    let (r, top) = (roles(), text::centred_top(y, RISK_SLOT_H, NUM_PX));
     let mut slot_x = x;
-    for (i, (mask, argb)) in CLASSES.iter().enumerate() {
-        let ink = if caps & mask != 0 { *argb } else { TRACK_BG };
+    for (i, (mask, tone)) in CLASSES.iter().enumerate() {
+        let ink = if caps & mask != 0 { tone.colour(&r) } else { r.border_strong };
         text::mono(fb, slot_x, top, LETTERS[i], ink, NUM_PX);
         slot_x += RISK_SLOT_W + RISK_SLOT_GAP;
     }
     let mut buf = [0u8; 4];
     let n = format::u32_decimal(caps.count_ones(), &mut buf);
-    text::mono(fb, slot_x + RISK_SLOT_GAP, top, &buf[..n], MUTED, NUM_PX);
+    text::mono(fb, slot_x + RISK_SLOT_GAP, top, &buf[..n], r.muted, NUM_PX);
     slot_x + RISK_SLOT_GAP + text::mono_width(fb, &buf[..n], NUM_PX)
 }

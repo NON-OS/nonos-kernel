@@ -15,12 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::derive::with_alpha;
+use nonos_toolkit::theme::Opaque;
 
 use crate::pm::state::{RateRing, Ring, SAMPLES};
 
 use super::metrics::SPARK_DOT_R;
 
-pub fn cpu(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32, ring: &Ring, tint: u32) {
+pub fn cpu(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32, ring: &Ring, tint: Opaque) {
     plot(fb, x, y, w, h, |i| ring.cpu_at(i) as u32, ring.len(), 100, tint);
 }
 
@@ -34,14 +36,14 @@ pub fn rate(
     h: u32,
     ring: &RateRing,
     hi: u32,
-    tint: u32,
+    tint: Opaque,
 ) {
     plot(fb, x, y, w, h, |i| ring.at(i), ring.len(), hi, tint);
 }
 
 // Memory has no natural ceiling, so the tallest sample in the window sets the
 // scale; the shape is a trend against its own peak, never against a made-up max.
-pub fn mem(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32, ring: &Ring, tint: u32) {
+pub fn mem(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32, ring: &Ring, tint: Opaque) {
     let hi = (0..ring.len()).map(|i| ring.mem_at(i)).max().unwrap_or(0);
     plot(fb, x, y, w, h, |i| ring.mem_at(i), ring.len(), hi, tint);
 }
@@ -61,13 +63,13 @@ fn plot(
     at: impl Fn(usize) -> u32,
     n: usize,
     hi: u32,
-    tint: u32,
+    tint: Opaque,
 ) {
     if n < 2 || w < 2 || h < 2 || hi == 0 {
         return;
     }
     let n = n.min(SAMPLES);
-    let fill = (tint & 0x00FFFFFF) | 0x38000000;
+    let (fill, tint) = (with_alpha(tint.argb(), 0x38), tint.argb());
     let mut pts = [(0i32, 0i32); SAMPLES];
     for i in 0..n {
         let px = col(x, w, i, n);

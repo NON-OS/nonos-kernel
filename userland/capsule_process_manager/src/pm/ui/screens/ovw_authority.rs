@@ -33,11 +33,11 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::icons::{draw, IconId};
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Card, Rect};
 
 use crate::pm::state::State;
-use crate::pm::theme::{MUTED, WARNING};
 
-use super::super::frame::frame;
 use super::super::metrics::{BODY_PX, CARD_H, CARD_ICON, CARD_LABEL_GAP};
 use super::super::risk_strip::CLASSES;
 use super::super::text;
@@ -48,24 +48,27 @@ pub(super) const PAD: u32 = 8;
 const CAPTION_GAP: u32 = 2;
 
 pub(super) fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32) {
-    frame(fb, x, y, w, CARD_H);
+    let r = roles();
+    Card::new().draw(fb, Rect { x, y, w, h: CARD_H });
     let body = line_height(BODY_PX).max(1) as u32;
     let cap_y = y + PAD;
     let icon_y = cap_y + body.saturating_sub(CARD_ICON) / 2;
-    draw(fb, IconId::SettingsSecurity, x + PAD, icon_y, CARD_ICON, MUTED);
-    text::left(fb, x + PAD + CARD_ICON + CARD_LABEL_GAP, cap_y, b"AUTHORITY", WARNING, BODY_PX);
+    draw(fb, IconId::SettingsSecurity, x + PAD, icon_y, CARD_ICON, r.muted.argb());
+    text::left(fb, x + PAD + CARD_ICON + CARD_LABEL_GAP, cap_y, b"AUTHORITY", r.muted, BODY_PX);
 
     let now = &state.monitor.posture;
     let start = state.monitor.start_posture();
 
-    // Rows are exactly one line tall and anchored under the caption, so they can
-    // never overlap it however the face measures. Whatever is left over falls at
-    // the bottom of the card rather than being spread between the rows, which
-    // keeps a four-row stack reading as one block.
+    /*
+     * Rows are exactly one line tall and anchored under the caption, so they can
+     * never overlap it however the face measures. Whatever is left over falls at
+     * the bottom of the card rather than being spread between the rows, which
+     * keeps a four-row stack reading as one block.
+     */
     let top = cap_y + body + CAPTION_GAP;
-    for (i, (mask, argb)) in CLASSES.iter().enumerate() {
+    for (i, (mask, tone)) in CLASSES.iter().enumerate() {
         let held = now.held(*mask);
         let was = start.held(*mask);
-        row(fb, (x, top + body * i as u32, w), body, LABELS[i], (held, was), *argb);
+        row(fb, (x, top + body * i as u32, w), body, LABELS[i], (held, was), *tone);
     }
 }

@@ -17,17 +17,20 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::paint::measure_ttf;
+use nonos_toolkit::theme::Opaque;
 
-fn valid(bytes: &[u8]) -> &str {
+/// The bytes as text, or nothing when they are not UTF-8, for the toolkit
+/// widgets, which take `&str`.
+pub fn valid(bytes: &[u8]) -> &str {
     core::str::from_utf8(bytes).unwrap_or("")
 }
 
-pub fn left(fb: &mut PaintBuffer, x: u32, top: u32, bytes: &[u8], argb: u32, px: f32) -> i32 {
-    fb.text_ttf(x as i32, top as i32, valid(bytes), argb, px)
+pub fn left(fb: &mut PaintBuffer, x: u32, top: u32, bytes: &[u8], ink: Opaque, px: f32) -> i32 {
+    fb.text_ttf(x as i32, top as i32, valid(bytes), ink.argb(), px)
 }
 
-pub fn mono(fb: &mut PaintBuffer, x: u32, top: u32, bytes: &[u8], argb: u32, px: f32) -> i32 {
-    fb.text_ttf_mono(x as i32, top as i32, valid(bytes), argb, px)
+pub fn mono(fb: &mut PaintBuffer, x: u32, top: u32, bytes: &[u8], ink: Opaque, px: f32) -> i32 {
+    fb.text_ttf_mono(x as i32, top as i32, valid(bytes), ink.argb(), px)
 }
 
 pub fn width(fb: &PaintBuffer, bytes: &[u8], px: f32) -> u32 {
@@ -46,14 +49,14 @@ pub fn mono_width(fb: &PaintBuffer, bytes: &[u8], px: f32) -> u32 {
 
 // A column of numbers only reads as a column when the last digit lines up, so
 // numeric cells are placed from their right edge rather than their left.
-pub fn mono_right(fb: &mut PaintBuffer, right_x: u32, top: u32, bytes: &[u8], argb: u32, px: f32) {
+pub fn mono_right(fb: &mut PaintBuffer, right: u32, top: u32, bytes: &[u8], ink: Opaque, px: f32) {
     let w = mono_width(fb, bytes, px);
-    mono(fb, right_x.saturating_sub(w), top, bytes, argb, px);
+    mono(fb, right.saturating_sub(w), top, bytes, ink, px);
 }
 
-pub fn right(fb: &mut PaintBuffer, right_x: u32, top: u32, bytes: &[u8], argb: u32, px: f32) {
+pub fn right(fb: &mut PaintBuffer, right_x: u32, top: u32, bytes: &[u8], ink: Opaque, px: f32) {
     let w = width(fb, bytes, px);
-    left(fb, right_x.saturating_sub(w), top, bytes, argb, px);
+    left(fb, right_x.saturating_sub(w), top, bytes, ink, px);
 }
 
 // `text_ttf` takes the top of the line box, so centring one line inside a box

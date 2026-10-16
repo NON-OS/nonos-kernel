@@ -17,21 +17,22 @@
 //! The strip along the bottom: count, load, memory, uptime, posture, sort.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::{roles, Opaque};
+use nonos_toolkit::widgets::{Rect, Separator};
 
 use crate::pm::format::{mem_human, percent, u32_decimal, uptime_human};
 use crate::pm::format_sys::load_human;
 use crate::pm::security::Level;
 use crate::pm::state::notes::{strip_note, KEYS_HINT};
 use crate::pm::state::State;
-use crate::pm::theme::{ACCENT, AMBER, DANGER, HEADER_BG, MUTED, OK, RULE, TITLE};
 
 use super::metrics::{BODY_PX, PANE_PAD_X, STATUS_GAP, STATUS_GROUP_GAP, STATUS_H};
 use super::text;
 
 pub fn paint(fb: &mut PaintBuffer, state: &State) {
-    let y = fb.height.saturating_sub(STATUS_H);
-    fb.fill_rect(0, y, fb.width, STATUS_H, HEADER_BG);
-    fb.fill_rect(0, y, fb.width, 1, RULE);
+    let (r, y) = (roles(), fb.height.saturating_sub(STATUS_H));
+    fb.fill_rect(0, y, fb.width, STATUS_H, r.sunken.argb());
+    Separator::new().draw(fb, Rect { x: 0, y, w: fb.width, h: 1 });
     let top = text::centred_top(y, STATUS_H, BODY_PX);
     let mut buf = [0u8; 32];
     let total = state.rows.len() as u32;
@@ -55,27 +56,31 @@ pub fn paint(fb: &mut PaintBuffer, state: &State) {
     let (tone, label) = posture(state);
     let after = text::left(fb, x, top, label, tone, BODY_PX).max(0) as u32 + STATUS_GROUP_GAP;
     let right_x = fb.width.saturating_sub(PANE_PAD_X);
-    text::right(fb, right_x, top, state.sort.label(), ACCENT, BODY_PX);
+    text::right(fb, right_x, top, state.sort.label(), r.accent, BODY_PX);
     let sort_w = text::width(fb, state.sort.label(), BODY_PX);
     let hint_x = right_x.saturating_sub(sort_w + STATUS_GROUP_GAP);
-    // A kill prompt, its outcome or an unreadable table replaces the key hint,
-    // cut to the room left of the sort label so it never runs under the counts.
+    /*
+     * A kill prompt, its outcome or an unreadable table replaces the key hint,
+     * cut to the room left of the sort label so it never runs under the counts.
+     */
     let note = strip_note(state.notice, state.status);
-    let ink = if note == KEYS_HINT { MUTED } else { AMBER };
+    let ink = if note == KEYS_HINT { r.muted } else { r.warn };
     let cut = text::fit(fb, note, BODY_PX, hint_x.saturating_sub(after));
     text::right(fb, hint_x, top, cut, ink, BODY_PX);
 }
 
 fn pair(fb: &mut PaintBuffer, x: u32, top: u32, label: &[u8], value: &[u8]) -> u32 {
-    let after = text::left(fb, x, top, label, MUTED, BODY_PX).max(0) as u32 + STATUS_GAP;
-    text::mono(fb, after, top, value, TITLE, BODY_PX).max(0) as u32 + STATUS_GROUP_GAP
+    let r = roles();
+    let after = text::left(fb, x, top, label, r.muted, BODY_PX).max(0) as u32 + STATUS_GAP;
+    text::mono(fb, after, top, value, r.text, BODY_PX).max(0) as u32 + STATUS_GROUP_GAP
 }
 
-fn posture(state: &State) -> (u32, &'static [u8]) {
+fn posture(state: &State) -> (Opaque, &'static [u8]) {
+    let r = roles();
     match state.alerts.iter().map(|a| a.level).max() {
-        None => (OK, b"NO FINDINGS"),
-        Some(Level::Info) => (OK, Level::Info.label()),
-        Some(Level::Warn) => (AMBER, Level::Warn.label()),
-        Some(Level::Critical) => (DANGER, Level::Critical.label()),
+        None => (r.ok, b"NO FINDINGS"),
+        Some(Level::Info) => (r.ok, Level::Info.label()),
+        Some(Level::Warn) => (r.warn, Level::Warn.label()),
+        Some(Level::Critical) => (r.danger, Level::Critical.label()),
     }
 }
