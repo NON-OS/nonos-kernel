@@ -50,7 +50,7 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, scroll: u32, view_w: u32, view
             if offscreen {
                 return;
             }
-            row::paint(fb, state, r, card_x, card_w, sy, h, selected);
+            row::paint(fb, state, r, scroll, Rect { x: card_x, y, w: card_w, h }, selected);
             if ri + 1 < blocks[bi].rows.len() {
                 row::hairline(fb, scroll, card_x, card_w, y, h);
             }

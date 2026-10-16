@@ -16,54 +16,53 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_policy_proto::label_of;
-use nonos_toolkit::widgets::{Rect, Scrolled, Separator};
+use nonos_toolkit::widgets::{Ink, Rect, Row as ListRow, Scrolled, Separator, State as Look};
 
-use crate::settings::schema::rows::Row;
+use crate::settings::schema::rows::{Row, Tone};
 use crate::settings::state::State;
 
 use super::bytes::as_str;
 use super::control;
-use super::control_geom::right_edge;
+use super::control_geom::{right_edge, slider_x};
 use super::field_note::note_of;
 use super::live_value::{note, resolve};
-use super::metrics::BODY_PX;
-use super::pill::tone_argb;
-use super::row_focus;
-use super::row_label;
-use super::text;
 
+/// Draws a card's row at `at`, in content coordinates, through the toolkit
+/// row; a field's control then goes in the room the row leaves for it.
+/// `selected` is the keyboard cursor.
 pub fn paint(
     fb: &mut PaintBuffer,
     state: &State,
     row: &Row,
-    card_x: u32,
-    card_w: u32,
-    screen_y: i32,
-    row_h: u32,
+    scroll: u32,
+    at: Rect,
     selected: bool,
 ) {
-    if selected {
-        row_focus::paint(fb, card_x, card_w, screen_y, row_h);
-    }
+    let look = Look { focused: selected, hovered: selected, ..Look::default() };
     match row {
         Row::Field(f) => {
-            row_label::paint(fb, card_x, screen_y, row_h, as_str(label_of(*f)), note_of(*f));
-            control::paint(fb, state, *f, card_x, card_w, screen_y, row_h);
+            let room = right_edge(at.x, at.w) - slider_x(at.x, at.w);
+            let line = ListRow::new(as_str(label_of(*f))).trailing(room).state(look);
+            let line = note_of(*f).map_or(line, |n| line.note(n));
+            line.draw(&mut Scrolled::new(fb, scroll), at);
+            control::paint(fb, state, *f, at.x, at.w, at.y as i32 - scroll as i32, at.h);
         }
         Row::Live(label, live) => {
-            row_label::paint(fb, card_x, screen_y, row_h, label, note(state, *live));
             let (value, tone) = resolve(state, *live);
-            let top = text::centred_top(0, row_h, BODY_PX) + screen_y;
-            text::right(
-                fb,
-                right_edge(card_x, card_w),
-                top,
-                value.as_str(),
-                tone_argb(tone),
-                BODY_PX,
-            );
+            let line = ListRow::new(label).value(value.as_str()).value_ink(ink(tone)).state(look);
+            let line = note(state, *live).map_or(line, |n| line.note(n));
+            line.draw(&mut Scrolled::new(fb, scroll), at);
         }
         Row::Networks | Row::Saved | Row::Wallpapers => {}
+    }
+}
+
+/// The toolkit ink a live value's tone reads in.
+fn ink(tone: Tone) -> Ink {
+    match tone {
+        Tone::Ok => Ink::Ok,
+        Tone::Warn => Ink::Warn,
+        Tone::Idle => Ink::Muted,
     }
 }
 
