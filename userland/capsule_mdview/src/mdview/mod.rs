@@ -24,7 +24,6 @@ mod manifest;
 mod measure;
 mod paint;
 mod scroll;
-mod theme;
 mod verdict;
 
 pub use app::MdView;

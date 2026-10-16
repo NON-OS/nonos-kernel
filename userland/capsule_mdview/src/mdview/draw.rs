@@ -15,23 +15,36 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::{roles, Roles};
 
 use super::layout::{indent, line_height, px, Line, Style};
-use super::theme;
+
+pub const MARGIN: i32 = 24;
+
+/// The ink a markdown style is drawn in: the top two headings in the accent,
+/// the third in muted, code in text_2 on its raised band, the rest in text.
+fn colour(r: &Roles, style: Style) -> u32 {
+    match style {
+        Style::H1 | Style::H2 => r.accent.argb(),
+        Style::H3 => r.muted.argb(),
+        Style::Code => r.text_2.argb(),
+        _ => r.text.argb(),
+    }
+}
 
 pub fn draw_line(fb: &mut PaintBuffer, line: &Line, y: i32) {
-    let height = line_height(line.style);
+    let (r, height) = (roles(), line_height(line.style));
     if line.style == Style::Code {
-        let band = fb.width.saturating_sub(2 * theme::MARGIN as u32 - 16);
-        let left = (theme::MARGIN - 8).max(0) as u32;
-        fb.fill_rect(left, y as u32, band, height as u32, theme::CODE_BG);
+        let band = fb.width.saturating_sub(2 * MARGIN as u32 - 16);
+        let left = (MARGIN - 8).max(0) as u32;
+        fb.fill_rect(left, y as u32, band, height as u32, r.raised.argb());
     }
-    let mut x = theme::MARGIN + indent(line.style);
+    let mut x = MARGIN + indent(line.style);
     if line.style == Style::Bullet && line.lead {
-        fb.fill_rect((x - 14) as u32, (y + height / 2 - 2) as u32, 4, 4, theme::ACCENT);
+        fb.fill_rect((x - 14) as u32, (y + height / 2 - 2) as u32, 4, 4, r.accent.argb());
     }
     let size = px(line.style);
-    let colour = theme::colour(line.style);
+    let colour = colour(&r, line.style);
     for span in &line.spans {
         x = if span.mono {
             fb.text_ttf_mono(x, y, &span.text, colour, size)

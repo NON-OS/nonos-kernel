@@ -15,29 +15,29 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
-use super::draw::draw_line;
+use super::draw::{draw_line, MARGIN};
 use super::layout::{line_height, Line};
 use super::scroll::{place, TOP};
-use super::theme;
 
 /// Draws the lines wholly inside the window once the page is scrolled up by
 /// `scroll` pixels.
 pub fn paint(fb: &mut PaintBuffer, lines: &[Line], error: Option<&'static str>, scroll: u32) {
-    fb.clear(theme::BG);
-    fb.fill_rect(0, 0, fb.width, 4, theme::ACCENT);
+    let (r, bottom) = (roles(), fb.height as i32);
+    fb.clear(r.bg.argb());
+    fb.fill_rect(0, 0, fb.width, 4, r.accent.argb());
     if let Some(message) = error {
-        fb.text_ttf(theme::MARGIN, TOP, message, theme::FAIL, 15.0);
-        fb.text_ttf(theme::MARGIN, TOP + 26, "esc closes this window", theme::DIM, 13.0);
+        fb.text_ttf(MARGIN, TOP, message, r.danger.argb(), 15.0);
+        fb.text_ttf(MARGIN, TOP + 26, "esc closes this window", r.quiet.argb(), 13.0);
         return;
     }
-    let bottom = fb.height as i32;
     place(lines, |top, line| {
         let y = top - scroll as i32;
         if y >= 0 && y + line_height(line.style) <= bottom {
             draw_line(fb, line, y);
         }
     });
-    // A line scrolled up to the top edge is drawn under the accent band.
-    fb.fill_rect(0, 0, fb.width, 4, theme::ACCENT);
+    /* A line scrolled up to the top edge is drawn under the accent band. */
+    fb.fill_rect(0, 0, fb.width, 4, r.accent.argb());
 }
