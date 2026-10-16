@@ -18,11 +18,6 @@ pub const WINDOW_BG: u32 = 0xFF0B1319;
 pub const SIDEBAR_BG: u32 = 0xFF0A1218;
 pub const SIDEBAR_LINE: u32 = 0xFF16262F;
 
-pub const NAV_FG: u32 = 0xFF93A7B2;
-pub const NAV_FG_ACTIVE: u32 = 0xFFA8E7F6;
-pub const NAV_BG_ACTIVE: u32 = 0x2035C4E2;
-pub const NAV_BORDER_ACTIVE: u32 = 0x5935C4E2;
-
 pub const TITLE_FG: u32 = 0xFFEAF4F8;
 pub const SUBTITLE_FG: u32 = 0xFF93A7B2;
 
@@ -39,8 +34,3 @@ pub const IDLE: u32 = 0xFF7A8E99;
 pub const PILL_BG: u32 = 0xFF14232C;
 pub const PILL_BORDER: u32 = 0xFF1D323D;
 pub const TRACK_BG: u32 = 0xFF25373F;
-
-pub const SEARCH_BG: u32 = 0xFF16232B;
-pub const SEARCH_BORDER: u32 = 0xFF24363F;
-pub const SEARCH_FG: u32 = 0xFFE3EFF4;
-pub const SEARCH_PLACEHOLDER: u32 = 0xFF6D818C;

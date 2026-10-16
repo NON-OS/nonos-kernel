@@ -27,9 +27,6 @@ pub const NAV_TOP: u32 = 14;
 pub const NAV_H: u32 = 38;
 pub const NAV_GAP: u32 = 2;
 pub const NAV_PAD_X: u32 = 12;
-pub const NAV_RADIUS: u32 = 9;
-pub const NAV_ICON: u32 = 18;
-pub const NAV_LABEL_GAP: u32 = 12;
 
 pub const PANE_PAD_X: u32 = 28;
 pub const PANE_PAD_TOP: u32 = 24;

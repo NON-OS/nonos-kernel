@@ -15,18 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::icons::draw;
+use nonos_toolkit::widgets::{NavItem, Rect};
 
 use crate::settings::section::{Section, SECTIONS};
 use crate::settings::section_text::nav;
 
 use super::icon_table::icon;
-use super::metrics::{BODY_PX, NAV_H, NAV_ICON, NAV_LABEL_GAP, NAV_PAD_X, NAV_RADIUS, SIDEBAR_W};
+use super::metrics::{NAV_H, SIDEBAR_W};
 use super::nav_geom::{row_w, row_x, row_y};
-use super::text;
-use super::theme::{
-    NAV_BG_ACTIVE, NAV_BORDER_ACTIVE, NAV_FG, NAV_FG_ACTIVE, SIDEBAR_BG, SIDEBAR_LINE,
-};
+use super::theme::{SIDEBAR_BG, SIDEBAR_LINE};
 
 pub fn paint(fb: &mut PaintBuffer, active: Section, h: u32) {
     fb.fill_rect(0, 0, SIDEBAR_W, h, SIDEBAR_BG);
@@ -36,16 +33,9 @@ pub fn paint(fb: &mut PaintBuffer, active: Section, h: u32) {
     }
 }
 
+/// One entry: the toolkit item over the whole row box, drawing its own icon
+/// and label inside it, so the active wash covers both.
 fn paint_row(fb: &mut PaintBuffer, section: Section, y: u32, active: bool) {
-    let x = row_x();
-    if active {
-        fb.fill_round(x, y, row_w(), NAV_H, NAV_RADIUS, NAV_BG_ACTIVE);
-        fb.stroke_round(x, y, row_w(), NAV_H, NAV_RADIUS, 1, NAV_BORDER_ACTIVE);
-    }
-    let fg = if active { NAV_FG_ACTIVE } else { NAV_FG };
-    let icon_x = x + NAV_PAD_X;
-    let icon_y = y + (NAV_H - NAV_ICON) / 2;
-    draw(fb, icon(section), icon_x, icon_y, NAV_ICON, fg);
-    let top = text::centred_top(y, NAV_H, BODY_PX);
-    text::left(fb, icon_x + NAV_ICON + NAV_LABEL_GAP, top, nav(section), fg, BODY_PX);
+    let at = Rect { x: row_x(), y, w: row_w(), h: NAV_H };
+    NavItem::new(nav(section)).icon(icon(section)).active(active).draw(fb, at);
 }
