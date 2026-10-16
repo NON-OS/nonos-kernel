@@ -49,6 +49,10 @@ pub const FIELD_W: u32 = 236;
 pub const TABS_H: u32 = 32;
 /// Height of a pill.
 pub const PILL_H: u32 = 26;
+/// Space between a pill's edge and what it holds, each side.
+pub const PILL_PAD: u32 = 11;
+/// Diameter of a pill's status dot.
+pub const DOT: u32 = 7;
 /// Width of a switch.
 pub const SWITCH_W: u32 = 42;
 /// Height of a switch.
