@@ -2634,7 +2634,7 @@ elif ! grep -rq 'paint_chrome' "${desktop_shell_prime}"; then
 elif ! grep -q 'super::topbar::paint(ctx)' "${desktop_shell_render}" ||
      ! grep -q 'super::background::background(ctx)' userland/capsule_desktop_shell/src/render/topbar/paint.rs ||
      ! grep -q 'let bar = menubar_rect(ctx.width)' userland/capsule_desktop_shell/src/render/topbar/background.rs ||
-     ! grep -q 'fill_rect(.*bar\.x, bar\.y, bar\.width, bar\.height' userland/capsule_desktop_shell/src/render/topbar/background.rs; then
+     ! grep -qE '(fill|blend)_rect\(.*bar\.x, bar\.y, bar\.width, bar\.height' userland/capsule_desktop_shell/src/render/topbar/background.rs; then
     fail_with "${desktop_shell_render} must own menubar chrome rendering"
 elif ! grep -A2 'super::panel::shadow_panel($' "${desktop_shell_render}" | grep '^[[:space:]]*bottom_dock_rect(ctx.width, ctx.height),$' >/dev/null; then
     fail_with "${desktop_shell_render} must own dock chrome rendering"
@@ -2807,9 +2807,11 @@ unset kernel_lib_root
 
 # Phase-9 app-ui migration: app UI must run in userland app
 # capsules and route shared frame work through the toolkit IPC
-# client in the common app skeleton.
+# client in the common app skeleton. The theme is not fetched from the
+# toolkit per frame: the frame loop follows the choice in the policy
+# store (ADR 0001).
 app_toolkit_client='userland/app_skeleton/src/clients/toolkit/mod.rs'
-app_paint_frame='userland/app_skeleton/src/runner/paint_frame.rs'
+app_frame_loop='userland/app_skeleton/src/runner/frame_loop.rs'
 app_discover='userland/app_skeleton/src/discover/require.rs'
 if [ ! -f "${app_toolkit_client}" ]; then
     fail_with "missing ${app_toolkit_client}"
@@ -2817,14 +2819,14 @@ elif ! grep -rq 'TOOLKIT_OP_COMPONENT_RENDER' userland/app_skeleton/src/clients/
     fail_with "${app_toolkit_client} must route frame components through TOOLKIT_OP_COMPONENT_RENDER"
 elif ! grep -rq 'mk_ipc_call' userland/app_skeleton/src/clients/toolkit; then
     fail_with "${app_toolkit_client} must call toolkit via mk_ipc_call"
-elif ! grep -q 'toolkit::ui_frame' "${app_paint_frame}"; then
-    fail_with "${app_paint_frame} must route painted frames through toolkit::ui_frame"
+elif ! grep -q 'theme_follow::follow()' "${app_frame_loop}"; then
+    fail_with "${app_frame_loop} must follow the theme chosen in policy"
 elif ! grep -q 'lookup_port(b"toolkit")' "${app_discover}"; then
     fail_with "${app_discover} must require toolkit before app boot"
 else
     note ok "app ui capsule runs in userland process and routes through toolkit IPC"
 fi
-unset app_toolkit_client app_paint_frame app_discover
+unset app_toolkit_client app_frame_loop app_discover
 
 # Phase-9 non-ambient framebuffer model: app-ui capsules must not
 # touch graphics/framebuffer paths directly.
