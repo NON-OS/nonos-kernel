@@ -16,6 +16,7 @@
 
 pub mod apply;
 pub mod chrome;
+mod colour;
 pub mod contrast;
 pub mod derive;
 pub mod legible;
@@ -27,6 +28,7 @@ pub mod select;
 pub mod store;
 
 pub use apply::apply;
+pub use colour::{Opaque, Translucent};
 pub use schemes::{scheme, Scheme, SCHEMES};
 pub use select::theme_of;
 pub use store::{snapshot, Theme};
