@@ -574,6 +574,7 @@
   ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/apps_proofs",
    "userland/assets/icons",
@@ -680,6 +681,8 @@
    "userland/capsule_video_player/src/ui/rows.rs",
    "userland/capsule_video_player/src/ui/screen.rs",
    "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
    "userland/toolkit"
   ],
   "md": [],
@@ -1221,11 +1224,14 @@
   ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_calculator",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
    "userland/toolkit"
   ],
   "md": [],
@@ -1247,11 +1253,14 @@
   ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_clock",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
    "userland/toolkit"
   ],
   "md": [],
@@ -1515,11 +1524,14 @@
   ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_egui_proof",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
    "userland/toolkit"
   ],
   "md": [],
@@ -1560,11 +1572,14 @@
   ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_game_2048",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
    "userland/toolkit",
    "userland/upstream-src/tools-2048"
   ],
@@ -1577,11 +1592,14 @@
   ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_gui_demo",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
    "userland/toolkit"
   ],
   "md": [],
@@ -1593,11 +1611,14 @@
   ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_hello",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
    "userland/toolkit"
   ],
   "md": [],
@@ -1623,11 +1644,14 @@
   ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_image_viewer",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
    "userland/toolkit"
   ],
   "md": [],
@@ -1649,11 +1673,14 @@
   ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_input_proof",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
    "userland/toolkit"
   ],
   "md": [],
@@ -1693,6 +1720,7 @@
    "userland/nonos_disk_map",
    "userland/nonos_hash",
    "userland/nonos_wallpapers",
+   "userland/policy_client",
    "userland/policy_proto",
    "userland/toolkit"
   ],
@@ -1705,12 +1733,15 @@
   ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
    "tools/nonos-pack/core",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_installer",
    "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
    "userland/toolkit"
   ],
   "md": [],
@@ -1915,6 +1946,7 @@
   "include": [
    ".cargo",
    ".keys/marketplace_operator_ed25519.pub",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
@@ -1924,6 +1956,8 @@
    "userland/marketplace_abi",
    "userland/nonos_ed25519",
    "userland/nonos_hash",
+   "userland/policy_client",
+   "userland/policy_proto",
    "userland/toolkit"
   ],
   "md": [],
@@ -1938,11 +1972,14 @@
   ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_mdview",
    "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
    "userland/toolkit"
   ],
   "md": [],
@@ -2153,6 +2190,7 @@
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_policy",
    "userland/libc",
+   "userland/policy_client",
    "userland/policy_proto",
    "userland/toolkit"
   ],
@@ -2175,11 +2213,14 @@
   ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_process_manager",
    "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
    "userland/toolkit"
   ],
   "md": [],
@@ -2204,11 +2245,14 @@
    ".cargo",
    "nonos-attest-path",
    "nonos-device-attest",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_prove",
    "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
    "userland/toolkit"
   ],
   "md": [],
@@ -2220,11 +2264,14 @@
   ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_qrgen",
    "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
    "userland/toolkit"
   ],
   "md": [],
@@ -2309,6 +2356,7 @@
    "userland/nonos_wifi_client/src/saved/list_codec.rs",
    "userland/nonos_wifi_client/src/wipe.rs",
    "userland/nonos_wifi_client/src/wire.rs",
+   "userland/policy_client",
    "userland/policy_proto",
    "userland/toolkit"
   ],
@@ -2483,11 +2531,14 @@
   ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_text_editor",
    "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
    "userland/toolkit"
   ],
   "md": [],
@@ -2513,12 +2564,15 @@
   ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_video_player",
    "userland/libc",
    "userland/nonos_avi",
+   "userland/policy_client",
+   "userland/policy_proto",
    "userland/toolkit"
   ],
   "md": [],
@@ -2588,6 +2642,7 @@
   ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/capsule_install/brand/src/scale_rule.rs",
@@ -2595,6 +2650,8 @@
    "userland/libc",
    "userland/nonos_hash",
    "userland/nonos_wallpapers",
+   "userland/policy_client",
+   "userland/policy_proto",
    "userland/toolkit"
   ],
   "md": [],
@@ -2826,6 +2883,8 @@
    "userland/compositor/src/state/scene_submit.rs",
    "userland/desktop_proofs",
    "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
    "userland/toolkit",
    "userland/wm_proofs/src/window.rs",
    "userland/wm_proofs/src/window_table.rs"
@@ -3307,6 +3366,7 @@
   ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
    "userland/app_skeleton",
    "userland/assets/icons",
    "userland/base64",
@@ -3326,6 +3386,8 @@
    "userland/inflate",
    "userland/libc",
    "userland/nonos_brotli",
+   "userland/policy_client",
+   "userland/policy_proto",
    "userland/toolkit"
   ],
   "md": [],
@@ -4188,6 +4250,7 @@
    "userland/nonos_keymap",
    "userland/nonos_wifi_client/src/driver",
    "userland/nonos_wifi_client/src/saved",
+   "userland/policy_client",
    "userland/policy_proto",
    "userland/setup_layout_proofs",
    "userland/toolkit"
@@ -4359,6 +4422,7 @@
    "userland/libc",
    "userland/nonos_route_link/src/direct_only.rs",
    "userland/nonos_vt",
+   "userland/policy_client",
    "userland/policy_proto",
    "userland/terminal_line_proofs",
    "userland/toolkit"
@@ -4386,12 +4450,14 @@
    "userland/toolkit/src/font/upper.rs",
    "userland/toolkit/src/protocol",
    "userland/toolkit/src/theme/chrome",
+   "userland/toolkit/src/theme/colour.rs",
    "userland/toolkit/src/theme/contrast.rs",
    "userland/toolkit/src/theme/derive.rs",
    "userland/toolkit/src/theme/legible.rs",
    "userland/toolkit/src/theme/legible_walk.rs",
    "userland/toolkit/src/theme/linear.rs",
    "userland/toolkit/src/theme/palette.rs",
+   "userland/toolkit/src/theme/roles",
    "userland/toolkit/src/theme/schemes",
    "userland/toolkit/src/theme/select.rs",
    "userland/toolkit/src/theme/store"
