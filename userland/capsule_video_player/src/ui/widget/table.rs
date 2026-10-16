@@ -15,12 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Rect as Area, Separator};
 
 use crate::ui::fit::fit;
 use crate::ui::layout::Rect;
-use crate::ui::paint::{rrect, shape};
+use crate::ui::paint::rrect;
 use crate::ui::text::{center_y, BODY_PX};
-use crate::ui::theme;
 
 pub const HEAD_H: u32 = 32;
 pub const ROW_H: u32 = 46;
@@ -55,21 +56,23 @@ pub fn rows_visible(h: u32) -> usize {
 }
 
 pub fn paint_head(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, cols: &[Column]) {
+    let muted = roles().muted.argb();
     for (i, col) in cols.iter().enumerate() {
         let (off, span) = column_x(cols, w, i);
         let text = fit(col.title, span.saturating_sub(PAD), BODY_PX);
-        fb.text_ttf((x + off) as i32, center_y(y, HEAD_H), text, theme::LABEL, BODY_PX);
+        fb.text_ttf((x + off) as i32, center_y(y, HEAD_H), text, muted, BODY_PX);
     }
-    shape::hline(fb, x, y + HEAD_H, w, theme::BORDER);
+    Separator::new().draw(fb, Area { x, y: y + HEAD_H, w, h: 1 });
 }
 
 pub fn paint_row_bg(fb: &mut PaintBuffer, r: Rect, selected: bool) {
     if selected {
-        rrect::fill_round(fb, r.x, r.y, r.w, r.h, 8, theme::SELECT);
-        fb.fill_rect(r.x, r.y, 3, r.h, theme::ACCENT);
+        let theme = roles();
+        rrect::fill_round(fb, r.x, r.y, r.w, r.h, 8, theme.raised.argb());
+        fb.fill_rect(r.x, r.y, 3, r.h, theme.accent.argb());
         return;
     }
-    shape::hline(fb, r.x, r.y + r.h - 1, r.w, theme::BORDER_SOFT);
+    Separator::new().soft().draw(fb, Area { x: r.x, y: r.y + r.h - 1, w: r.w, h: 1 });
 }
 
 pub fn paint_cell(fb: &mut PaintBuffer, r: Rect, cols: &[Column], i: usize, text: &str, ink: u32) {

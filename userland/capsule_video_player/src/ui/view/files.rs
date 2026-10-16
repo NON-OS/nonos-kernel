@@ -19,6 +19,7 @@
 //! Open button. Every rect a click is tested against is computed here.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::grid::{paint_grid, paint_list};
 use crate::app::state::VideoApp;
@@ -29,7 +30,6 @@ use crate::ui::icon;
 use crate::ui::layout::Rect;
 use crate::ui::paint::{rrect, shape};
 use crate::ui::text::{center_y, BODY_PX};
-use crate::ui::theme;
 use crate::ui::widget::button::{paint_button, Tone};
 use crate::ui::widget::empty::paint_empty;
 
@@ -75,7 +75,8 @@ pub fn open_button(body: Rect) -> Rect {
 }
 
 fn paint_rail(fb: &mut PaintBuffer, app: &VideoApp, body: Rect) {
-    fb.text_ttf(body.x as i32, body.y as i32, "FOLDERS", theme::LABEL, BODY_PX);
+    let theme = roles();
+    fb.text_ttf(body.x as i32, body.y as i32, "FOLDERS", theme.muted.argb(), BODY_PX);
     let items = &app.browse.items;
     for i in 0..=LABELS.len() {
         let r = rail_row(body, i);
@@ -84,18 +85,18 @@ fn paint_rail(fb: &mut PaintBuffer, app: &VideoApp, body: Rect) {
             _ => (LABELS[i - 1], items.iter().filter(|m| in_folder(&m.path, i - 1)).count()),
         };
         let active = app.browse.folder == i.checked_sub(1);
-        let ink = if active { theme::ACCENT } else { theme::TEXT_DIM };
+        let ink = if active { theme.accent } else { theme.muted }.argb();
         if active {
-            rrect::fill_round(fb, r.x, r.y, r.w, r.h, 8, theme::SELECT);
+            rrect::fill_round(fb, r.x, r.y, r.w, r.h, 8, theme.raised.argb());
         }
         icon::nav::files(fb, r.x + 8, r.y + r.h.saturating_sub(18) / 2, 18, ink);
         fb.text_ttf((r.x + 34) as i32, center_y(r.y, r.h), name, ink, BODY_PX);
         let tally = alloc::format!("{}", n);
         let tw = fb.measure_ttf(&tally, BODY_PX).max(0) as u32;
         let tx = (r.x + r.w).saturating_sub(tw + 10);
-        fb.text_ttf(tx as i32, center_y(r.y, r.h), &tally, theme::TEXT_MUTED, BODY_PX);
+        fb.text_ttf(tx as i32, center_y(r.y, r.h), &tally, theme.muted.argb(), BODY_PX);
     }
-    shape::vline(fb, body.x + RAIL_W, body.y, body.h, theme::BORDER);
+    shape::vline(fb, body.x + RAIL_W, body.y, body.h, theme.border.argb());
 }
 
 pub fn paint(fb: &mut PaintBuffer, app: &VideoApp, body: Rect) {
@@ -123,6 +124,6 @@ pub fn paint(fb: &mut PaintBuffer, app: &VideoApp, body: Rect) {
     }
     let tally = count(app.browse.len(), "video", "videos");
     let b = open_button(body);
-    fb.text_ttf(right.x as i32, center_y(b.y, b.h), &tally, theme::TEXT_MUTED, BODY_PX);
+    fb.text_ttf(right.x as i32, center_y(b.y, b.h), &tally, roles().muted.argb(), BODY_PX);
     paint_button(fb, b, "Open", Tone::Primary);
 }

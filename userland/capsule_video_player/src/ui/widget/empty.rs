@@ -15,13 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::button::Glyph;
 use crate::ui::fit::{center_x, fit};
 use crate::ui::layout::Rect;
 use crate::ui::paint::rrect;
 use crate::ui::text::{BODY_PX, TITLE_PX};
-use crate::ui::theme;
 
 const DISC: u32 = 76;
 const ICON: u32 = 34;
@@ -30,8 +30,9 @@ const GAP: u32 = 20;
 pub fn paint_empty(fb: &mut PaintBuffer, r: Rect, glyph: Glyph, head: &str, note: &str) {
     let block = DISC + GAP + 26 + 24;
     let top = r.y + r.h.saturating_sub(block) / 2;
-    let cx = r.x + r.w / 2;
-    rrect::fill_round(fb, cx.saturating_sub(DISC / 2), top, DISC, DISC, DISC / 2, theme::PANEL);
+    let (cx, theme) = (r.x + r.w / 2, roles());
+    let disc = theme.surface.argb();
+    rrect::fill_round(fb, cx.saturating_sub(DISC / 2), top, DISC, DISC, DISC / 2, disc);
     rrect::stroke_round(
         fb,
         cx.saturating_sub(DISC / 2),
@@ -40,20 +41,20 @@ pub fn paint_empty(fb: &mut PaintBuffer, r: Rect, glyph: Glyph, head: &str, note
         DISC,
         DISC / 2,
         1,
-        theme::BORDER,
+        theme.border.argb(),
     );
     glyph(
         fb,
         cx.saturating_sub(ICON / 2),
         top + DISC.saturating_sub(ICON) / 2,
         ICON,
-        theme::TEXT_MUTED,
+        theme.quiet.argb(),
     );
     let room = r.w.saturating_sub(48).min(420);
     let head = fit(head, room, TITLE_PX);
     let y = top + DISC + GAP;
-    fb.text_ttf(center_x(head, r.x, r.w, TITLE_PX), y as i32, head, theme::TEXT, TITLE_PX);
+    fb.text_ttf(center_x(head, r.x, r.w, TITLE_PX), y as i32, head, theme.text.argb(), TITLE_PX);
     let note = fit(note, room, BODY_PX);
     let ny = (y + 30) as i32;
-    fb.text_ttf(center_x(note, r.x, r.w, BODY_PX), ny, note, theme::TEXT_MUTED, BODY_PX);
+    fb.text_ttf(center_x(note, r.x, r.w, BODY_PX), ny, note, theme.quiet.argb(), BODY_PX);
 }

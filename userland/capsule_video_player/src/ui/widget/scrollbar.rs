@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::ui::layout::Rect;
 use crate::ui::paint::rrect;
-use crate::ui::theme;
 
 pub const WIDTH: u32 = 6;
 const MIN_THUMB: u32 = 28;
@@ -39,9 +39,10 @@ pub fn paint_scrollbar(fb: &mut PaintBuffer, r: Rect, scroll: usize, visible: us
     if total <= visible {
         return;
     }
-    rrect::fill_round(fb, r.x, r.y, r.w, r.h, r.w / 2, theme::PANEL_ALT);
+    let theme = roles();
+    rrect::fill_round(fb, r.x, r.y, r.w, r.h, r.w / 2, theme.raised.argb());
     let t = thumb(r, scroll, visible, total);
-    rrect::fill_round(fb, t.x, t.y, t.w, t.h, t.w / 2, theme::TRACK);
+    rrect::fill_round(fb, t.x, t.y, t.w, t.h, t.w / 2, theme.border_strong.argb());
 }
 
 pub fn track(body: Rect) -> Rect {

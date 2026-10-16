@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::ui::fit::fit;
 use crate::ui::icon;
 use crate::ui::layout::{Rect, PAD, TOP};
 use crate::ui::text::{center_y, TITLE_PX};
-use crate::ui::theme;
 
 pub const HEADER_H: u32 = 46;
 const ARROW: u32 = 18;
@@ -36,12 +36,13 @@ pub fn info_button(w: u32) -> Rect {
 }
 
 pub fn paint_header(fb: &mut PaintBuffer, w: u32, title: &str) {
-    fb.fill_rect(0, TOP, w, HEADER_H, theme::APP_BG);
+    let r = roles();
+    fb.fill_rect(0, TOP, w, HEADER_H, r.bg.argb());
     let b = back_button();
-    icon::ui::back(fb, PAD, b.y + 6, ARROW, theme::TEXT_DIM);
+    icon::ui::back(fb, PAD, b.y + 6, ARROW, r.muted.argb());
     let i = info_button(w);
-    icon::ui::info(fb, i.x + 7, i.y + 7, 16, theme::TEXT_DIM);
+    icon::ui::info(fb, i.x + 7, i.y + 7, 16, r.muted.argb());
     let room = w.saturating_sub(TITLE_X + PAD + i.w + 12);
     let shown = fit(title, room, TITLE_PX);
-    fb.text_ttf(TITLE_X as i32, center_y(TOP, HEADER_H), shown, theme::TEXT, TITLE_PX);
+    fb.text_ttf(TITLE_X as i32, center_y(TOP, HEADER_H), shown, r.text.argb(), TITLE_PX);
 }

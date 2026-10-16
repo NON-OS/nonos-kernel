@@ -15,12 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::widgets::{Button, Kind, Rect as Area};
 
-use crate::ui::fit::center_x;
 use crate::ui::layout::Rect;
-use crate::ui::paint::rrect;
-use crate::ui::text::{center_y, BODY_PX};
-use crate::ui::theme;
 
 pub type Glyph = fn(&mut PaintBuffer, u32, u32, u32, u32);
 
@@ -29,14 +26,12 @@ pub enum Tone {
     Primary,
 }
 
-fn palette(tone: Tone) -> (u32, u32, u32) {
+fn kind(tone: Tone) -> Kind {
     match tone {
-        Tone::Primary => (theme::ACCENT_DIM, theme::ACCENT, theme::APP_BG),
+        Tone::Primary => Kind::Primary,
     }
 }
 
 pub fn paint_button(fb: &mut PaintBuffer, r: Rect, label: &str, tone: Tone) {
-    let (bg, border, ink) = palette(tone);
-    rrect::panel(fb, r.x, r.y, r.w, r.h, 8, bg, border);
-    fb.text_ttf(center_x(label, r.x, r.w, BODY_PX), center_y(r.y, r.h), label, ink, BODY_PX);
+    Button::new(label).kind(kind(tone)).draw(fb, Area { x: r.x, y: r.y, w: r.w, h: r.h });
 }

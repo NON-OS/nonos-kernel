@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::app::state::VideoApp;
 use crate::ui::frame::{region, sidebar, topbar};
 use crate::ui::layout::Rect;
 use crate::ui::screen::Route;
-use crate::ui::theme;
 
 pub fn hint(route: Route) -> &'static str {
     match route {
@@ -44,14 +44,15 @@ pub fn content(route: Route, body: Rect) -> Option<Rect> {
 }
 
 pub fn paint_route(fb: &mut PaintBuffer, app: &VideoApp) {
+    let ground = roles().bg.argb();
     for px in fb.pixels.iter_mut() {
-        *px = theme::APP_BG;
+        *px = ground;
     }
     let (w, h) = (fb.width, fb.height);
     let route = app.route();
     sidebar::paint_sidebar(fb, route, app.browse.items.len());
-    // Search and the view switch act on the video list, so they show only
-    // on the pages that have one.
+    /* Search and the view switch act on the video list, so they show only
+     * on the pages that have one. */
     if has_tools(route) {
         topbar::paint_search(fb, w, h, hint(route), &app.browse.query);
         topbar::paint_tools(fb, w, h, app.browse.grid);

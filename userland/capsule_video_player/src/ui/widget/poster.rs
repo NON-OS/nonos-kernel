@@ -15,45 +15,51 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::theme::derive::mix;
+use nonos_toolkit::theme::roles;
 
 use crate::catalog::kind::MediaKind;
 use crate::catalog::thumb::{THUMB_H, THUMB_W};
 use crate::ui::icon;
 use crate::ui::layout::Rect;
 use crate::ui::paint::rrect;
-use crate::ui::theme;
 
 const RADIUS: u32 = 10;
 const MARK: u32 = 30;
 
+/// A faint wash of one hue per container over the card, so the kinds tell
+/// apart at a glance: accent, warn, a neutral step of the text, and ok.
 fn tint(kind: MediaKind) -> u32 {
-    match kind {
-        MediaKind::Avi => 0xff10_2a30,
-        MediaKind::Mp4 => 0xff14_2436,
-        MediaKind::Mkv => 0xff1c_2130,
-        MediaKind::Mov => 0xff12_2a26,
-    }
+    let r = roles();
+    let (card, hue, t) = match kind {
+        MediaKind::Avi => (r.surface, r.accent, 40),
+        MediaKind::Mp4 => (r.surface, r.warn, 40),
+        MediaKind::Mkv => (r.surface, r.text, 24),
+        MediaKind::Mov => (r.surface, r.ok, 40),
+    };
+    mix(card.argb(), hue.argb(), t)
 }
 
 /// The video's first frame when the probe decoded one (`catalog/thumb.rs`),
 /// else a plain card with the video mark. The thumbnail was decoded for
 /// every video at scan and never drawn.
 pub fn paint_poster(fb: &mut PaintBuffer, r: Rect, kind: MediaKind, thumb: Option<&[u32]>) {
+    let theme = roles();
     if let Some(pixels) = thumb {
         if paint_frame(fb, r, pixels, THUMB_W, THUMB_H) {
-            rrect::stroke_round(fb, r.x, r.y, r.w, r.h, RADIUS, 1, theme::BORDER);
+            rrect::stroke_round(fb, r.x, r.y, r.w, r.h, RADIUS, 1, theme.border.argb());
             return;
         }
     }
     rrect::fill_round(fb, r.x, r.y, r.w, r.h, RADIUS, tint(kind));
-    rrect::stroke_round(fb, r.x, r.y, r.w, r.h, RADIUS, 1, theme::BORDER);
+    rrect::stroke_round(fb, r.x, r.y, r.w, r.h, RADIUS, 1, theme.border.argb());
     let size = MARK.min(r.w / 3).min(r.h / 3).max(12);
     icon::nav::video(
         fb,
         r.x + r.w.saturating_sub(size) / 2,
         r.y + r.h.saturating_sub(size) / 2,
         size,
-        theme::TEXT_MUTED,
+        theme.quiet.argb(),
     );
 }
 

@@ -17,6 +17,7 @@
 use nonos_app_skeleton::app::{App, AppManifest, EventOutcome, WindowKind};
 use nonos_app_skeleton::input::InputEvent;
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::state::{VideoApp, WINDOW_ID};
 use crate::ui::icon;
@@ -24,7 +25,6 @@ use crate::ui::layout::layout;
 use crate::ui::player::header::paint_header;
 use crate::ui::player::paint::paint_transport;
 use crate::ui::screen::Route;
-use crate::ui::theme;
 use crate::ui::view::render::paint_route;
 use crate::ui::widget::empty::paint_empty;
 
@@ -74,8 +74,9 @@ impl App for VideoApp {
             paint_route(fb, self);
             return;
         }
+        let ground = roles().bg.argb();
         for px in fb.pixels.iter_mut() {
-            *px = theme::BACKDROP;
+            *px = ground;
         }
         let l = layout(fb.width, fb.height);
         let (w, title) = (fb.width, self.title());

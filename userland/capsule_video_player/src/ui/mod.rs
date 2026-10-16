@@ -26,6 +26,5 @@ pub mod rows;
 pub mod screen;
 pub mod sprite;
 pub mod text;
-pub mod theme;
 pub mod view;
 pub mod widget;

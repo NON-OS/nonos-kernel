@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use super::region::{search, tool};
 use crate::ui::icon;
 use crate::ui::layout::Rect;
 use crate::ui::paint::{rrect, shape};
-use crate::ui::theme;
 use crate::ui::widget::field::paint_field;
 
 pub const VIEW_W: u32 = 78;
@@ -40,13 +40,14 @@ pub fn list_half(r: Rect) -> Rect {
 }
 
 fn paint_view(fb: &mut PaintBuffer, r: Rect, grid: bool) {
-    rrect::panel(fb, r.x, r.y, r.w, r.h, 8, theme::PANEL, theme::BORDER);
+    let theme = roles();
+    rrect::panel(fb, r.x, r.y, r.w, r.h, 8, theme.surface.argb(), theme.border.argb());
     let live = if grid { grid_half(r) } else { list_half(r) };
-    rrect::fill_round(fb, live.x + 2, r.y + 2, live.w - 4, r.h - 4, 6, theme::SELECT);
-    shape::vline(fb, r.x + HALF, r.y + 6, r.h.saturating_sub(12), theme::BORDER);
+    rrect::fill_round(fb, live.x + 2, r.y + 2, live.w - 4, r.h - 4, 6, theme.raised.argb());
+    shape::vline(fb, r.x + HALF, r.y + 6, r.h.saturating_sub(12), theme.border.argb());
     let gy = r.y + r.h.saturating_sub(GLYPH) / 2;
-    let on = theme::ACCENT;
-    let off = theme::TEXT_MUTED;
+    let on = theme.accent.argb();
+    let off = theme.muted.argb();
     let g = grid_half(r);
     let l = list_half(r);
     let gx = g.x + g.w.saturating_sub(GLYPH) / 2;

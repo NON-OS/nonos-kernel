@@ -15,32 +15,34 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::ui::fit::fit;
 use crate::ui::icon::ui::search;
 use crate::ui::layout::Rect;
 use crate::ui::paint::rrect;
 use crate::ui::text::{center_y, BODY_PX};
-use crate::ui::theme;
 
 const ICON: u32 = 16;
 const TEXT_X: u32 = 36;
 const CARET_W: u32 = 2;
 
 pub fn paint_field(fb: &mut PaintBuffer, r: Rect, placeholder: &str, value: &str, focus: bool) {
-    let border = if focus { theme::ACCENT_DIM } else { theme::BORDER };
-    rrect::panel(fb, r.x, r.y, r.w, r.h, 9, theme::PANEL, border);
-    search(fb, r.x + 12, r.y + r.h.saturating_sub(ICON) / 2, ICON, theme::TEXT_MUTED);
+    let theme = roles();
+    let border = if focus { theme.accent } else { theme.border }.argb();
+    rrect::panel(fb, r.x, r.y, r.w, r.h, 9, theme.surface.argb(), border);
+    search(fb, r.x + 12, r.y + r.h.saturating_sub(ICON) / 2, ICON, theme.muted.argb());
     let room = r.w.saturating_sub(TEXT_X + 14);
     let y = center_y(r.y, r.h);
     if value.is_empty() {
         let ghost = fit(placeholder, room, BODY_PX);
-        fb.text_ttf((r.x + TEXT_X) as i32, y, ghost, theme::TEXT_MUTED, BODY_PX);
+        fb.text_ttf((r.x + TEXT_X) as i32, y, ghost, theme.quiet.argb(), BODY_PX);
         return;
     }
     let shown = fit(value, room.saturating_sub(CARET_W + 2), BODY_PX);
-    let end = fb.text_ttf((r.x + TEXT_X) as i32, y, shown, theme::TEXT, BODY_PX);
+    let end = fb.text_ttf((r.x + TEXT_X) as i32, y, shown, theme.text.argb(), BODY_PX);
     if focus {
-        fb.fill_rect(end.max(0) as u32 + 2, r.y + 9, CARET_W, r.h.saturating_sub(18), theme::ACCENT);
+        let caret = theme.accent.argb();
+        fb.fill_rect(end.max(0) as u32 + 2, r.y + 9, CARET_W, r.h.saturating_sub(18), caret);
     }
 }

@@ -15,19 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::ui::fit::right_x;
 use crate::ui::text::{BODY_PX, TITLE_PX};
-use crate::ui::theme;
 
 pub fn paint_head(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, title: &str, action: &str) {
-    fb.text_ttf(x as i32, y as i32, title, theme::TEXT, TITLE_PX);
+    let r = roles();
+    fb.text_ttf(x as i32, y as i32, title, r.text.argb(), TITLE_PX);
     if !action.is_empty() {
         let ax = right_x(action, x + w, BODY_PX);
-        fb.text_ttf(ax, (y + 4) as i32, action, theme::ACCENT, BODY_PX);
+        fb.text_ttf(ax, (y + 4) as i32, action, r.accent.argb(), BODY_PX);
     }
 }
 
 pub fn paint_label(fb: &mut PaintBuffer, x: u32, y: u32, label: &str) {
-    fb.text_ttf(x as i32, y as i32, label, theme::LABEL, BODY_PX);
+    fb.text_ttf(x as i32, y as i32, label, roles().muted.argb(), BODY_PX);
 }

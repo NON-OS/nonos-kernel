@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::ui::fit::width;
 use crate::ui::text::{center_y, BODY_PX};
 use crate::ui::paint::rrect;
-use crate::ui::theme;
 
 pub const CHIP_H: u32 = 26;
 const PAD: u32 = 11;
@@ -37,7 +37,8 @@ pub fn paint_chip(fb: &mut PaintBuffer, x: u32, y: u32, label: &str, ink: u32, b
 }
 
 pub fn paint_tag(fb: &mut PaintBuffer, x: u32, y: u32, label: &str) -> u32 {
-    paint_chip(fb, x, y, label, theme::TEXT_DIM, theme::PANEL_ALT)
+    let r = roles();
+    paint_chip(fb, x, y, label, r.muted.argb(), r.raised.argb())
 }
 
 pub fn paint_row(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, labels: &[&str]) -> u32 {

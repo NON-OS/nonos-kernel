@@ -22,10 +22,6 @@ pub fn circle(fb: &mut PaintBuffer, cx: u32, cy: u32, r: u32, argb: u32) {
     rrect::fill_round(fb, cx.saturating_sub(r), cy.saturating_sub(r), d, d, r, argb);
 }
 
-pub fn hline(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, argb: u32) {
-    fb.fill_rect(x, y, w, 1, argb);
-}
-
 pub fn vline(fb: &mut PaintBuffer, x: u32, y: u32, h: u32, argb: u32) {
     fb.fill_rect(x, y, 1, h, argb);
 }

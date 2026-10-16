@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Rect as Area, Separator};
 
 use crate::ui::fit::width;
 use crate::ui::layout::Rect;
-use crate::ui::paint::shape;
 use crate::ui::text::{center_y, BODY_PX};
-use crate::ui::theme;
 
 pub const TABS_H: u32 = 42;
 const PAD: u32 = 16;
@@ -40,13 +40,14 @@ pub fn tab_hit(x: u32, y: u32, labels: &[&str], px: i32, py: i32) -> Option<usiz
 }
 
 pub fn paint_tabs(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, labels: &[&str], active: usize) {
-    shape::hline(fb, x, y + TABS_H, w, theme::BORDER);
+    let theme = roles();
+    Separator::new().draw(fb, Area { x, y: y + TABS_H, w, h: 1 });
     for (i, label) in labels.iter().enumerate() {
         let r = tab_rect(x, y, labels, i);
-        let ink = if i == active { theme::TEXT } else { theme::TEXT_MUTED };
+        let ink = if i == active { theme.text } else { theme.muted }.argb();
         fb.text_ttf((r.x + PAD) as i32, center_y(r.y, TABS_H), label, ink, BODY_PX);
         if i == active {
-            fb.fill_rect(r.x, y + TABS_H + 1 - RULE, r.w, RULE, theme::ACCENT);
+            fb.fill_rect(r.x, y + TABS_H + 1 - RULE, r.w, RULE, theme.accent.argb());
         }
     }
 }

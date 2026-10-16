@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::paint::PaintBuffer;
+use nonos_toolkit::theme::roles;
 
 use crate::app::browse::Browse;
 use crate::ui::format::{duration, resolution, size};
 use crate::ui::layout::Rect;
-use crate::ui::theme;
 use crate::ui::widget::card::{columns, paint_tile, tile_rect, TILE_H};
 use crate::ui::widget::scrollbar::{paint_scrollbar, track};
 use crate::ui::widget::table::{paint_cell, paint_head, paint_row_bg, row_rect, rows_visible, Column, HEAD_H};
@@ -60,8 +60,9 @@ pub fn paint_list(fb: &mut PaintBuffer, browse: &Browse, body: Rect) {
         let Some(item) = browse.get(index) else { break };
         let r = row_rect(rows, slot);
         paint_row_bg(fb, r, index == browse.sel);
-        let ink = if index == browse.sel { theme::TEXT } else { theme::TEXT_DIM };
-        paint_cell(fb, r, &COLUMNS, 0, item.title(), theme::TEXT);
+        let theme = roles();
+        let ink = if index == browse.sel { theme.text } else { theme.text_2 }.argb();
+        paint_cell(fb, r, &COLUMNS, 0, item.title(), theme.text.argb());
         paint_cell(fb, r, &COLUMNS, 1, &duration(item.duration_ms), ink);
         paint_cell(fb, r, &COLUMNS, 2, &resolution(item.width, item.height), ink);
         paint_cell(fb, r, &COLUMNS, 3, &size(item.size), ink);
