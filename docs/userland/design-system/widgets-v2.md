@@ -29,8 +29,9 @@ readability in every scheme and state, the same as version 1.
   the widget only draws it, placed inside `bounds` on whichever side of the anchor fits.
 - **Dialog:** the app keeps the focused button. Its buttons are `Button`s, so they press and
   focus like any other. The scrim is the `scrim` role, drawn with a blend.
-- **Table:** it draws only the rows it is given, so a long list passes the visible slice and
-  scrolls through `Scrolled`. A `Col` is a title and a width, fixed or a share of what is left
+- **Table:** it draws only the rows it is given, so a long list passes the visible slice with
+  `.first(k)`, the slice's index in the whole list, and scrolls by whole rows under a header
+  that stays put. Drawn through `Scrolled`, the whole table scrolls, header too. A `Col` is a title and a width, fixed or a share of what is left
   (`rect::share`). `Cell` says which row and column were hit, or which header, for sorting.
 - **Toast:** it draws the tones that `Pill` already has: `Plain`, `Accent`, `Ok`, `Warn`,
   `Danger`. The shell's Info, Warn and Error map to `Accent`, `Warn` and `Danger`.

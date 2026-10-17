@@ -66,6 +66,13 @@ pub const DIALOG_W: u32 = 440;
 /// Most lines a dialog's body takes. The last is cut with `…` when more
 /// would follow.
 pub const DIALOG_LINES: u32 = 5;
+/// Height of a table's header and of each of its rows.
+pub const TABLE_ROW_H: u32 = 32;
+/// Width a table's shared column is measured at for its preferred size.
+/// Drawn, it takes its share of what the fixed columns leave.
+pub const TABLE_COL_MIN: u32 = 80;
+/// Width of the chevron a sorted column's header shows its order with.
+pub const SORT_MARK: u32 = 8;
 /// Diameter of a pill's status dot.
 pub const DOT: u32 = 7;
 /// Width of a switch.

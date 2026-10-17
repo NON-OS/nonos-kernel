@@ -50,6 +50,10 @@
 
 ## Open
 
+- ❓ Units at the widget boundary. `widgets.md` says `size()` is logical, but `Menu` and `Table`
+  return drawing pixels; `Menu::width` takes drawing pixels and `Col::fixed` takes logical ones.
+  One rule is settled before phase 16.2.
+
 - ❓ Whether the compositor's half-size canvas for large panels
   (`capsule_desktop_shell/src/state/scale.rs`) should change once apps scale, or stay. This is
   measured on a boot.

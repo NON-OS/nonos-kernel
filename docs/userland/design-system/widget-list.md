@@ -43,6 +43,7 @@ The rest of [Widgets, version 2](widgets-v2.md) joins this table as each one lan
 | `Toast` | `(text)` | `.tone(Tone)`, `.action(&str)` | `bool`, the action | a `raised` panel up to 360 px with a tone bar, two lines of text and a `Plain` action `Button` |
 | `Menu` | `(&[Item])` | `.hovered(Option<usize>)`, `.pressed(Option<usize>)`, `.width(u32)` | `Option<usize>`, a live item | a `raised` panel of 32 px rows: label, muted shortcut, optional tick, separators; `place` opens it under an anchor and `next` moves past dead rows |
 | `Dialog` | `(title)` | `.body(&str)`, `.note(&str, Tone)`, `.buttons(&[(&str, Kind)])`, `.focus(usize)`, `.hovered`, `.pressed`, `.pointer(&Pointer, at)` | `Option<usize>`, a button | a scrim over `at` and a centred `surface` panel up to 440 px: title, body, a toned note, and real `Button`s right-aligned; `next_focus` for Tab |
+| `Table` | `(&[Col])` | `.rows(&[&[&str]])`, `.first(usize)`, `.sort(col, up)`, `.selected`, `.hovered`, `.pressed` | `Option<Cell>`, a header or a row and column | a `sunken` header with a sort chevron over `inset` and `surface` striped 32 px rows; cells cut with `…` to their column |
 
 ## Later
 
@@ -50,7 +51,6 @@ The rest of [Widgets, version 2](widgets-v2.md) joins this table as each one lan
 
 | Widget | Apps today | Why later |
 |---|---|---|
-| `Table` | 2 | Process Manager's 7 table files; wants a column model |
 
 Settings' `chevron.rs` becomes `Row::chevron()`, not a widget of its own.
 
