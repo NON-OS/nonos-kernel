@@ -28,7 +28,7 @@ impl Parts {
 }
 
 /// The pixels from `a` to `b` inclusive, one per step along the longer axis.
-fn along(a: (u32, u32), b: (u32, u32)) -> impl Iterator<Item = (u32, u32)> {
+pub(crate) fn along(a: (u32, u32), b: (u32, u32)) -> impl Iterator<Item = (u32, u32)> {
     let n = a.0.abs_diff(b.0).max(a.1.abs_diff(b.1)).max(1);
     (0..=n).map(move |i| (towards(a.0, b.0, i, n), towards(a.1, b.1, i, n)))
 }

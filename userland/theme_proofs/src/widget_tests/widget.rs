@@ -17,6 +17,7 @@
 //! One shape for every widget, so a proof is written once and run over all.
 
 use nonos_toolkit::widgets::IconButton;
+use nonos_toolkit::widgets::Menu;
 use nonos_toolkit::widgets::Toast;
 use nonos_toolkit::widgets::Tooltip;
 use nonos_toolkit::widgets::{
@@ -52,4 +53,4 @@ macro_rules! widget {
 
 widget!(Button<'_>, Card<'_>, Field<'_>, Label<'_>, NavItem<'_>, Pill<'_>, Progress, Row<'_>);
 widget!(SectionHeader<'_>, Slider, Switch, Tabs<'_>, Checkbox<'_>, Radio<'_>);
-widget!(IconButton<'_>, Tooltip<'_>, Toast<'_>);
+widget!(IconButton<'_>, Tooltip<'_>, Toast<'_>, Menu<'_>);

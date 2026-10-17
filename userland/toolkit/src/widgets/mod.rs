@@ -18,6 +18,7 @@
 //! a file in this folder and its two lines below. See
 //! docs/userland/design-system/widgets.md.
 
+mod beside;
 pub mod button;
 pub mod card;
 pub mod checkbox;
@@ -28,6 +29,7 @@ pub mod icon_button;
 pub mod ink;
 pub mod label;
 mod marked;
+pub mod menu;
 pub mod nav_item;
 pub mod pill;
 pub mod pointer;
@@ -57,6 +59,7 @@ pub use field::Field;
 pub use icon_button::IconButton;
 pub use ink::{Ink, Tone};
 pub use label::{Align, Label};
+pub use menu::{Item, Menu};
 pub use nav_item::NavItem;
 pub use pill::Pill;
 pub use pointer::Pointer;

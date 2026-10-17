@@ -57,6 +57,10 @@ pub const PILL_PAD: u32 = 11;
 pub const TOOLTIP_MAX_W: u32 = 320;
 /// Widest a toast's panel grows. A longer text wraps to a second line.
 pub const TOAST_W: u32 = 360;
+/// Height of a menu's row. A separator's row is `SPACE.sm` tall.
+pub const MENU_ROW_H: u32 = 32;
+/// Widest a menu grows. A longer label or shortcut is cut with `…` to fit.
+pub const MENU_MAX_W: u32 = 320;
 /// Diameter of a pill's status dot.
 pub const DOT: u32 = 7;
 /// Width of a switch.

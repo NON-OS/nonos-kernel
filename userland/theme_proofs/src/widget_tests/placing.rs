@@ -29,18 +29,26 @@ pub(crate) enum Side {
     Free,
 }
 
+/// How a placed widget must line up with its anchor across.
+#[derive(Clone, Copy, Debug)]
+pub(crate) enum Across {
+    Centre,
+    Left,
+}
+
 /// What is wrong with `p`, placed for a widget of `size` by `anchor` inside
 /// `bounds`, if anything. It must lie in `bounds`, at its size cut only to
-/// `bounds`, on `side`, and centred on the anchor across unless an edge of
-/// `bounds` holds it back.
+/// `bounds`, on `side`, and lined up with the anchor `across` unless an edge
+/// of `bounds` holds it back.
 pub(crate) fn fault(
     p: Rect,
     size: (u32, u32),
     anchor: Rect,
     bounds: Rect,
-    side: Side,
+    (side, across): (Side, Across),
 ) -> Option<&'static str> {
-    let mid = |r: Rect| i64::from(r.x) * 2 + i64::from(r.w);
+    let centre = i64::from(matches!(across, Across::Centre));
+    let mid = |r: Rect| i64::from(r.x) * 2 + i64::from(r.w) * centre;
     let (left, right) = (p.x == bounds.x, p.x + p.w == bounds.x + bounds.w);
     let held = (left && mid(anchor) < mid(p)) || (right && mid(anchor) > mid(p));
     let sided = match side {
@@ -52,7 +60,7 @@ pub(crate) fn fault(
         (within(p, bounds), "leaves its bounds"),
         ((p.w, p.h) == (size.0.min(bounds.w), size.1.min(bounds.h)), "is cut though it fits"),
         (sided, "opens on the wrong side"),
-        ((mid(p) - mid(anchor)).abs() <= 2 || held, "is off the anchor's centre"),
+        ((mid(p) - mid(anchor)).abs() <= 2 * centre || held, "is not lined up with the anchor"),
     ];
     checks.into_iter().find(|(ok, _)| !ok).map(|(_, why)| why)
 }

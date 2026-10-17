@@ -20,6 +20,7 @@ use super::Tooltip;
 use crate::decorations::Rect;
 use crate::design::scale::scale;
 use crate::design::size::SPACE;
+use crate::widgets::beside::beside;
 
 impl Tooltip<'_> {
     /// The rect to draw the tooltip at, its size clamped to `bounds`. It opens
@@ -29,25 +30,8 @@ impl Tooltip<'_> {
     /// Across, it is centred on the anchor, then shifted to stay in `bounds`.
     /// All three rects are in drawing pixels.
     pub fn place(&self, anchor: Rect, bounds: Rect) -> Rect {
-        let (w, h) = self.size();
-        let (w, h) = (w.min(bounds.w), h.min(bounds.h));
-        let gap = i64::from(scale().px(u32::from(SPACE.xs)));
-        let (ay, ah) = (i64::from(anchor.y), i64::from(anchor.h));
-        let above = ay - gap - i64::from(h);
-        let below = ay + ah + gap;
-        let (first, second) = if self.below { (below, above) } else { (above, below) };
-        let fits = |y: i64| y == fit(y, bounds.y, bounds.h, h);
-        let y = if fits(first) || !fits(second) { first } else { second };
-        let mid = i64::from(anchor.x) + i64::from(anchor.w / 2) - i64::from(w / 2);
-        let (x, y) = (fit(mid, bounds.x, bounds.w, w), fit(y, bounds.y, bounds.h, h));
-        let px = |v: i64| u32::try_from(v).unwrap_or(u32::MAX);
-        Rect { x: px(x), y: px(y), w, h }
+        let gap = scale().px(u32::from(SPACE.xs));
+        let mid = |w: u32| i64::from(anchor.x) + i64::from(anchor.w / 2) - i64::from(w / 2);
+        beside(anchor, bounds, self.size(), gap, self.below, mid)
     }
-}
-
-/// `v` moved into the span from `lo` that is `room` long, so that a length
-/// `len` from it stays in the span. `len` is at most `room`.
-fn fit(v: i64, lo: u32, room: u32, len: u32) -> i64 {
-    let lo = i64::from(lo);
-    v.clamp(lo, lo + i64::from(room) - i64::from(len))
 }

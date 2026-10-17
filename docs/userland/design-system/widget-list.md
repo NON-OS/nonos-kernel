@@ -41,6 +41,7 @@ The rest of [Widgets, version 2](widgets-v2.md) joins this table as each one lan
 | `IconButton` | `(IconId)` | `.kind(Kind)`, `.label(&str)` | `bool` | an 18 px icon in a 36 px square, or beside its label; the body is a `Button` |
 | `Tooltip` | `(text)` | `.below()` | none; `place(anchor, bounds)` gives its `Rect` | one line on `raised`, cut with `…` past 320 px, with a drop shadow inside its box |
 | `Toast` | `(text)` | `.tone(Tone)`, `.action(&str)` | `bool`, the action | a `raised` panel up to 360 px with a tone bar, two lines of text and a `Plain` action `Button` |
+| `Menu` | `(&[Item])` | `.hovered(Option<usize>)`, `.pressed(Option<usize>)`, `.width(u32)` | `Option<usize>`, a live item | a `raised` panel of 32 px rows: label, muted shortcut, optional tick, separators; `place` opens it under an anchor and `next` moves past dead rows |
 
 ## Later
 
@@ -48,7 +49,6 @@ The rest of [Widgets, version 2](widgets-v2.md) joins this table as each one lan
 
 | Widget | Apps today | Why later |
 |---|---|---|
-| `Menu` | 3 | needs a popup surface and outside-click handling |
 | `Table` | 2 | Process Manager's 7 table files; wants a column model |
 | `Dialog` | 1, the desktop shell | needs focus between buttons |
 

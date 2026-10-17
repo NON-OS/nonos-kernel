@@ -24,7 +24,7 @@ use crate::widgets::marked::{place, size, Marked};
 use crate::widgets::rect::share;
 
 /// The tick's start, corner and end, on a grid `CHECK` wide over the box.
-const PATH: [(u32, u32); 3] = [(5, 10), (8, 13), (15, 6)];
+pub(crate) const PATH: [(u32, u32); 3] = [(5, 10), (8, 13), (15, 6)];
 
 /// The placed parts of a checkbox, in drawing pixels. `tick` is the path
 /// in the box and `stroke` the radius of the dots it is drawn with.

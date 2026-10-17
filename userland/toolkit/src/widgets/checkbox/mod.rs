@@ -19,8 +19,8 @@
 //! means nothing to it.
 
 mod build;
-mod geometry;
+pub(crate) mod geometry;
 mod paint;
-mod tick;
+pub(crate) mod tick;
 
 pub use build::Checkbox;

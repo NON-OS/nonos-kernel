@@ -24,7 +24,7 @@ use nonos_toolkit::design::scale::{scale, set_scale};
 use nonos_toolkit::design::size::CONTROL_H;
 use nonos_toolkit::widgets::{Rect, Tooltip};
 
-use super::placing::{anchors, fault, Side};
+use super::placing::{anchors, fault, Across, Side};
 use super::serial::{serial, SCALES};
 use super::tooltip::TEXTS;
 
@@ -40,7 +40,8 @@ fn assert_placed(case: impl Fn((u32, u32)) -> (Rect, u32), side: impl Fn(usize, 
             let (bounds, a) = case(t.size());
             for (anchor, row) in anchors(bounds, a) {
                 let want = side(row, pref);
-                let why = fault(t.place(anchor, bounds), t.size(), anchor, bounds, want);
+                let how = (want, Across::Centre);
+                let why = fault(t.place(anchor, bounds), t.size(), anchor, bounds, how);
                 fails.extend(why.map(|y| format!("{t:?} {want:?} at {q}/4 by {anchor:?}: {y}")));
             }
         }
