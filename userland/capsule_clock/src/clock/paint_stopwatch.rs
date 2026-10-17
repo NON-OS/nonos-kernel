@@ -16,16 +16,20 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{Button, Kind, Rect};
+use nonos_toolkit::widgets::{Button, Kind};
 
+use crate::clock::controls::{keys, Target};
 use crate::clock::fmt;
+use crate::clock::hover::look;
 use crate::clock::state::State;
+use crate::clock::tabs::Tab;
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let e = state.sw.elapsed(state.now_ms);
     let buf = fmt::ms_clock(e);
     fb.text_scaled(40, 150, &buf, roles().text.argb(), 5);
     let label = if state.sw.running { "Stop" } else { "Start" };
-    Button::new(label).kind(Kind::Primary).draw(fb, Rect { x: 40, y: 300, w: 130, h: 46 });
-    Button::new("Reset").draw(fb, Rect { x: 190, y: 300, w: 130, h: 46 });
+    let k = keys(Tab::Stopwatch);
+    Button::new(label).kind(Kind::Primary).state(look(state, Target::Key(0))).draw(fb, k[0]);
+    Button::new("Reset").state(look(state, Target::Key(1))).draw(fb, k[1]);
 }

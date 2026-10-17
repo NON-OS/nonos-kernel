@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use nonos_toolkit::widgets::{Rect, Tabs};
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum Tab {
@@ -22,31 +23,26 @@ pub enum Tab {
     Set,
 }
 
-pub const BAR_H: i32 = 32;
-pub const BAR_TOP: i32 = 28;
+pub const BAR_H: u32 = 32;
+pub const BAR_TOP: u32 = 28;
+
+/// The tabs' names, in the order `all` gives them.
+pub const LABELS: [&str; 4] = ["Clock", "Stopwatch", "Timer", "Set"];
 
 pub fn all() -> [Tab; 4] {
     [Tab::Clock, Tab::Stopwatch, Tab::Timer, Tab::Set]
 }
 
-pub fn label(t: Tab) -> &'static [u8] {
-    match t {
-        Tab::Clock => b"Clock",
-        Tab::Stopwatch => b"Stopwatch",
-        Tab::Timer => b"Timer",
-        Tab::Set => b"Set",
-    }
+/// Where `t` sits in `all`.
+pub fn index(t: Tab) -> usize {
+    all().iter().position(|&a| a == t).unwrap_or(0)
 }
 
-pub fn hit(width: i32, x: i32, y: i32) -> Option<Tab> {
-    if y < BAR_TOP || y >= BAR_TOP + BAR_H {
-        return None;
-    }
-    let w = width / 4;
-    match x / w {
-        0 => Some(Tab::Clock),
-        1 => Some(Tab::Stopwatch),
-        2 => Some(Tab::Timer),
-        _ => Some(Tab::Set),
-    }
+/// The tab bar across a window `width` wide, and the strip drawn in it.
+pub fn bar(width: u32) -> Rect {
+    Rect { x: 0, y: BAR_TOP, w: width, h: BAR_H }
+}
+
+pub fn strip(t: Tab) -> Tabs<'static> {
+    Tabs::new(&LABELS, index(t))
 }

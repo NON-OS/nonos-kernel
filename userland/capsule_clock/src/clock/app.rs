@@ -38,10 +38,19 @@ impl App for Clock {
     }
 
     fn on_event(&mut self, ev: InputEvent) -> EventOutcome {
-        if ev.kind == InputKind::ButtonDown {
-            return crate::clock::event::on_click(&mut self.state, ev.x, ev.y);
+        if let Some(out) = crate::clock::hover::on_pointer(&mut self.state, &ev) {
+            return out;
         }
-        EventOutcome::Idle
+        if ev.kind != InputKind::ButtonDown {
+            return EventOutcome::Idle;
+        }
+        self.state.pointer.pressed(ev.x, ev.y);
+        let out = crate::clock::event::on_click(&mut self.state, ev.x, ev.y);
+        crate::clock::hover::rehover(&mut self.state);
+        if out == EventOutcome::Idle && self.state.hover.is_none() {
+            return EventOutcome::Idle;
+        }
+        EventOutcome::Repaint
     }
 
     fn paint(&mut self, fb: &mut PaintBuffer) {

@@ -19,40 +19,43 @@ use nonos_app_skeleton::EventOutcome;
 use nonos_libc::time::mk_time_adjust;
 
 use crate::clock::civil;
+use crate::clock::controls::{target_at, Target};
 use crate::clock::says::{adjust_outcome, NO_DATE};
 use crate::clock::state::State;
-use crate::clock::tabs::{self, Tab};
+use crate::clock::tabs::{all, Tab};
 
+/// A click on whatever `target_at` names there: a tab, or a button of the tab
+/// shown, by its place in `controls::keys`.
 pub fn on_click(state: &mut State, x: i32, y: i32) -> EventOutcome {
-    if let Some(t) = tabs::hit(state.win_w as i32, x, y) {
-        state.tab = t;
-        if t == Tab::Set {
-            state.load_edit();
+    let key = match target_at(state.tab, state.win_w, x, y) {
+        Some(Target::Tab(i)) => {
+            state.tab = all()[i];
+            if state.tab == Tab::Set {
+                state.load_edit();
+            }
+            return EventOutcome::Repaint;
         }
-        return EventOutcome::Repaint;
+        Some(Target::Key(k)) => k,
+        None => return EventOutcome::Idle,
+    };
+    match state.tab {
+        Tab::Stopwatch => stopwatch_key(state, key),
+        Tab::Timer => timer_key(state, key),
+        Tab::Set => settime_key(state, key),
+        Tab::Clock => EventOutcome::Idle,
     }
-    if state.tab == Tab::Stopwatch {
-        return stopwatch_click(state, x, y);
-    }
-    if state.tab == Tab::Timer {
-        return timer_click(state, x, y);
-    }
-    if state.tab == Tab::Set {
-        return settime_click(state, x, y);
-    }
-    EventOutcome::Idle
 }
 
-fn settime_click(state: &mut State, x: i32, y: i32) -> EventOutcome {
-    if in_rect(x, y, 40, 210, 68, 48) {
+fn settime_key(state: &mut State, key: usize) -> EventOutcome {
+    if key == 0 {
         state.edit_hour = (state.edit_hour + 23) % 24;
-    } else if in_rect(x, y, 118, 210, 68, 48) {
+    } else if key == 1 {
         state.edit_hour = (state.edit_hour + 1) % 24;
-    } else if in_rect(x, y, 202, 210, 68, 48) {
+    } else if key == 2 {
         state.edit_min = (state.edit_min + 59) % 60;
-    } else if in_rect(x, y, 280, 210, 68, 48) {
+    } else if key == 3 {
         state.edit_min = (state.edit_min + 1) % 60;
-    } else if in_rect(x, y, 40, 300, 280, 48) {
+    } else if key == 4 {
         // The new time is set on today's date, which only the system clock
         // knows; with no reading there is no date to send.
         if !state.clock_ok {
@@ -77,35 +80,23 @@ fn settime_click(state: &mut State, x: i32, y: i32) -> EventOutcome {
     EventOutcome::Repaint
 }
 
-fn timer_click(state: &mut State, x: i32, y: i32) -> EventOutcome {
-    if in_rect(x, y, 40, 250, 80, 40) {
-        state.timer.set(60_000);
-    } else if in_rect(x, y, 140, 250, 80, 40) {
-        state.timer.set(300_000);
-    } else if in_rect(x, y, 240, 250, 80, 40) {
-        state.timer.set(600_000);
-    } else if in_rect(x, y, 40, 320, 130, 46) {
-        state.timer.toggle(state.now_ms);
-    } else if in_rect(x, y, 190, 320, 130, 46) {
-        state.timer.reset();
-    } else {
-        return EventOutcome::Idle;
+fn timer_key(state: &mut State, key: usize) -> EventOutcome {
+    match key {
+        0 => state.timer.set(60_000),
+        1 => state.timer.set(300_000),
+        2 => state.timer.set(600_000),
+        3 => state.timer.toggle(state.now_ms),
+        4 => state.timer.reset(),
+        _ => return EventOutcome::Idle,
     }
     EventOutcome::Repaint
 }
 
-fn stopwatch_click(state: &mut State, x: i32, y: i32) -> EventOutcome {
-    if in_rect(x, y, 40, 300, 130, 46) {
-        state.sw.toggle(state.now_ms);
-        return EventOutcome::Repaint;
+fn stopwatch_key(state: &mut State, key: usize) -> EventOutcome {
+    match key {
+        0 => state.sw.toggle(state.now_ms),
+        1 => state.sw.reset(),
+        _ => return EventOutcome::Idle,
     }
-    if in_rect(x, y, 190, 300, 130, 46) {
-        state.sw.reset();
-        return EventOutcome::Repaint;
-    }
-    EventOutcome::Idle
-}
-
-fn in_rect(x: i32, y: i32, rx: i32, ry: i32, w: i32, h: i32) -> bool {
-    x >= rx && x < rx + w && y >= ry && y < ry + h
+    EventOutcome::Repaint
 }

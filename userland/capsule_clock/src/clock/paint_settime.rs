@@ -16,25 +16,24 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{Button, Kind, Rect};
+use nonos_toolkit::widgets::{Button, Kind};
 
+use crate::clock::controls::{keys, Target};
 use crate::clock::fmt;
+use crate::clock::hover::look;
 use crate::clock::says::DONE;
 use crate::clock::state::State;
+use crate::clock::tabs::Tab;
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let buf = fmt::hm(state.edit_hour, state.edit_min);
     let r = roles();
     fb.text_scaled(96, 100, &buf, r.text.argb(), 6);
-    adj(fb, 40, "H-");
-    adj(fb, 118, "H+");
-    adj(fb, 202, "M-");
-    adj(fb, 280, "M+");
-    Button::new("Apply").kind(Kind::Primary).draw(fb, Rect { x: 40, y: 300, w: 280, h: 48 });
+    let k = keys(Tab::Set);
+    for (i, name) in ["H-", "H+", "M-", "M+", "Apply"].into_iter().enumerate() {
+        let kind = if i == 4 { Kind::Primary } else { Kind::Secondary };
+        Button::new(name).kind(kind).state(look(state, Target::Key(i))).draw(fb, k[i]);
+    }
     let ink = if state.set_note == DONE { r.text } else { r.danger };
     fb.text(40, 366, state.set_note, ink.argb());
-}
-
-fn adj(fb: &mut PaintBuffer, x: u32, label: &str) {
-    Button::new(label).draw(fb, Rect { x, y: 210, w: 68, h: 48 });
 }

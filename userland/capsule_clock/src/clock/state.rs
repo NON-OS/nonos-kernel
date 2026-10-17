@@ -16,8 +16,10 @@
 
 use nonos_libc::mk_uptime_ms;
 use nonos_libc::time::{mk_time_millis, RtcTime};
+use nonos_toolkit::widgets::Pointer;
 
 use crate::clock::civil;
+use crate::clock::controls::Target;
 use crate::clock::says::wall_ms;
 use crate::clock::stopwatch::Stopwatch;
 use crate::clock::tabs::Tab;
@@ -40,6 +42,9 @@ pub struct State {
     /// The width the window was last painted at. The tab bar spans it and
     /// its presses are read against it, full screen as at the opening size.
     pub win_w: u32,
+    /// The pointer over the window, and the control under it.
+    pub pointer: Pointer,
+    pub hover: Option<Target>,
 }
 
 impl State {
@@ -55,6 +60,8 @@ impl State {
             timer: Timer::default(),
             edit_hour: 0,
             edit_min: 0,
+            pointer: Pointer::new(),
+            hover: None,
         };
         s.refresh();
         s

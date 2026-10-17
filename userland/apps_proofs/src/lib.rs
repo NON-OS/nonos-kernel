@@ -91,6 +91,16 @@ pub mod clock_stopwatch;
 #[path = "../../capsule_clock/src/clock/timer.rs"]
 pub mod clock_timer;
 
+/// The clock's tabs and where its buttons sit, which painting, clicks and
+/// hover all read.
+#[path = "."]
+pub mod clock {
+    #[path = "../../capsule_clock/src/clock/controls.rs"]
+    pub mod controls;
+    #[path = "../../capsule_clock/src/clock/tabs.rs"]
+    pub mod tabs;
+}
+
 /// What the image viewer says when it has no image to show, and the largest
 /// file and image it takes in.
 #[path = "../../capsule_image_viewer/src/viewer/budget.rs"]
@@ -287,6 +297,8 @@ mod calc_keypad_tests;
 mod calc_tests;
 #[cfg(test)]
 mod calc_paste_tests;
+#[cfg(test)]
+mod clock_controls_tests;
 #[cfg(test)]
 mod clock_span_tests;
 #[cfg(test)]

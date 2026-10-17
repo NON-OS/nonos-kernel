@@ -17,10 +17,13 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::contrast::{at_least, BODY};
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{Button, Kind, Rect};
+use nonos_toolkit::widgets::{Button, Kind};
 
+use crate::clock::controls::{keys, Target};
 use crate::clock::fmt;
+use crate::clock::hover::look;
 use crate::clock::state::State;
+use crate::clock::tabs::Tab;
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let r = roles();
@@ -33,14 +36,10 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let rem = state.timer.remaining(state.now_ms);
     let buf = fmt::ms_ms(rem);
     fb.text_scaled(84, 150, &buf, ink, 6);
-    preset(fb, 40, "1m");
-    preset(fb, 140, "5m");
-    preset(fb, 240, "10m");
     let label = if state.timer.running { "Pause" } else { "Start" };
-    Button::new(label).kind(Kind::Primary).draw(fb, Rect { x: 40, y: 320, w: 130, h: 46 });
-    Button::new("Reset").draw(fb, Rect { x: 190, y: 320, w: 130, h: 46 });
-}
-
-fn preset(fb: &mut PaintBuffer, x: u32, label: &str) {
-    Button::new(label).draw(fb, Rect { x, y: 250, w: 80, h: 40 });
+    let k = keys(Tab::Timer);
+    for (i, name) in ["1m", "5m", "10m", label, "Reset"].into_iter().enumerate() {
+        let kind = if i == 3 { Kind::Primary } else { Kind::Secondary };
+        Button::new(name).kind(kind).state(look(state, Target::Key(i))).draw(fb, k[i]);
+    }
 }

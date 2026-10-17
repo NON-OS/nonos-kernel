@@ -30,7 +30,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
         Tab::Timer => paint_timer::paint(state, fb),
         Tab::Set => paint_settime::paint(state, fb),
     }
-    paint_tabbar::paint(state.tab, fb, fb.width);
+    paint_tabbar::paint(state, fb);
 }
 
 fn paint_clock(state: &State, fb: &mut PaintBuffer) {
