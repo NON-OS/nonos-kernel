@@ -25,16 +25,15 @@ use super::bytes::as_str;
 
 /// One search result at `at`, in content coordinates, through the toolkit
 /// row: the setting, the section that holds it and a chevron, since choosing
-/// it goes there. `selected` is the keyboard cursor.
+/// it goes there. `look` carries the keyboard cursor and the pointer.
 pub fn paint(
     fb: &mut PaintBuffer,
     field: Field,
     section: Section,
     scroll: u32,
     at: Rect,
-    selected: bool,
+    look: Look,
 ) {
-    let look = Look { focused: selected, hovered: selected, ..Look::default() };
     let line = Row::new(as_str(label_of(field))).value(nav(section)).value_ink(Ink::Muted);
     line.chevron().state(look).draw(&mut Scrolled::new(fb, scroll), at);
 }

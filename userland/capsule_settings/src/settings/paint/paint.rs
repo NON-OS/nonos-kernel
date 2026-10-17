@@ -23,7 +23,7 @@ use crate::settings::ui::{pane, results_pane, sidebar, status_bar};
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     fb.clear(roles().bg.argb());
-    sidebar::paint(fb, state.section, state.win_h);
+    sidebar::paint(fb, state);
     let pane_w = state.win_w.saturating_sub(SIDEBAR_W);
     let pane_h = view_h(state);
     if pane_w > 0 && pane_h > 0 {

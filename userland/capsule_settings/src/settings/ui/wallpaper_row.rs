@@ -21,14 +21,16 @@ use nonos_app_skeleton::PaintBuffer;
 use nonos_policy_proto::wallpaper_labels::WALLPAPER_LABELS;
 use nonos_policy_proto::wallpapers_kept::kept;
 use nonos_policy_proto::Field;
-use nonos_toolkit::widgets::{Rect, Row, Scrolled, State as Look, Switch};
+use nonos_toolkit::widgets::{Rect, Row, Scrolled, Switch};
 
 use crate::settings::state::{cached_value, FieldValue, State};
 
 use super::bytes::as_str;
 use super::control_geom::{right_edge, slider_x, switch_rect};
 use super::control_str::paint_plain;
+use super::hover_look::{look, pointed};
 use super::metrics::{SWITCH_H, SWITCH_W};
+use super::target::Target;
 
 /// The kept set as the panel last read it: every wallpaper until it has.
 /// The kept set as the store gave it; None when it was not read. Every
@@ -50,17 +52,12 @@ pub fn desktop(state: &State) -> Option<u8> {
 
 /// One wallpaper's row at `at`, in content coordinates, through the toolkit
 /// row; the switch or the word standing in for it goes in the control column
-/// the row leaves free. `selected` is the keyboard cursor.
-pub fn paint(
-    fb: &mut PaintBuffer,
-    state: &State,
-    index: u8,
-    scroll: u32,
-    at: Rect,
-    selected: bool,
-) {
+/// the row leaves free. `row` is its index among the section's editable
+/// rows, which the keyboard cursor and the pointer's target count by.
+pub fn paint(fb: &mut PaintBuffer, state: &State, index: u8, scroll: u32, at: Rect, row: usize) {
     let name = WALLPAPER_LABELS.get(index as usize).copied().unwrap_or(b"");
-    let look = Look { focused: selected, hovered: selected, ..Look::default() };
+    let cursor = state.cursor[state.section.index()] == row;
+    let look = look(state, |t| t.on_row(row), cursor);
     let room = right_edge(at.x, at.w) - slider_x(at.x, at.w);
     Row::new(as_str(name)).trailing(room).state(look).draw(&mut Scrolled::new(fb, scroll), at);
     let screen_y = at.y as i32 - scroll as i32;
@@ -74,6 +71,8 @@ pub fn paint(
     };
     let (x, y) = switch_rect(at.x, at.w, screen_y, at.h);
     if y >= 0 {
-        Switch::new(kept(set, index)).draw(fb, Rect { x, y: y as u32, w: SWITCH_W, h: SWITCH_H });
+        let switch =
+            Switch::new(kept(set, index)).state(pointed(state, |t| t == Target::Control(row)));
+        switch.draw(fb, Rect { x, y: y as u32, w: SWITCH_W, h: SWITCH_H });
     }
 }

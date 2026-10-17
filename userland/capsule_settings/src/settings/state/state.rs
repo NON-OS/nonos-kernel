@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Pointer;
+
 use crate::settings::schema::ALL_FIELDS;
 use crate::settings::section::{Section, SECTION_COUNT};
+use crate::settings::ui::target::Target;
 use crate::wifi::{DataPath, DriverStage, NetStatus, ScanNetwork, ScanStats, WifiInterface};
 
 use super::cache::FieldValue;
@@ -94,4 +97,8 @@ pub struct State {
     /// status bar and the control on the right of a widened window did nothing.
     pub win_w: u32,
     pub win_h: u32,
+    /// The pointer over the content, fed by every move, press and release.
+    pub pointer: Pointer,
+    /// What is under the pointer, so a move repaints only when it changes.
+    pub hover: Target,
 }

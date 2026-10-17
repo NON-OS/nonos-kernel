@@ -25,17 +25,24 @@ use crate::settings::state::{cached_value, FieldValue, State};
 use super::control_geom::{right_edge, slider_x, switch_rect};
 use super::control_str::{paint_bool_text, paint_choice, paint_number, paint_plain, paint_string};
 use super::control_value::percent;
+use super::hover_look::pointed;
 use super::metrics::{SLIDER_W, SWITCH_H, SWITCH_W};
+use super::target::Target;
 
+/// The control of the editable row `index`, in the room its row at `at`, in
+/// content coordinates, leaves free. A switch or slider draws the pointer's
+/// hover and press when the pointer is on the row's control column.
 pub fn paint(
     fb: &mut PaintBuffer,
     state: &State,
     field: Field,
-    card_x: u32,
-    card_w: u32,
-    screen_y: i32,
-    row_h: u32,
+    at: Rect,
+    scroll: u32,
+    index: usize,
 ) {
+    let (card_x, card_w, row_h) = (at.x, at.w, at.h);
+    let screen_y = at.y as i32 - scroll as i32;
+    let look = pointed(state, |t| t == Target::Control(index));
     let value = cached_value(state, field);
     let cy = screen_y + (row_h / 2) as i32;
     let right = right_edge(card_x, card_w);
@@ -45,7 +52,7 @@ pub fn paint(
             let (x, y) = switch_rect(card_x, card_w, screen_y, row_h);
             if y >= 0 {
                 let at = Rect { x, y: y as u32, w: SWITCH_W, h: SWITCH_H };
-                Switch::new(matches!(value, FieldValue::Bool(true))).draw(fb, at);
+                Switch::new(matches!(value, FieldValue::Bool(true))).state(look).draw(fb, at);
             }
         }
         KIND_U8 if enum_table(field).is_some() => {
@@ -53,7 +60,7 @@ pub fn paint(
         }
         KIND_U8 => {
             let sx = slider_x(card_x, card_w);
-            let slider = Slider::new(percent(field, value), 100);
+            let slider = Slider::new(percent(field, value), 100).state(look);
             let h = slider.size().1;
             let top = cy - (h / 2) as i32;
             if top >= 0 {

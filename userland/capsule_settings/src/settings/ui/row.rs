@@ -16,7 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_policy_proto::label_of;
-use nonos_toolkit::widgets::{Ink, Rect, Row as ListRow, Scrolled, Separator, State as Look};
+use nonos_toolkit::widgets::{Ink, Rect, Row as ListRow, Scrolled, Separator};
 
 use crate::settings::schema::rows::{Row, Tone};
 use crate::settings::state::State;
@@ -25,31 +25,27 @@ use super::bytes::as_str;
 use super::control;
 use super::control_geom::{right_edge, slider_x};
 use super::field_note::note_of;
+use super::hover_look::look;
 use super::live_value::{note, resolve};
 
 /// Draws a card's row at `at`, in content coordinates, through the toolkit
 /// row; a field's control then goes in the room the row leaves for it.
-/// `selected` is the keyboard cursor.
-pub fn paint(
-    fb: &mut PaintBuffer,
-    state: &State,
-    row: &Row,
-    scroll: u32,
-    at: Rect,
-    selected: bool,
-) {
-    let look = Look { focused: selected, hovered: selected, ..Look::default() };
+/// `index` is the row's among the section's editable rows: the keyboard
+/// cursor's row draws focused, and the pointer's draws hovered or pressed.
+pub fn paint(fb: &mut PaintBuffer, state: &State, row: &Row, scroll: u32, at: Rect, index: usize) {
     match row {
         Row::Field(f) => {
+            let cursor = state.cursor[state.section.index()] == index;
+            let look = look(state, |t| t.on_row(index), cursor);
             let room = right_edge(at.x, at.w) - slider_x(at.x, at.w);
             let line = ListRow::new(as_str(label_of(*f))).trailing(room).state(look);
             let line = note_of(*f).map_or(line, |n| line.note(n));
             line.draw(&mut Scrolled::new(fb, scroll), at);
-            control::paint(fb, state, *f, at.x, at.w, at.y as i32 - scroll as i32, at.h);
+            control::paint(fb, state, *f, at, scroll, index);
         }
         Row::Live(label, live) => {
             let (value, tone) = resolve(state, *live);
-            let line = ListRow::new(label).value(value.as_str()).value_ink(ink(tone)).state(look);
+            let line = ListRow::new(label).value(value.as_str()).value_ink(ink(tone));
             let line = note(state, *live).map_or(line, |n| line.note(n));
             line.draw(&mut Scrolled::new(fb, scroll), at);
         }

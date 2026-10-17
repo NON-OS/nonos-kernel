@@ -16,15 +16,17 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{Rect, Row, Scrolled, State as Look};
+use nonos_toolkit::widgets::{Rect, Row, Scrolled};
 
 use crate::settings::state::wifi_pending::Work;
 use crate::settings::state::State;
 
 use super::bytes::as_str;
 use super::control_geom::right_edge;
+use super::hover_look::{look, pointed};
 use super::metrics::BODY_PX;
 use super::net_signal::draw_bars;
+use super::target::Target;
 use super::text;
 use super::valbuf::ValBuf;
 use crate::wifi::ScanStats;
@@ -48,13 +50,14 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, index: usize, scroll: u32, at:
             why.as_str()
         };
         let room = text::width(fb, "Scan", BODY_PX);
-        Row::new(label).trailing(room).draw(&mut Scrolled::new(fb, scroll), at);
+        let line = Row::new(label).trailing(room).state(pointed(state, |t| t == Target::Scan));
+        line.draw(&mut Scrolled::new(fb, scroll), at);
         text::right(fb, right, top, "Scan", r.muted.argb(), BODY_PX);
         return;
     }
     let i = index.min(state.wifi_network_count - 1);
     let selected = i == state.wifi_cursor;
-    let look = Look { focused: selected, hovered: selected, ..Look::default() };
+    let look = look(state, |t| t == Target::Network(i), selected);
     let net = state.wifi_networks[i];
     let joined = state.wifi.joined() == Some(net.ssid());
     let note = match (state.wifi.is_saved(net.ssid()), net.secured) {

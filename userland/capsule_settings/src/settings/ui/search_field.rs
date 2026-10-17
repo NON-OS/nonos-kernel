@@ -21,11 +21,13 @@ use nonos_toolkit::widgets::{Field, Rect, State as Look};
 use crate::settings::state::State;
 
 use super::bytes::as_str;
+use super::target::Target;
 
 pub const WIDTH: u32 = 236;
 
 /// The toolkit field over the whole accessory, drawing the magnifier inside
-/// its own body. The caret is at the end, where typing adds.
+/// its own body. The caret is at the end, where typing adds. It draws hovered
+/// while the pointer is over it; a field draws no press.
 pub fn paint(fb: &mut PaintBuffer, state: &State) {
     let (w, h) = (fb.width, fb.height);
     let query = as_str(state.search.as_slice());
@@ -34,6 +36,6 @@ pub fn paint(fb: &mut PaintBuffer, state: &State) {
         .icon(IconId::SettingsSearch)
         .placeholder("Search settings")
         .caret(focused.then_some(query.len()))
-        .state(Look { focused, ..Look::default() })
+        .state(Look { focused, hovered: state.hover == Target::Search, ..Look::default() })
         .draw(fb, Rect { x: 0, y: 0, w, h });
 }

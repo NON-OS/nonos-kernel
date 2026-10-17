@@ -36,32 +36,31 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, scroll: u32, view_w: u32, view
     let card_x = PANE_PAD_X;
     let card_w = view_w.saturating_sub(PANE_PAD_X * 2);
     let blocks = blocks_for(state.section);
-    let cursor = state.cursor[state.section.index()];
     let mut field_index = 0usize;
     walk(state, |y, h, item| {
         let sy = y as i32 - scroll as i32;
         let offscreen = sy >= view_h as i32 || sy + h as i32 <= 0;
         if let Item::Row(bi, ri) = item {
             let r = &blocks[bi].rows[ri];
-            let selected = matches!(r, Row::Field(_)) && field_index == cursor;
+            let index = field_index;
             if matches!(r, Row::Field(_)) {
                 field_index += 1;
             }
             if offscreen {
                 return;
             }
-            row::paint(fb, state, r, scroll, Rect { x: card_x, y, w: card_w, h }, selected);
+            row::paint(fb, state, r, scroll, Rect { x: card_x, y, w: card_w, h }, index);
             if ri + 1 < blocks[bi].rows.len() {
                 row::hairline(fb, scroll, card_x, card_w, y, h);
             }
             return;
         }
         if let Item::Wallpaper(i) = item {
-            let selected = field_index == cursor;
+            let index = field_index;
             field_index += 1;
             if !offscreen {
                 let at = Rect { x: card_x, y, w: card_w, h };
-                wallpaper_row::paint(fb, state, i, scroll, at, selected);
+                wallpaper_row::paint(fb, state, i, scroll, at, index);
                 row::hairline(fb, scroll, card_x, card_w, y, h);
             }
             return;

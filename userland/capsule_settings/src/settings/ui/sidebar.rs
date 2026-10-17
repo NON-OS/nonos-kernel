@@ -16,27 +16,33 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{NavItem, Rect};
+use nonos_toolkit::widgets::{NavItem, Rect, State as Look};
 
 use crate::settings::section::{Section, SECTIONS};
 use crate::settings::section_text::nav;
+use crate::settings::state::State;
 
+use super::hover_look::pointed;
 use super::icon_table::icon;
 use super::metrics::{NAV_H, SIDEBAR_W};
 use super::nav_geom::{row_w, row_x, row_y};
+use super::target::Target;
 
-pub fn paint(fb: &mut PaintBuffer, active: Section, h: u32) {
-    let r = roles();
+/// The sidebar down the window's left side, `state.win_h` tall; each entry
+/// draws the pointer's hover and press.
+pub fn paint(fb: &mut PaintBuffer, state: &State) {
+    let (r, h) = (roles(), state.win_h);
     fb.fill_rect(0, 0, SIDEBAR_W, h, r.sunken.argb());
     fb.fill_rect(SIDEBAR_W - 1, 0, 1, h, r.border.argb());
     for (i, section) in SECTIONS.iter().enumerate() {
-        paint_row(fb, *section, row_y(i), *section == active);
+        let look = pointed(state, |t| t == Target::Nav(*section));
+        paint_row(fb, *section, row_y(i), *section == state.section, look);
     }
 }
 
 /// One entry: the toolkit item over the whole row box, drawing its own icon
 /// and label inside it, so the active wash covers both.
-fn paint_row(fb: &mut PaintBuffer, section: Section, y: u32, active: bool) {
+fn paint_row(fb: &mut PaintBuffer, section: Section, y: u32, active: bool, look: Look) {
     let at = Rect { x: row_x(), y, w: row_w(), h: NAV_H };
-    NavItem::new(nav(section)).icon(icon(section)).active(active).draw(fb, at);
+    NavItem::new(nav(section)).icon(icon(section)).active(active).state(look).draw(fb, at);
 }

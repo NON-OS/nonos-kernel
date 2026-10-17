@@ -24,12 +24,14 @@ use nonos_toolkit::widgets::{text, Card, Rect, Scrolled};
 use crate::settings::state::State;
 
 use super::bytes::as_str;
+use super::hover_look::look;
 use super::metrics::{CARD_PAD_X, NOTE_PX, PANE_PAD_TOP, PANE_PAD_X, ROW_H};
 use super::results;
 use super::results_geom::{card_h, card_y, row_y};
 use super::results_head;
 use super::results_row;
 use super::row;
+use super::target::Target;
 
 pub fn paint(fb: &mut PaintBuffer, state: &State, scroll: u32, view_w: u32, view_h: u32) {
     let card_x = PANE_PAD_X;
@@ -53,7 +55,8 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, scroll: u32, view_w: u32, view
         }
         let Some((section, _, field)) = results::at(query, i) else { continue };
         let at = Rect { x: card_x, y: row_y(i), w: card_w, h: ROW_H };
-        results_row::paint(fb, field, section, scroll, at, i == state.search_cursor);
+        let look = look(state, |t| t == Target::Result(i), i == state.search_cursor);
+        results_row::paint(fb, field, section, scroll, at, look);
         if i + 1 < n {
             row::hairline(fb, scroll, card_x, card_w, row_y(i), ROW_H);
         }

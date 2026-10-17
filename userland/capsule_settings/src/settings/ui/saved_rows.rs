@@ -8,13 +8,15 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{Rect, Row, Scrolled, State as Look};
+use nonos_toolkit::widgets::{Rect, Row, Scrolled};
 
 use crate::settings::state::State;
 
 use super::bytes::as_str;
 use super::control_geom::right_edge;
+use super::hover_look::look;
 use super::metrics::BODY_PX;
+use super::target::Target;
 use super::text;
 
 /// One saved network at `at`, in content coordinates, through the toolkit
@@ -27,8 +29,8 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, index: usize, scroll: u32, at:
         return;
     }
     let i = index.min(w.saved_count - 1);
-    let selected = state.wifi_cursor == state.wifi_network_count + i;
-    let look = Look { focused: selected, hovered: selected, ..Look::default() };
+    let at_i = state.wifi_network_count + i;
+    let look = look(state, |t| t == Target::Network(at_i), state.wifi_cursor == at_i);
     let net = w.saved[i];
     let note = if net.secured { "Passphrase sealed" } else { "Open network" };
     let joined = w.joined() == Some(net.ssid());

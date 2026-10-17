@@ -27,6 +27,7 @@ pub mod on_event;
 pub mod on_event_browsing;
 pub mod on_event_editing;
 pub mod on_event_wifi;
+mod on_hover;
 pub mod on_pointer;
 pub mod on_search_key;
 pub mod on_search_pointer;

@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Pointer;
+
+use crate::settings::ui::target::Target;
 use crate::wifi::{NetStatus, ScanNetwork, ScanStats, WifiInterface};
 
 use super::cache::FieldValue;
@@ -61,5 +64,7 @@ pub fn new() -> State {
         audio_output: AudioOutput::Unasked,
         win_w: crate::settings::manifest::WIDTH,
         win_h: crate::settings::manifest::HEIGHT,
+        pointer: Pointer::new(),
+        hover: Target::None,
     }
 }

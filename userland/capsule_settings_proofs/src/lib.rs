@@ -70,6 +70,10 @@ pub mod qwen_tier;
 #[cfg(test)]
 mod handoff_tests;
 #[cfg(test)]
+mod hover_scroll_tests;
+#[cfg(test)]
+mod hover_tests;
+#[cfg(test)]
 mod hydrate_tests;
 #[cfg(test)]
 mod interface_tests;
