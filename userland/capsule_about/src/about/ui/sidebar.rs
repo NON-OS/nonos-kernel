@@ -15,44 +15,33 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::icons::draw;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::left;
+use nonos_toolkit::widgets::{NavItem, Rect, Separator};
 
 use crate::about::data::build::VERSION;
 use crate::about::data::product::NAME;
 use crate::about::format::trimmed;
-use crate::about::section::{Section, SECTIONS};
+use crate::about::section::SECTIONS;
+use crate::about::state::State;
 
-use super::metrics::{
-    BODY_PX, NAV_H, NAV_ICON, NAV_LABEL_GAP, NAV_PAD_X, NAV_RADIUS, SIDEBAR_W, SIDE_FOOT_H,
-    SIDE_FOOT_LINE, SIDE_FOOT_TOP,
-};
-use super::nav_geom::{row_w, row_x, row_y};
-use super::text;
+use super::hover::look;
+use super::metrics::{BODY_PX, NAV_PAD_X, SIDEBAR_W, SIDE_FOOT_H, SIDE_FOOT_LINE, SIDE_FOOT_TOP};
+use super::mono::{mono, valid};
+use super::nav_geom::{rect, row_w, row_x};
 
-pub fn paint(fb: &mut PaintBuffer, active: Section, h: u32) {
+/// The sidebar down the window's left side, `h` tall: a shared entry per
+/// section in the box `nav_geom` gives it, each drawing the pointer's hover.
+pub fn paint(fb: &mut PaintBuffer, state: &State, h: u32) {
     let r = roles();
     fb.fill_rect(0, 0, SIDEBAR_W, h, r.sunken.argb());
     fb.fill_rect(SIDEBAR_W - 1, 0, 1, h, r.border.argb());
     for (i, section) in SECTIONS.iter().enumerate() {
-        paint_row(fb, *section, row_y(i), *section == active);
+        let item = NavItem::new(valid(section.nav_label())).icon(section.icon());
+        let look = look(&state.pointer, state.hover, *section);
+        item.active(*section == state.section).state(look).draw(fb, rect(i));
     }
     paint_foot(fb, h);
-}
-
-fn paint_row(fb: &mut PaintBuffer, section: Section, y: u32, active: bool) {
-    let r = roles();
-    let x = row_x();
-    if active {
-        fb.fill_round(x, y, row_w(), NAV_H, NAV_RADIUS, r.accent_wash.argb());
-        fb.stroke_round(x, y, row_w(), NAV_H, NAV_RADIUS, 1, r.accent_edge.argb());
-    }
-    let fg = if active { r.accent_text.argb() } else { r.muted.argb() };
-    let icon_x = x + NAV_PAD_X;
-    let icon_y = y + (NAV_H - NAV_ICON) / 2;
-    draw(fb, section.icon(), icon_x, icon_y, NAV_ICON, fg);
-    let top = text::top_of(y as i32, NAV_H, BODY_PX);
-    text::line(fb, icon_x + NAV_ICON + NAV_LABEL_GAP, top, section.nav_label(), fg, BODY_PX);
 }
 
 // The footer mark is the window's provenance in two lines: which system this is
@@ -60,10 +49,10 @@ fn paint_row(fb: &mut PaintBuffer, section: Section, y: u32, active: bool) {
 fn paint_foot(fb: &mut PaintBuffer, h: u32) {
     let r = roles();
     let y = h.saturating_sub(SIDE_FOOT_H);
-    fb.fill_rect(row_x(), y, row_w(), 1, r.border.argb());
+    Separator::new().draw(fb, Rect { x: row_x(), y, w: row_w(), h: 1 });
     let x = row_x() + NAV_PAD_X;
-    text::line(fb, x, (y + SIDE_FOOT_TOP) as i32, NAME, r.accent.argb(), BODY_PX);
+    left(fb, x, (y + SIDE_FOOT_TOP) as i32, valid(NAME), r.accent, BODY_PX);
     let line = (y + SIDE_FOOT_TOP + SIDE_FOOT_LINE) as i32;
-    let advance = text::line(fb, x, line, b"v", r.muted.argb(), BODY_PX);
-    text::mono(fb, advance.max(0) as u32, line, trimmed(VERSION), r.muted.argb(), BODY_PX);
+    let advance = left(fb, x, line, "v", r.muted, BODY_PX);
+    mono(fb, advance.max(0) as u32, line, trimmed(VERSION), r.muted, BODY_PX);
 }

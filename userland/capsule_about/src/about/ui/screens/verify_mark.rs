@@ -42,7 +42,7 @@ pub(super) fn mark(fb: &mut PaintBuffer, x: u32, y: i32, v: Verdict) {
         return;
     }
     let cy = cy as u32;
-    let argb = tint(v);
+    let argb = tint(v).argb();
     match v {
         Verdict::Holds => tick(fb, x, cy, argb),
         Verdict::Broken => cross(fb, x, cy, argb),

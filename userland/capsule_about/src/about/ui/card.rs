@@ -15,57 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::theme::roles;
+use nonos_toolkit::design::size::CARD_HEAD_H;
+use nonos_toolkit::widgets::{Card, Rect, Scrolled};
 
-use super::metrics::{BODY_PX, CARD_HEAD_H, CARD_PAD, CARD_RADIUS};
-use super::text;
+use super::metrics::CARD_PAD;
+use super::mono::valid;
 
 // A titled card's first content row, and the height its frame costs on top of
 // whatever it holds. Every screen sizes its cards from these two, so a change to
 // the padding moves the layout and the scroll extent together.
-pub const CONTENT_TOP: u32 = CARD_PAD * 2 + CARD_HEAD_H;
+pub const CONTENT_TOP: u32 = CARD_HEAD_H;
 pub const OVERHEAD: u32 = CONTENT_TOP + CARD_PAD;
 
-// The one panel shape, in a signed coordinate space because a scrolled card's top
-// edge may already have passed the pane. What is gone is not drawn, so the
-// surviving body is square where it was sliced and rounded only on the edges that
-// are still real. The returned content top stays in i32 because the rows inside a
-// sliced card sit above the pane too.
+/// The shared card with no head, `h` tall from `y`. Returns the first
+/// content row, `CARD_PAD` inside its top.
 pub fn panel(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, h: u32) -> i32 {
-    let content = y + CARD_PAD as i32;
-    let bottom = y + h as i32;
-    if bottom <= 0 || y >= fb.height as i32 || w == 0 {
-        return content;
-    }
-    if y >= 0 {
-        let r = roles();
-        fb.fill_round(x, y as u32, w, h, CARD_RADIUS, r.surface.argb());
-        fb.stroke_round(x, y as u32, w, h, CARD_RADIUS, 1, r.border.argb());
-        return content;
-    }
-    cut_top(fb, x, (bottom as u32).min(fb.height), w);
-    content
-}
-
-// The sliced form. The foot is only rounded when the card's real bottom is inside
-// the pane; stroke_round would leave a hairline across the body where its own top
-// edge lands, so that one row is painted back out before the sides go down.
-fn cut_top(fb: &mut PaintBuffer, x: u32, vis: u32, w: u32) {
-    let theme = roles();
-    let (ground, body, edge) = (theme.bg.argb(), theme.surface.argb(), theme.border.argb());
-    fb.fill_rect(x, 0, w, vis, body);
-    let r = CARD_RADIUS;
-    let footed = vis > r * 2 && vis < fb.height;
-    let sides = if footed { vis - r * 2 } else { vis };
-    if footed {
-        let foot = vis - r * 2;
-        fb.fill_rect(x, foot, w, r * 2, ground);
-        fb.fill_round(x, foot, w, r * 2, r, body);
-        fb.stroke_round(x, foot, w, r * 2, r, 1, edge);
-        fb.fill_rect(x + 1, foot, w.saturating_sub(2), 1, body);
-    }
-    fb.fill_rect(x, 0, 1, sides, edge);
-    fb.fill_rect(x + w.saturating_sub(1), 0, 1, sides, edge);
+    place(fb, Card::new(), x, y, w, h);
+    y + CARD_PAD as i32
 }
 
 // The drawable width inside a card, which every screen needs and none should
@@ -74,17 +40,19 @@ pub fn inner(w: u32) -> u32 {
     w.saturating_sub(CARD_PAD * 2)
 }
 
-// A panel with a heading band and the hairline that closes it, in the same
-// sliced-safe space as the panel under it. The returned value is the first
-// content row, not the card top.
+/// The shared card with `title` in its head. Returns the first content row,
+/// under the head.
 pub fn titled(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, h: u32, title: &[u8]) -> i32 {
-    let r = roles();
-    let top = panel(fb, x, y, w, h);
-    let inner_w = inner(w);
-    let cut = text::fit(fb, title, BODY_PX, inner_w);
-    let head = text::top_of(top, CARD_HEAD_H, BODY_PX);
-    text::line(fb, x + CARD_PAD, head, cut, r.text.argb(), BODY_PX);
-    let rule_y = top + CARD_HEAD_H as i32;
-    text::rule(fb, x + CARD_PAD, rule_y, inner_w, r.border_soft.argb());
-    rule_y + CARD_PAD as i32
+    place(fb, Card::new().title(valid(title)), x, y, w, h);
+    y + CONTENT_TOP as i32
+}
+
+/// A card's top may have scrolled above the pane, and a `Rect` cannot start
+/// there, so such a card is drawn through `Scrolled`, which lifts it and cuts
+/// it at the pane's top.
+fn place(fb: &mut PaintBuffer, card: Card, x: u32, y: i32, w: u32, h: u32) {
+    match u32::try_from(y) {
+        Ok(y) => card.draw(fb, Rect { x, y, w, h }),
+        Err(_) => card.draw(&mut Scrolled::new(fb, y.unsigned_abs()), Rect { x, y: 0, w, h }),
+    }
 }

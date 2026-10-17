@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Rect;
+
 use crate::about::section::{Section, SECTIONS};
 
 use super::metrics::{NAV_GAP, NAV_H, NAV_PAD_X, NAV_TOP, SIDEBAR_W};
@@ -28,6 +30,11 @@ pub fn row_x() -> u32 {
 
 pub fn row_w() -> u32 {
     SIDEBAR_W - NAV_PAD_X
+}
+
+/// The box entry `index` is drawn in, inside the band `at` answers for it.
+pub fn rect(index: usize) -> Rect {
+    Rect { x: row_x(), y: row_y(index), w: row_w(), h: NAV_H }
 }
 
 // Which nav entry covers `y`, in window coordinates. The painter walks the same

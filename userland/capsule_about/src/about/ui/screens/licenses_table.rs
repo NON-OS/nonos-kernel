@@ -16,13 +16,15 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{centre_top, left, truncate};
+use nonos_toolkit::widgets::{Rect, Separator};
 
 use crate::about::data::third_party::COMPONENTS;
 
 use super::super::card::{self, titled};
-use super::super::kv::{fit_mono, ROW_H};
+use super::super::kv::ROW_H;
 use super::super::metrics::{BODY_PX, CARD_PAD, KV_GAP, NUM_PX};
-use super::super::text::{self, line, mono, rule, top_of};
+use super::super::mono::{mono, truncate_mono, valid};
 use super::licenses_cols::{band, columns};
 
 pub const HEAD_COMPONENT: &[u8] = b"COMPONENT";
@@ -34,15 +36,17 @@ pub const HEIGHT: u32 = card::OVERHEAD + ROW_H + HEAD_RULE_GAP + ROW_H * COMPONE
 
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
     let r = roles();
-    let (value, muted) = (r.text_2.argb(), r.muted.argb());
+    let (value, muted) = (r.text_2, r.muted);
     let top = titled(fb, 0, y, w, HEIGHT, b"Third-party components");
     let (role_x, license_x) = columns();
     let inner = card::inner(w);
-    let head = top_of(top, ROW_H, BODY_PX);
-    line(fb, CARD_PAD, head, HEAD_COMPONENT, muted, BODY_PX);
-    line(fb, role_x, head, HEAD_ROLE, muted, BODY_PX);
-    line(fb, license_x, head, HEAD_LICENSE, muted, BODY_PX);
-    rule(fb, CARD_PAD, top + (ROW_H + HEAD_RULE_GAP / 2) as i32, inner, r.border.argb());
+    let head = top + centre_top(0, ROW_H, BODY_PX);
+    left(fb, CARD_PAD, head, valid(HEAD_COMPONENT), muted, BODY_PX);
+    left(fb, role_x, head, valid(HEAD_ROLE), muted, BODY_PX);
+    left(fb, license_x, head, valid(HEAD_LICENSE), muted, BODY_PX);
+    if let Ok(y) = u32::try_from(top + (ROW_H + HEAD_RULE_GAP / 2) as i32) {
+        Separator::new().draw(fb, Rect { x: CARD_PAD, y, w: inner, h: 1 });
+    }
     let first = top + (ROW_H + HEAD_RULE_GAP) as i32;
     let name_w = role_x.saturating_sub(CARD_PAD + KV_GAP);
     let license_w = (CARD_PAD + inner).saturating_sub(license_x);
@@ -51,9 +55,11 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
         if i % 2 == 1 {
             band(fb, row_y, inner);
         }
-        let cell = top_of(row_y, ROW_H, BODY_PX);
-        line(fb, CARD_PAD, cell, text::fit(fb, c.name, BODY_PX, name_w), value, BODY_PX);
-        mono(fb, role_x, cell, fit_mono(fb, c.role, license_x - role_x - KV_GAP), muted, NUM_PX);
-        mono(fb, license_x, cell, fit_mono(fb, c.license, license_w), value, NUM_PX);
+        let cell = row_y + centre_top(0, ROW_H, BODY_PX);
+        left(fb, CARD_PAD, cell, &truncate(valid(c.name), name_w, BODY_PX), value, BODY_PX);
+        let role = truncate_mono(c.role, license_x - role_x - KV_GAP, NUM_PX);
+        mono(fb, role_x, cell, role.as_bytes(), muted, NUM_PX);
+        let license = truncate_mono(c.license, license_w, NUM_PX);
+        mono(fb, license_x, cell, license.as_bytes(), value, NUM_PX);
     }
 }

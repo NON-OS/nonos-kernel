@@ -24,13 +24,13 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{centre_top, left};
 
 use crate::about::data::verify::recorded;
 
 use super::super::card::{self, titled};
 use super::super::kv::ROW_H;
 use super::super::metrics::{BODY_PX, CARD_PAD, PAIR_H};
-use super::super::text::{line, top_of};
 
 pub(super) const CLAIMS: u32 = 4;
 pub(super) const HASH_GAP: u32 = 12;
@@ -47,17 +47,17 @@ pub(super) const CLAIM_TEXT: [&[u8]; CLAIMS as usize] = [
 ];
 
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
-    let muted = roles().muted.argb();
+    let muted = roles().muted;
     let inner = card::inner(w);
     let top = titled(fb, 0, y, w, HEIGHT, b"Recorded at boot");
-    let note = b"Measured by the bootloader. Reading it here does not re-check it.";
-    line(fb, CARD_PAD, top_of(top, ROW_H, BODY_PX), note, muted, BODY_PX);
+    let note = "Measured by the bootloader. Reading it here does not re-check it.";
+    left(fb, CARD_PAD, top + centre_top(0, ROW_H, BODY_PX), note, muted, BODY_PX);
     let first = top + ROW_H as i32;
     match recorded() {
         Some(r) => super::verify_boot_body::body(fb, first, inner, &r),
         None => {
-            let msg = b"the kernel returned no boot record";
-            line(fb, CARD_PAD, top_of(first, ROW_H, BODY_PX), msg, muted, BODY_PX);
+            let msg = "the kernel returned no boot record";
+            left(fb, CARD_PAD, first + centre_top(0, ROW_H, BODY_PX), msg, muted, BODY_PX);
         }
     }
 }

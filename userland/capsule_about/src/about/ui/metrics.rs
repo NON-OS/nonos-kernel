@@ -27,9 +27,6 @@ pub const NAV_TOP: u32 = 14;
 pub const NAV_H: u32 = 36;
 pub const NAV_GAP: u32 = 2;
 pub const NAV_PAD_X: u32 = 12;
-pub const NAV_RADIUS: u32 = 9;
-pub const NAV_ICON: u32 = 18;
-pub const NAV_LABEL_GAP: u32 = 11;
 pub const SIDE_FOOT_H: u32 = 64;
 pub const SIDE_FOOT_TOP: u32 = 12;
 pub const SIDE_FOOT_LINE: u32 = 24;
@@ -39,24 +36,17 @@ pub const PANE_PAD_TOP: u32 = 16;
 pub const HEAD_H: u32 = 46;
 pub const HEAD_META_GAP: u32 = 18;
 pub const STATUS_H: u32 = 26;
-pub const STATUS_PAD_X: u32 = 14;
-pub const STATUS_GROUP_GAP: u32 = 22;
 
-pub const CARD_RADIUS: u32 = 11;
-pub const CARD_PAD: u32 = 15;
-pub const CARD_HEAD_H: u32 = 32;
+pub const CARD_PAD: u32 = 16;
 pub const CARD_GAP: u32 = 14;
 
 pub const KV_ROW_H: u32 = 26;
 pub const KV_LABEL_W: u32 = 172;
 pub const KV_GAP: u32 = 12;
 
-pub const CHIP_H: u32 = 28;
 pub const CHIP_PAD_X: u32 = 11;
 pub const CHIP_GAP: u32 = 8;
 pub const CHIP_RADIUS: u32 = 8;
-pub const CHIP_DOT: u32 = 6;
-pub const CHIP_DOT_GAP: u32 = 8;
 
 pub const TILE_H: u32 = 168;
 pub const TILE_GAP: u32 = 14;

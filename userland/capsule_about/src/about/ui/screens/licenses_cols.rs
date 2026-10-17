@@ -16,12 +16,13 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::width;
 
 use crate::about::data::third_party::COMPONENTS;
 
 use super::super::kv::ROW_H;
 use super::super::metrics::{BODY_PX, CARD_PAD, KV_GAP, NUM_PX};
-use super::super::text;
+use super::super::mono::{valid, width_of_mono};
 use super::licenses_table::{HEAD_COMPONENT, HEAD_ROLE};
 
 // Both column origins come from the widest cell the column actually holds, header
@@ -29,11 +30,11 @@ use super::licenses_table::{HEAD_COMPONENT, HEAD_ROLE};
 // proportional and the role and licence cells are mono, so a glyph count or a
 // literal x would put the columns somewhere the text is not.
 pub fn columns() -> (u32, u32) {
-    let mut name_w = text::width_of(HEAD_COMPONENT, BODY_PX);
-    let mut role_w = text::width_of(HEAD_ROLE, BODY_PX);
+    let mut name_w = width(valid(HEAD_COMPONENT), BODY_PX);
+    let mut role_w = width(valid(HEAD_ROLE), BODY_PX);
     for c in COMPONENTS.iter() {
-        name_w = name_w.max(text::width_of(c.name, BODY_PX));
-        role_w = role_w.max(text::width_of_mono(c.role, NUM_PX));
+        name_w = name_w.max(width(valid(c.name), BODY_PX));
+        role_w = role_w.max(width_of_mono(c.role, NUM_PX));
     }
     let role_x = CARD_PAD + name_w + KV_GAP;
     (role_x, role_x + role_w + KV_GAP)

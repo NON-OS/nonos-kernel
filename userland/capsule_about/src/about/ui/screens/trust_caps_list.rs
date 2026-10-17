@@ -18,9 +18,9 @@ use crate::about::data::caps::ALL_CAPS;
 use crate::about::format::{hex_u64, u64_decimal};
 
 use super::super::card;
-use super::super::chip_wrap::wrap_h;
 use super::super::kv::ROW_H;
 use super::tile_text::push;
+use super::trust_pills;
 
 pub const CAP_SLOTS: usize = ALL_CAPS.len();
 pub const ROLE_GAP: u32 = 12;
@@ -67,9 +67,9 @@ pub fn height(inner: u32, held: Option<u64>) -> u32 {
     };
     let mut slots: [&'static [u8]; CAP_SLOTS] = [b""; CAP_SLOTS];
     let granted = names(&mut slots, mask, true);
-    let chips = wrap_h(&slots[..granted], inner);
+    let chips = trust_pills::height(&slots[..granted], inner);
     let denied = names(&mut slots, mask, false);
-    let denied_chips = wrap_h(&slots[..denied], inner);
+    let denied_chips = trust_pills::height(&slots[..denied], inner);
     let roles = granted as u32 * ROW_H;
     card::OVERHEAD + ROW_H + chips + ROLE_GAP + roles + DENIED_GAP + ROW_H + denied_chips
 }

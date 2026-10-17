@@ -16,11 +16,12 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::Rect;
 
 use crate::about::section::Section;
 use crate::about::state::State;
 
-use super::chrome::{self, Rect};
+use super::chrome;
 use super::screens;
 use super::sidebar;
 
@@ -38,7 +39,7 @@ pub fn paint(state: &mut State, fb: &mut PaintBuffer) {
     state.fb_h = h;
     let rect = chrome::pane_rect(w, h);
     state.record_extent(rect.h, screens::content_h(state, &rect));
-    sidebar::paint(fb, state.section, h);
+    sidebar::paint(fb, state, h);
     chrome::page_head(fb, state);
     section(state, fb, &rect);
     chrome::status_bar(fb, state);

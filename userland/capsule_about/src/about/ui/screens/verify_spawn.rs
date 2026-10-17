@@ -23,13 +23,14 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{centre_top, left};
 
 use crate::about::data::verify::Attested;
 
 use super::super::card::{self, titled};
 use super::super::kv::ROW_H;
 use super::super::metrics::{BODY_PX, CARD_PAD};
-use super::super::text::{line, top_of};
+use super::super::mono::valid;
 use super::verify_spawn_row::row;
 
 pub fn height(list: Option<&[Attested]>) -> u32 {
@@ -41,8 +42,8 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, list: Option<&[Attested]>) {
     let r = roles();
     let inner = card::inner(w);
     let top = titled(fb, 0, y, w, height(list), b"Proved at spawn");
-    let note = b"Running now. Each row says whether a STARK proof or a signature admitted it.";
-    line(fb, CARD_PAD, top_of(top, ROW_H, BODY_PX), note, r.muted.argb(), BODY_PX);
+    let note = "Running now. Each row says whether a STARK proof or a signature admitted it.";
+    left(fb, CARD_PAD, top + centre_top(0, ROW_H, BODY_PX), note, r.muted, BODY_PX);
     let first = top + ROW_H as i32;
     let msg: &[u8] = match list {
         Some(l) if !l.is_empty() => {
@@ -55,5 +56,5 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, list: Option<&[Attested]>) {
         /* A refusal is not an empty registry, and must not read as one. */
         None => b"the kernel did not list them: reading the registry needs AttestRead",
     };
-    line(fb, CARD_PAD, top_of(first, ROW_H, BODY_PX), msg, r.muted.argb(), BODY_PX);
+    left(fb, CARD_PAD, first + centre_top(0, ROW_H, BODY_PX), valid(msg), r.muted, BODY_PX);
 }

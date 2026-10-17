@@ -28,11 +28,12 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{centre_top, left, truncate};
 
 use super::super::card::{self, titled};
 use super::super::kv::ROW_H;
 use super::super::metrics::{BODY_PX, CARD_PAD};
-use super::super::text::{fit, line, top_of};
+use super::super::mono::valid;
 use super::prose;
 use super::verify_items::ITEMS;
 
@@ -52,16 +53,16 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
     let r = roles();
     let inner = card::inner(w);
     let top = titled(fb, 0, y, w, height(inner), b"Not checkable from here");
-    let note = b"Named rather than omitted, so this list is not a selected truth.";
-    line(fb, CARD_PAD, top_of(top, ROW_H, BODY_PX), note, r.muted.argb(), BODY_PX);
+    let note = "Named rather than omitted, so this list is not a selected truth.";
+    left(fb, CARD_PAD, top + centre_top(0, ROW_H, BODY_PX), note, r.muted, BODY_PX);
 
     let body = inner.saturating_sub(CARD_PAD);
     let mut row_y = top + ROW_H as i32;
     for (claim, why) in ITEMS {
-        let cut = fit(fb, claim, BODY_PX, inner);
-        line(fb, CARD_PAD, top_of(row_y, ROW_H, BODY_PX), cut, r.text_2.argb(), BODY_PX);
+        let cut = truncate(valid(claim), inner, BODY_PX);
+        left(fb, CARD_PAD, row_y + centre_top(0, ROW_H, BODY_PX), &cut, r.text_2, BODY_PX);
         let why_y = row_y + ROW_H as i32;
-        prose::paint(fb, CARD_PAD + CARD_PAD, why_y, body, why, r.muted.argb());
+        prose::paint(fb, CARD_PAD + CARD_PAD, why_y, body, why, r.muted);
         row_y = why_y + (prose::height(why, body) + ITEM_GAP) as i32;
     }
 }

@@ -18,6 +18,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{centre_top, left, truncate};
 
 use crate::about::data::proofs::session::{admitted_mark, boot_mark, headline, proven_mark};
 use crate::about::data::proofs::{words, Snapshot};
@@ -25,7 +26,7 @@ use crate::about::data::proofs::{words, Snapshot};
 use super::super::card::{self, titled};
 use super::super::kv::ROW_H;
 use super::super::metrics::{BODY_PX, CARD_PAD, TITLE_PX};
-use super::super::text::{fit, line, top_of};
+use super::super::mono::valid;
 use super::proofs_verdict::{of_headline, of_mark, of_route};
 use super::verify_mark::mark;
 use super::verify_row::{row, tint, MARK_W};
@@ -47,8 +48,8 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, s: &Snapshot) {
     let hv = of_headline(h);
     let head_y = top + ((HEAD_H - ROW_H) / 2) as i32;
     mark(fb, CARD_PAD, head_y, hv);
-    let text = fit(fb, words::headline(h), TITLE_PX, inner.saturating_sub(MARK_W));
-    line(fb, CARD_PAD + MARK_W, top_of(head_y, ROW_H, TITLE_PX), text, tint(hv), TITLE_PX);
+    let text = truncate(valid(words::headline(h)), inner.saturating_sub(MARK_W), TITLE_PX);
+    left(fb, CARD_PAD + MARK_W, head_y + centre_top(0, ROW_H, TITLE_PX), &text, tint(hv), TITLE_PX);
 
     let rows = top + HEAD_H as i32;
     let mut a = [0u8; 48];
@@ -73,7 +74,7 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, s: &Snapshot) {
     let note_y = rows + (ROW_H * CHECKS) as i32;
     let mut note = [0u8; 96];
     let n = census_note(s, &mut note);
-    line(fb, CARD_PAD, top_of(note_y, ROW_H, BODY_PX), &note[..n], r.muted.argb(), BODY_PX);
+    left(fb, CARD_PAD, note_y + centre_top(0, ROW_H, BODY_PX), valid(&note[..n]), r.muted, BODY_PX);
 }
 
 /* Counted, not tested: the processes outside the registry by design. */

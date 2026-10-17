@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use crate::about::state::State;
 
-use super::super::chrome::Rect;
 use super::super::metrics::CARD_GAP;
 use super::{licenses_banner, licenses_table, licenses_text};
 

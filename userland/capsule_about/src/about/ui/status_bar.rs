@@ -16,11 +16,11 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::{Ink, Rect, Row, Separator};
 
 use crate::about::state::State;
 
-use super::metrics::{BODY_PX, STATUS_GROUP_GAP, STATUS_H, STATUS_PAD_X};
-use super::text;
+use super::metrics::STATUS_H;
 
 // The strip under every screen. Left is what the window is licensed under,
 // right is how to leave it: the two facts that are true on all five sections
@@ -28,18 +28,9 @@ use super::text;
 pub fn paint(fb: &mut PaintBuffer, state: &State) {
     let r = roles();
     let y = state.fb_h.saturating_sub(STATUS_H);
+    let strip = Rect { x: 0, y, w: state.fb_w, h: STATUS_H };
     fb.fill_rect(0, y, state.fb_w, STATUS_H, r.sunken.argb());
-    fb.fill_rect(0, y, state.fb_w, 1, r.border.argb());
-    let top = text::top_of(y as i32, STATUS_H, BODY_PX);
-    let advance = text::line(fb, STATUS_PAD_X, top, b"License ", r.muted.argb(), BODY_PX);
-    text::line(fb, advance.max(0) as u32, top, b"AGPL-3.0", r.accent.argb(), BODY_PX);
-    let right = state.fb_w.saturating_sub(STATUS_PAD_X);
-    text::right(fb, right, top, b"Esc closes", r.muted.argb(), BODY_PX);
-    let hint = b"Tab cycles sections";
-    let hint_right = right
-        .saturating_sub(text::width(fb, b"Esc closes", BODY_PX))
-        .saturating_sub(STATUS_GROUP_GAP);
-    if hint_right > STATUS_PAD_X * 6 {
-        text::right(fb, hint_right, top, hint, r.muted.argb(), BODY_PX);
-    }
+    Separator::new().draw(fb, Rect { h: 1, ..strip });
+    let row = Row::new("License AGPL-3.0").value("Tab cycles sections    Esc closes");
+    row.value_ink(Ink::Muted).draw(fb, strip);
 }

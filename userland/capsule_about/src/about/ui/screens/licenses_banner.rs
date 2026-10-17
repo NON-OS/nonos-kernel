@@ -16,13 +16,14 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::left;
 
 use crate::about::data::license::{NAME, SPDX, URL, VERSION};
 
 use super::super::card;
 use super::super::kv::{kv, ROW_H};
 use super::super::metrics::{CARD_PAD, TITLE_PX};
-use super::super::text::line;
+use super::super::mono::valid;
 
 const NAME_H: u32 = 30;
 const NAME_GAP: u32 = 10;
@@ -33,7 +34,7 @@ pub const HEIGHT: u32 = CARD_PAD * 2 + NAME_H + NAME_GAP + ROW_H * 3;
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
     let r = roles();
     let top = card::panel(fb, 0, y, w, HEIGHT);
-    line(fb, CARD_PAD, top, NAME, r.text.argb(), TITLE_PX);
+    left(fb, CARD_PAD, top, valid(NAME), r.text, TITLE_PX);
     let rows: [(&[u8], &[u8], bool); 3] =
         [(b"Version", VERSION, false), (b"SPDX", SPDX, true), (b"Text", URL, false)];
     let first = top + (NAME_H + NAME_GAP) as i32;

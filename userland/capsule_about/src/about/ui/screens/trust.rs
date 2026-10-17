@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use crate::about::state::State;
 
 use super::super::card;
-use super::super::chrome::Rect;
 use super::super::metrics::CARD_GAP;
 use super::{trust_caps, trust_caps_list, trust_chain};
 

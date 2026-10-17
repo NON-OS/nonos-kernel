@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::theme::Opaque;
+use nonos_toolkit::widgets::text::left;
 
 use super::super::metrics::{BODY_PX, PAIR_LINE};
-use super::super::text::line;
+use super::super::mono::valid;
 use super::prose_wrap::split;
 
 // How tall the wrapped run will be, walked with the same splitter the painter
@@ -33,12 +35,12 @@ pub fn height(b: &[u8], w: u32) -> u32 {
     rows * PAIR_LINE
 }
 
-pub fn paint(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, b: &[u8], argb: u32) -> u32 {
+pub fn paint(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, b: &[u8], ink: Opaque) -> u32 {
     let mut rest = b;
     let mut rows = 0u32;
     while !rest.is_empty() {
         let (end, next) = split(rest, w);
-        line(fb, x, y + (rows * PAIR_LINE) as i32, &rest[..end], argb, BODY_PX);
+        left(fb, x, y + (rows * PAIR_LINE) as i32, valid(&rest[..end]), ink, BODY_PX);
         rows += 1;
         rest = &rest[next.max(1)..];
     }

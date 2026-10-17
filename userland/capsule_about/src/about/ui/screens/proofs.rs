@@ -26,15 +26,15 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{centre_top, left};
+use nonos_toolkit::widgets::Rect;
 
 use crate::about::data::proofs::Snapshot;
 use crate::about::state::State;
 
 use super::super::card;
-use super::super::chrome::Rect;
 use super::super::kv::ROW_H;
 use super::super::metrics::{BODY_PX, CARD_GAP, CARD_PAD};
-use super::super::text::{line, top_of};
 use super::{proofs_network, proofs_route, proofs_session};
 
 pub fn content_h(state: &State, _rect: &Rect) -> u32 {
@@ -71,6 +71,6 @@ fn paint_all(fb: &mut PaintBuffer, y: i32, w: u32, s: &Snapshot) {
 fn waiting(fb: &mut PaintBuffer, y: i32, w: u32) {
     let r = roles();
     let top = card::titled(fb, 0, y, w, card::OVERHEAD + ROW_H, b"This session");
-    let msg = b"reading the kernel and the route board";
-    line(fb, CARD_PAD, top_of(top, ROW_H, BODY_PX), msg, r.muted.argb(), BODY_PX);
+    let msg = "reading the kernel and the route board";
+    left(fb, CARD_PAD, top + centre_top(0, ROW_H, BODY_PX), msg, r.muted, BODY_PX);
 }

@@ -31,8 +31,12 @@ use super::on_shift_tab::on_shift_tab;
 use super::on_tab::on_tab;
 use crate::about::scroll_wheel::wheel_to;
 use crate::about::state::State;
+use crate::about::ui::hover::on_pointer;
 
 pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
+    if let Some(out) = on_pointer(&mut state.pointer, &mut state.hover, &event) {
+        return out;
+    }
     if event.kind == InputKind::ButtonDown {
         return on_pointer_button(state, event.x, event.y);
     }

@@ -16,18 +16,18 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{left, truncate, width};
+use nonos_toolkit::widgets::{Pill, Rect, Tone};
 
 use crate::about::data::admission::{self, Admission};
 use crate::about::data::{abi, build, product};
 use crate::about::format::trimmed;
 
 use super::super::card;
-use super::super::chip::chip;
 use super::super::metrics::{
-    BODY_PX, CARD_PAD, CHIP_H, HERO_H, HERO_META_TOP, HERO_SUB_TOP, HERO_TEXT_X, HERO_TITLE_TOP,
-    VALUE_PX,
+    BODY_PX, CARD_PAD, HERO_H, HERO_META_TOP, HERO_SUB_TOP, HERO_TEXT_X, HERO_TITLE_TOP, VALUE_PX,
 };
-use super::super::text::{self, line};
+use super::super::mono::valid;
 use super::overview_mark::mark;
 
 // The identity band: the mark, the product, and the four facts that name this
@@ -38,21 +38,21 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32, admission: Admission) {
     let r = roles();
     card::panel(fb, 0, y, w, HERO_H);
     mark(fb, y);
-    line(fb, HERO_TEXT_X, y + HERO_TITLE_TOP as i32, product::NAME, r.text.argb(), VALUE_PX);
+    left(fb, HERO_TEXT_X, y + HERO_TITLE_TOP as i32, valid(product::NAME), r.text, VALUE_PX);
     let sub = y + HERO_SUB_TOP as i32;
-    let cut = text::fit(fb, product::TAGLINE, BODY_PX, w.saturating_sub(HERO_TEXT_X + CARD_PAD));
-    line(fb, HERO_TEXT_X, sub, cut, r.text_2.argb(), BODY_PX);
+    let cut = truncate(valid(product::TAGLINE), w.saturating_sub(HERO_TEXT_X + CARD_PAD), BODY_PX);
+    left(fb, HERO_TEXT_X, sub, &cut, r.text_2, BODY_PX);
     meta(fb, y + HERO_META_TOP as i32);
     badge(fb, y, w, admission);
 }
 
 fn meta(fb: &mut PaintBuffer, y: i32) {
     let r = roles();
-    let mut x = line(fb, HERO_TEXT_X, y, trimmed(build::VERSION), r.text_2.argb(), BODY_PX);
+    let mut x = left(fb, HERO_TEXT_X, y, valid(trimmed(build::VERSION)), r.text_2, BODY_PX);
     for (value, accent) in [(build::GIT_SHA, false), (build::ARCH, false), (abi::NAME, true)] {
-        x = line(fb, x.max(0) as u32, y, b"   /   ", r.muted.argb(), BODY_PX);
-        let fg = if accent { r.accent.argb() } else { r.text_2.argb() };
-        x = line(fb, x.max(0) as u32, y, value, fg, BODY_PX);
+        x = left(fb, x.max(0) as u32, y, "   /   ", r.muted, BODY_PX);
+        let fg = if accent { r.accent } else { r.text_2 };
+        x = left(fb, x.max(0) as u32, y, valid(value), fg, BODY_PX);
     }
 }
 
@@ -60,12 +60,13 @@ fn badge(fb: &mut PaintBuffer, y: i32, w: u32, admission: Admission) {
     let r = roles();
     let (label, pass, sub) = admission::badge(admission);
     let top = y + HERO_TITLE_TOP as i32;
-    let bw = super::super::chip::width_of(label);
+    let pill = Pill::new(valid(label)).tone(if pass { Tone::Ok } else { Tone::Danger }).dot();
+    let (bw, bh) = pill.size();
     let x = w.saturating_sub(CARD_PAD + bw);
-    if top >= 0 && top + CHIP_H as i32 <= fb.height as i32 {
-        chip(fb, x, top as u32, label, pass);
+    if top >= 0 && top + bh as i32 <= fb.height as i32 {
+        pill.draw(fb, Rect { x, y: top as u32, w: bw, h: bh });
     }
-    let sw = text::width_of(sub, BODY_PX);
+    let sw = width(valid(sub), BODY_PX);
     let sx = w.saturating_sub(CARD_PAD + sw);
-    line(fb, sx, top + (CHIP_H + 10) as i32, sub, r.muted.argb(), BODY_PX);
+    left(fb, sx, top + (bh + 10) as i32, valid(sub), r.muted, BODY_PX);
 }

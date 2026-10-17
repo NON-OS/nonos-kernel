@@ -26,12 +26,12 @@
 //! claim; this one opens with the only claims the reader can watch being made.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use crate::about::data::verify::attested;
 use crate::about::state::State;
 
 use super::super::card;
-use super::super::chrome::Rect;
 use super::super::metrics::CARD_GAP;
 use super::{verify_boot, verify_doc, verify_live, verify_loader, verify_open, verify_spawn};
 

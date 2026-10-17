@@ -15,18 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod card;
-pub mod chip;
-pub mod chip_wrap;
 pub mod chrome;
 pub mod gauge;
 pub mod hit;
+pub mod hover;
 pub mod kv;
 pub mod metrics;
+pub mod mono;
 pub mod nav_geom;
 pub mod screens;
 pub mod sidebar;
 pub mod status_bar;
-pub mod text;
 
 mod paint;
 

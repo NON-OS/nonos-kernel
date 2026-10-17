@@ -18,12 +18,22 @@ use nonos_app_skeleton::EventOutcome;
 
 use crate::about::state::State;
 use crate::about::ui::hit;
+use crate::about::ui::hover::rehover;
 
 // The router owns no geometry of its own: it asks the same functions the frame
 // painted with, so a click can only ever select a section the rail drew.
+//
+// The pointer is told first, so the repaint a click asks for already draws
+// the press, and a press on an entry that selects nothing still repaints.
 pub fn on_pointer_button(state: &mut State, x: i32, y: i32) -> EventOutcome {
-    match hit::at(x, y) {
+    state.pointer.pressed(x, y);
+    let out = match hit::at(x, y) {
         Some(section) if state.select(section) => EventOutcome::Repaint,
         _ => EventOutcome::Idle,
+    };
+    let moved = rehover(&state.pointer, &mut state.hover);
+    if out == EventOutcome::Idle && !moved && state.hover.is_none() {
+        return EventOutcome::Idle;
     }
+    EventOutcome::Repaint
 }

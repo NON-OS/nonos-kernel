@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Pointer;
+
 use super::data::admission::Admission;
 use super::data::attest_doc::{request, Attestation};
 use super::data::own;
@@ -46,6 +48,9 @@ pub struct State {
     // rather than from what the build declared.
     pub held: Option<u64>,
     pub admission: Admission,
+    /// The pointer over the window, and the sidebar entry under it.
+    pub pointer: Pointer,
+    pub hover: Option<Section>,
 }
 
 impl State {
@@ -61,6 +66,8 @@ impl State {
             proofs: None,
             held: own::held_mask(),
             admission: own::admission(),
+            pointer: Pointer::new(),
+            hover: None,
         }
     }
     pub fn record_extent(&mut self, view_h: u32, content_h: u32) {

@@ -23,25 +23,26 @@
 //! the claim in words, and, on the right, the count that settled it.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::theme::roles;
+use nonos_toolkit::theme::{roles, Opaque};
+use nonos_toolkit::widgets::text::{centre_top, left, truncate};
 
 use crate::about::data::verify::Verdict;
 
 use super::super::kv::ROW_H;
 use super::super::metrics::{BODY_PX, NUM_PX};
-use super::super::text::{self, line, mono, top_of, width_of_mono};
+use super::super::mono::{mono, valid, width_of_mono};
 use super::verify_mark::mark;
 
 // The mark column. Wide enough for the glyph and the gap that separates it from
 // the claim, so a stack of rows starts its text on one edge.
 pub const MARK_W: u32 = 22;
 
-pub fn tint(v: Verdict) -> u32 {
+pub fn tint(v: Verdict) -> Opaque {
     let r = roles();
     match v {
-        Verdict::Holds => r.ok.argb(),
-        Verdict::Broken => r.danger.argb(),
-        Verdict::Unknown => r.muted.argb(),
+        Verdict::Holds => r.ok,
+        Verdict::Broken => r.danger,
+        Verdict::Unknown => r.muted,
     }
 }
 
@@ -50,14 +51,14 @@ pub fn tint(v: Verdict) -> u32 {
 /// hash or nothing at all.
 pub fn row(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, v: Verdict, claim: &[u8], ev: &[u8]) {
     let r = roles();
-    let top = top_of(y, ROW_H, BODY_PX);
+    let top = y + centre_top(0, ROW_H, BODY_PX);
     mark(fb, x, y, v);
 
     let ev_w = if ev.is_empty() { 0 } else { width_of_mono(ev, NUM_PX) };
     let text_x = x + MARK_W;
     let room = w.saturating_sub(MARK_W + ev_w + 12);
-    let cut = text::fit(fb, claim, BODY_PX, room);
-    line(fb, text_x, top, cut, r.text_2.argb(), BODY_PX);
+    let cut = truncate(valid(claim), room, BODY_PX);
+    left(fb, text_x, top, &cut, r.text_2, BODY_PX);
 
     if !ev.is_empty() {
         mono(fb, x + w.saturating_sub(ev_w), top, ev, tint(v), NUM_PX);

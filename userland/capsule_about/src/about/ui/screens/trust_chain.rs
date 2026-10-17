@@ -16,13 +16,13 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::left;
 
 use crate::about::data::trust;
 
 use super::super::card::{self, titled};
 use super::super::kv::{kv, ROW_H};
 use super::super::metrics::{BODY_PX, CARD_PAD, CHAIN_H, PAIR_LINE};
-use super::super::text::line;
 use super::trust_hops::nodes;
 use super::{chain, prose};
 
@@ -51,6 +51,6 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
         kv(fb, CARD_PAD, first + (i as u32 * ROW_H) as i32, inner, label, value, false);
     }
     let ev = first + (ROW_H * 3 + EVIDENCE_GAP) as i32;
-    line(fb, CARD_PAD, ev, b"Evidence", r.muted.argb(), BODY_PX);
-    prose::paint(fb, CARD_PAD, ev + PAIR_LINE as i32, inner, trust::STATUS, r.text_2.argb());
+    left(fb, CARD_PAD, ev, "Evidence", r.muted, BODY_PX);
+    prose::paint(fb, CARD_PAD, ev + PAIR_LINE as i32, inner, trust::STATUS, r.text_2);
 }

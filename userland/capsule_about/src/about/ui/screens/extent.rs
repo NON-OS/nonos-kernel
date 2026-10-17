@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::Rect;
+
 use crate::about::section::Section;
 use crate::about::state::State;
 
-use super::super::chrome::Rect;
 use super::{display, licenses, overview, proofs, system, trust, verify};
 
 // How tall the active section's content is. The frame asks before it paints so

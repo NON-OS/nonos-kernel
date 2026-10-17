@@ -18,13 +18,13 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{centre_top, left};
 
 use crate::about::data::verify::{live, Live};
 
 use super::super::card::{self, titled};
 use super::super::kv::ROW_H;
 use super::super::metrics::{BODY_PX, CARD_PAD};
-use super::super::text::{line, top_of};
 use super::verify_census::{census, CENSUS_ROWS};
 use super::verify_evidence::evidence;
 use super::verify_row::row;
@@ -46,8 +46,8 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
          * must not read as four quiet passes.
          */
         None => {
-            let msg = b"the kernel did not answer, so nothing below is claimed";
-            line(fb, CARD_PAD, top_of(top, ROW_H, BODY_PX), msg, r.muted.argb(), BODY_PX);
+            let msg = "the kernel did not answer, so nothing below is claimed";
+            left(fb, CARD_PAD, top + centre_top(0, ROW_H, BODY_PX), msg, r.muted, BODY_PX);
         }
     }
 }
@@ -68,7 +68,7 @@ fn body(fb: &mut PaintBuffer, top: i32, inner: u32, l: &Live) {
     }
 
     let census_y = top + (ROW_H * CHECKS + GROUP_GAP) as i32;
-    let head = b"Counted, not tested. Nothing here can be wrong.";
-    line(fb, CARD_PAD, top_of(census_y, ROW_H, BODY_PX), head, r.muted.argb(), BODY_PX);
+    let head = "Counted, not tested. Nothing here can be wrong.";
+    left(fb, CARD_PAD, census_y + centre_top(0, ROW_H, BODY_PX), head, r.muted, BODY_PX);
     census(fb, census_y + ROW_H as i32, inner, &l.census);
 }

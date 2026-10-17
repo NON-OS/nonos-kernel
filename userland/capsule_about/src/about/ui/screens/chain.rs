@@ -16,12 +16,13 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{centre_top, left, width};
 
 use super::super::metrics::{BODY_PX, CHAIN_H, CHAIN_LINK, CHIP_PAD_X, CHIP_RADIUS};
-use super::super::text::{self, line, top_of};
+use super::super::mono::valid;
 
 fn pill_w(label: &[u8]) -> u32 {
-    CHIP_PAD_X * 2 + text::width_of(label, BODY_PX)
+    CHIP_PAD_X * 2 + width(valid(label), BODY_PX)
 }
 
 // A left-to-right chain of pills joined by hairlines. The last node is the thing
@@ -32,12 +33,12 @@ pub fn paint(fb: &mut PaintBuffer, x: u32, y: i32, nodes: &[&[u8]]) {
     let last = nodes.len().saturating_sub(1);
     for (i, node) in nodes.iter().enumerate() {
         let w = pill_w(node);
-        let fg = if i == last { r.accent.argb() } else { r.text_2.argb() };
+        let fg = if i == last { r.accent } else { r.text_2 };
         if y >= 0 && y + CHAIN_H as i32 <= fb.height as i32 {
             fb.fill_round(cx, y as u32, w, CHAIN_H, CHIP_RADIUS, r.raised.argb());
             fb.stroke_round(cx, y as u32, w, CHAIN_H, CHIP_RADIUS, 1, r.border_strong.argb());
         }
-        line(fb, cx + CHIP_PAD_X, top_of(y, CHAIN_H, BODY_PX), node, fg, BODY_PX);
+        left(fb, cx + CHIP_PAD_X, y + centre_top(0, CHAIN_H, BODY_PX), valid(node), fg, BODY_PX);
         cx += w;
         if i < last {
             link(fb, cx, y);

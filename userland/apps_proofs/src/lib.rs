@@ -535,3 +535,28 @@ pub mod about_scroll {
 
 #[cfg(test)]
 mod about_wheel_tests;
+
+/// About's sidebar: where each entry is drawn, which entry a click or the
+/// pointer names, and the hover that repaints only on crossing to another.
+/// Mounted as About's own modules so the files' `crate::about::` and
+/// `super::` paths resolve.
+#[path = "."]
+pub mod about {
+    #[path = "../../capsule_about/src/about/section.rs"]
+    pub mod section;
+    #[path = "."]
+    pub mod ui {
+        pub use crate::about_scroll::ui::metrics;
+        #[path = "../../capsule_about/src/about/ui/hit.rs"]
+        pub mod hit;
+        #[path = "../../capsule_about/src/about/ui/hover.rs"]
+        pub mod hover;
+        #[path = "../../capsule_about/src/about/ui/nav_geom.rs"]
+        pub mod nav_geom;
+    }
+}
+
+#[cfg(test)]
+mod about_hover_tests;
+#[cfg(test)]
+mod about_nav_tests;

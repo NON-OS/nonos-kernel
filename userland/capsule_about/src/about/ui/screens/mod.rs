@@ -18,7 +18,6 @@ mod append;
 mod chain;
 mod prose;
 mod prose_wrap;
-mod runtime_meter;
 mod runtime_text;
 mod tile_text;
 
@@ -43,6 +42,7 @@ mod trust_caps;
 mod trust_caps_list;
 mod trust_chain;
 mod trust_hops;
+mod trust_pills;
 mod verify_boot;
 mod verify_boot_body;
 mod verify_census;

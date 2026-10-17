@@ -16,13 +16,15 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
-use nonos_toolkit::theme::roles;
+use nonos_toolkit::theme::{roles, Opaque};
+use nonos_toolkit::widgets::text::{centre, centre_top, left, truncate, width};
+use nonos_toolkit::widgets::Rect;
 
 use super::card;
 use super::metrics::{
     BODY_PX, CARD_PAD, TILE_H, TILE_RING_R, TILE_RING_T, TILE_RING_TOP, TILE_SUB_GAP, VALUE_PX,
 };
-use super::text;
+use super::mono::valid;
 
 pub const HEIGHT: u32 = TILE_H;
 
@@ -46,21 +48,21 @@ pub fn tile(
     let cy = y + TILE_RING_TOP + TILE_RING_R;
     fb.ring(cx, cy, TILE_RING_R, TILE_RING_T, r.border_strong.argb());
     fb.ring_arc(cx, cy, TILE_RING_R, TILE_RING_T, num, den.max(1), r.accent.argb());
-    let value_top = text::top_of((cy - TILE_RING_R) as i32, TILE_RING_R * 2, VALUE_PX);
-    let value_w = text::width(fb, value, VALUE_PX);
-    text::line(fb, cx.saturating_sub(value_w / 2), value_top, value, r.text.argb(), VALUE_PX);
+    let value_top = centre_top(cy - TILE_RING_R, TILE_RING_R * 2, VALUE_PX);
+    let value_w = width(valid(value), VALUE_PX);
+    left(fb, cx.saturating_sub(value_w / 2), value_top, valid(value), r.text, VALUE_PX);
     let inner = card::inner(w);
     let label_y = cy + TILE_RING_R + CARD_PAD;
-    label_line(fb, x, label_y, inner, label, r.text.argb());
+    label_line(fb, x, label_y, inner, label, r.text);
     let step = line_height(BODY_PX).max(1) as u32 + TILE_SUB_GAP;
-    label_line(fb, x, label_y + step, inner, sub, r.muted.argb());
+    label_line(fb, x, label_y + step, inner, sub, r.muted);
 }
 
 // Both lines under the ring are centred on the card, which means measuring the
 // cut string rather than the original: a truncated label centres on what is
 // actually drawn.
-fn label_line(fb: &mut PaintBuffer, x: u32, y: u32, inner: u32, bytes: &[u8], argb: u32) {
-    let cut = text::fit(fb, bytes, BODY_PX, inner);
-    let w = text::width(fb, cut, BODY_PX);
-    text::line(fb, x + CARD_PAD + inner.saturating_sub(w) / 2, y as i32, cut, argb, BODY_PX);
+fn label_line(fb: &mut PaintBuffer, x: u32, y: u32, inner: u32, bytes: &[u8], ink: Opaque) {
+    let cut = truncate(valid(bytes), inner, BODY_PX);
+    let area = Rect { x: x + CARD_PAD, y, w: inner, h: 0 };
+    centre(fb, area, y as i32, &cut, ink, BODY_PX);
 }

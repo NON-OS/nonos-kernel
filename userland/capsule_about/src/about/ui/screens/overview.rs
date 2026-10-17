@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use crate::about::state::State;
 
-use super::super::chrome::Rect;
 use super::super::gauge;
 use super::super::metrics::{CARD_GAP, HERO_H};
 use super::{overview_cards, overview_hero, overview_tiles};

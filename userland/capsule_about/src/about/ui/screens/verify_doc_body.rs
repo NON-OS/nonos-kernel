@@ -18,6 +18,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{centre_top, left};
 
 use crate::about::data::doc_parse::Doc;
 use crate::about::format::u64_decimal;
@@ -25,13 +26,12 @@ use crate::about::format_hex::hex_bytes;
 
 use super::super::kv::{kv, pair, ROW_H};
 use super::super::metrics::{BODY_PX, CARD_PAD, PAIR_H};
-use super::super::text::{line, top_of};
 use super::verify_doc_cover::counted;
 
 pub(super) fn body(fb: &mut PaintBuffer, top: i32, inner: u32, doc: &Doc) {
     let r = roles();
-    let sub = b"A TPM signed this root together with the challenge it was given.";
-    line(fb, CARD_PAD, top_of(top, ROW_H, BODY_PX), sub, r.muted.argb(), BODY_PX);
+    let sub = "A TPM signed this root together with the challenge it was given.";
+    left(fb, CARD_PAD, top + centre_top(0, ROW_H, BODY_PX), sub, r.muted, BODY_PX);
 
     /*
      * The root is the whole point of the document, so it gets the card's full

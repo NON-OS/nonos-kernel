@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::widgets::text::width;
+
 use super::super::metrics::BODY_PX;
-use super::super::text;
+use super::super::mono::valid;
 
 // Longest word-boundary prefix of `b` that measures within `w`, and where the
 // remainder starts. Splitting on a space keeps a wrapped sentence readable; a run
@@ -29,7 +31,7 @@ pub fn split(b: &[u8], w: u32) -> (usize, usize) {
             Some(p) => i + p,
             None => b.len(),
         };
-        if text::width_of(&b[..next], BODY_PX) > w {
+        if width(valid(&b[..next]), BODY_PX) > w {
             break;
         }
         end = next;
@@ -45,7 +47,7 @@ pub fn split(b: &[u8], w: u32) -> (usize, usize) {
 fn fallback(b: &[u8], w: u32) -> usize {
     let s = core::str::from_utf8(b).unwrap_or("");
     let mut end = s.len();
-    while end > 1 && text::width_of(&b[..end], BODY_PX) > w {
+    while end > 1 && width(valid(&b[..end]), BODY_PX) > w {
         end -= 1;
         while end > 1 && !s.is_char_boundary(end) {
             end -= 1;

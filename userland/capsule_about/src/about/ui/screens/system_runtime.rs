@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::{Progress, Rect};
 
 use crate::about::data::runtime::{sample, Runtime};
 use crate::about::format::u64_decimal;
@@ -22,7 +23,6 @@ use crate::about::format::u64_decimal;
 use super::super::card::{self, titled};
 use super::super::kv::{kv, ROW_H};
 use super::super::metrics::{CARD_PAD, METER_H};
-use super::runtime_meter::meter;
 use super::runtime_text::{loads, memory};
 
 pub const HEIGHT: u32 = card::OVERHEAD + ROW_H * 3 + METER_H + 12;
@@ -56,4 +56,18 @@ fn live(fb: &mut PaintBuffer, x: u32, top: i32, w: u32, r: &Runtime) {
         kv(fb, x + CARD_PAD, row_y, card::inner(w), LABELS[i], value, true);
     }
     meter(fb, x, top + (ROW_H * 3 + 8) as i32, card::inner(w), r);
+}
+
+/// The memory row drawn again as a shared bar, filled from the same pair the
+/// row printed, both scaled to fit the bar's counts. A total of zero draws no
+/// bar, and neither does a bar cut by the pane.
+fn meter(fb: &mut PaintBuffer, x: u32, y: i32, w: u32, r: &Runtime) {
+    let Ok(y) = u32::try_from(y) else { return };
+    if y + METER_H > fb.height || r.mem_total_kb == 0 {
+        return;
+    }
+    let k = (r.mem_total_kb >> 32) + 1;
+    let used = r.mem_used_kb.min(r.mem_total_kb);
+    let (used, total) = ((used / k) as u32, (r.mem_total_kb / k) as u32);
+    Progress::new(used, total).draw(fb, Rect { x: x + CARD_PAD, y, w, h: METER_H });
 }

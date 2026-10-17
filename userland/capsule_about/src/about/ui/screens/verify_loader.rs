@@ -22,6 +22,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::{centre_top, left};
 
 use crate::about::data::verify::{loader, Loader};
 use crate::about::format::u64_decimal;
@@ -30,7 +31,6 @@ use crate::about::format_hex::hex_bytes;
 use super::super::card::{self, titled};
 use super::super::kv::{pair, ROW_H};
 use super::super::metrics::{BODY_PX, CARD_PAD, PAIR_H};
-use super::super::text::{line, top_of};
 use super::append::put;
 use super::verify_boot::HASH_GAP;
 use super::verify_row::row;
@@ -38,11 +38,11 @@ use super::verify_row::row;
 pub const HEIGHT: u32 = card::OVERHEAD + ROW_H * 2 + HASH_GAP + PAIR_H * 2;
 
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
-    let muted = roles().muted.argb();
+    let muted = roles().muted;
     let inner = card::inner(w);
     let top = titled(fb, 0, y, w, HEIGHT, b"Checked by the kernel at boot");
-    let note = b"The kernel's check of its bootloader. Reading it here does not re-check it.";
-    line(fb, CARD_PAD, top_of(top, ROW_H, BODY_PX), note, muted, BODY_PX);
+    let note = "The kernel's check of its bootloader. Reading it here does not re-check it.";
+    left(fb, CARD_PAD, top + centre_top(0, ROW_H, BODY_PX), note, muted, BODY_PX);
     let l = loader();
     let mut ev = [0u8; 32];
     row(fb, CARD_PAD, top + ROW_H as i32, inner, l.verdict, l.claim, evidence(&l, &mut ev));

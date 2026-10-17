@@ -15,13 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::widgets::Rect;
 
 use crate::about::data::display::virtio_announced;
 use crate::about::data::present;
 use crate::about::state::State;
 
 use super::super::card::{self, titled};
-use super::super::chrome::Rect;
 use super::super::kv::{kv, ROW_H};
 use super::super::metrics::{CARD_GAP, CARD_PAD, CHAIN_H};
 use super::{chain, display_surface};

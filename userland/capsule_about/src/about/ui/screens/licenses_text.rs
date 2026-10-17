@@ -16,12 +16,12 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
+use nonos_toolkit::widgets::text::left;
 
 use crate::about::data::license::TEXT;
 
 use super::super::card::{self, titled};
 use super::super::metrics::{BODY_PX, CARD_PAD, LINE_STEP};
-use super::super::text::line;
 
 pub fn lines() -> usize {
     TEXT.lines().count()
@@ -42,6 +42,6 @@ pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
     let body = TEXT.lines().enumerate().skip(first as usize).take(count as usize);
     for (i, row) in body {
         let row_y = top + (i as u32 * LINE_STEP) as i32;
-        line(fb, CARD_PAD, row_y, row.as_bytes(), r.text_2.argb(), BODY_PX);
+        left(fb, CARD_PAD, row_y, row, r.text_2, BODY_PX);
     }
 }
