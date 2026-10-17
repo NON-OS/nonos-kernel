@@ -25,6 +25,7 @@ mod button_read;
 mod canvas;
 mod card;
 mod card_read;
+mod column;
 mod field;
 mod field_read;
 mod hide;

@@ -20,6 +20,7 @@
 
 pub mod button;
 pub mod card;
+pub mod column;
 pub mod draw;
 pub mod field;
 pub mod ink;
@@ -44,6 +45,7 @@ pub mod text;
 pub use crate::decorations::Rect;
 pub use button::{Button, Kind};
 pub use card::Card;
+pub use column::Column;
 pub use field::Field;
 pub use ink::{Ink, Tone};
 pub use label::{Align, Label};

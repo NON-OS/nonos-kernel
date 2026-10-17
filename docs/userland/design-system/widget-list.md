@@ -29,6 +29,14 @@ Manager's `Progress`. Sizes are from [Sizes](sizes.md). Every widget also takes
 `Tone` names a status: `Plain`, `Accent`, `Ok`, `Warn`, `Danger`. An app chooses the meaning,
 and the theme supplies the colour.
 
+## Version 2, built
+
+The rest of [Widgets, version 2](widgets-v2.md) joins this table as each one lands.
+
+| Widget | `new` | Builders | `hit` returns | Draws |
+|---|---|---|---|---|
+| `Column` | `(at)` | `.gap(u32)` | none | nothing; `next(h)` and `rest()` hand out `Rect`s down `at` |
+
 ## Later
 
 [Widgets, version 2](widgets-v2.md) specifies every one of these, and adds `Toast`.
@@ -41,7 +49,6 @@ and the theme supplies the colour.
 | `Dialog` | 1, the desktop shell | needs focus between buttons |
 | `Tooltip` | 1 to 2 | needs hover delay, so time |
 | `Checkbox`, `Radio` | 1, File manager's `list_check.rs` | no other app draws one yet |
-| `Column` | none | a one-column stack handing out `Rect`s, after Settings' `walk` |
 
 Settings' `chevron.rs` becomes `Row::chevron()`, not a widget of its own.
 
