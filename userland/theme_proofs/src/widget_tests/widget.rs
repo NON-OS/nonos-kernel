@@ -17,8 +17,8 @@
 //! One shape for every widget, so a proof is written once and run over all.
 
 use nonos_toolkit::widgets::{
-    Button, Card, Field, Label, NavItem, Pill, Progress, Rect, Row, SectionHeader, Slider, State,
-    Surface, Switch, Tabs,
+    Button, Card, Checkbox, Field, Label, NavItem, Pill, Progress, Radio, Rect, Row, SectionHeader,
+    Slider, State, Surface, Switch, Tabs,
 };
 
 use super::boxes::boxes;
@@ -48,4 +48,4 @@ macro_rules! widget {
 }
 
 widget!(Button<'_>, Card<'_>, Field<'_>, Label<'_>, NavItem<'_>, Pill<'_>, Progress, Row<'_>);
-widget!(SectionHeader<'_>, Slider, Switch, Tabs<'_>);
+widget!(SectionHeader<'_>, Slider, Switch, Tabs<'_>, Checkbox<'_>, Radio<'_>);

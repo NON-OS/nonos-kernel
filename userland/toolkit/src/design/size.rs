@@ -61,6 +61,15 @@ pub const SWITCH_W: u32 = 42;
 pub const SWITCH_H: u32 = 24;
 /// Gap between a switch's track and its knob.
 pub const KNOB_INSET: u32 = 2;
+/// Side of a checkbox's box and of a radio's ring.
+pub const CHECK: u32 = 20;
+/// The corner of a checkbox's box: a quarter of its side, so it reads as a
+/// square beside a radio's ring.
+pub const CHECK_RADIUS: u32 = 5;
+/// Stroke of a checkbox's tick, at a box `CHECK` wide.
+pub const TICK: u32 = 2;
+/// Diameter of a radio's dot, at a ring `CHECK` wide.
+pub const RADIO_DOT: u32 = 8;
 /// Preferred width of a slider.
 pub const SLIDER_W: u32 = 150;
 /// Height of a slider's track.

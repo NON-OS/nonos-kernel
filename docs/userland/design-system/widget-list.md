@@ -36,6 +36,8 @@ The rest of [Widgets, version 2](widgets-v2.md) joins this table as each one lan
 | Widget | `new` | Builders | `hit` returns | Draws |
 |---|---|---|---|---|
 | `Column` | `(at)` | `.gap(u32)` | none | nothing; `next(h)` and `rest()` hand out `Rect`s down `at` |
+| `Checkbox` | `(on)` | `.label(&str)` | `bool` | a 20 px box, a tick when on, its label right of it |
+| `Radio` | `(selected)` | `.label(&str)` | `bool` | a 20 px ring, a dot when selected, its label right of it |
 
 ## Later
 
@@ -48,7 +50,6 @@ The rest of [Widgets, version 2](widgets-v2.md) joins this table as each one lan
 | `Table` | 2 | Process Manager's 7 table files; wants a column model |
 | `Dialog` | 1, the desktop shell | needs focus between buttons |
 | `Tooltip` | 1 to 2 | needs hover delay, so time |
-| `Checkbox`, `Radio` | 1, File manager's `list_check.rs` | no other app draws one yet |
 
 Settings' `chevron.rs` becomes `Row::chevron()`, not a widget of its own.
 
