@@ -16,12 +16,15 @@ The toolkit gains `widgets::Pointer`: plain data the app keeps, one per window. 
 cannot see `InputEvent`, which lives in `app_skeleton`, so the app passes in the fields.
 
 ```rust
-pub struct Pointer { /* x, y, down, and where the press began */ }
+pub struct Pointer { /* where it is, where a held press began, and whether a finger */ }
 
 impl Pointer {
     pub fn moved(&mut self, x: i32, y: i32);
     pub fn pressed(&mut self, x: i32, y: i32);
+    pub fn touched(&mut self, x: i32, y: i32);
     pub fn released(&mut self);
+    pub fn left(&mut self);
+    pub fn position(&self) -> Option<(i32, i32)>;
     pub fn state(&self, hit: impl Fn(i32, i32) -> bool) -> State;
 }
 ```

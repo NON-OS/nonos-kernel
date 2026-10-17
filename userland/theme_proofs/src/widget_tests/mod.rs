@@ -35,6 +35,7 @@ mod mask;
 mod nav_item;
 mod pill;
 mod pill_read;
+mod pointer;
 mod progress;
 mod read;
 mod row;

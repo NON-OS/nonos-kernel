@@ -4,7 +4,7 @@
 
 | Step | Change | Files | Proof | Commit |
 |---|---|---|---|---|
-| 9.1 | `Pointer`, as [Interaction](../interaction.md) specifies | `toolkit/src/widgets/pointer/`, `widgets/mod.rs` | `theme_proofs/src/widget_tests/pointer.rs`: hover, a press begun and ended on one widget, a press dragged off, touch | `feat(toolkit): a Pointer apps feed, and the State it gives` |
+| 9.1 | `Pointer`, as [Interaction](../interaction.md) specifies | `toolkit/src/widgets/pointer.rs`, `widgets/mod.rs` | `theme_proofs/src/widget_tests/pointer.rs`: hover, a press begun and ended on one widget, a press dragged off, touch | `feat(toolkit): a Pointer apps feed, and the State it gives` |
 | 9.2 | Settings: hover and press on rows, switches, sliders, sidebar and search; the focus ring on its cursor | `capsule_settings/src/settings/ui/`, its event path | `capsule_settings_proofs`: a move inside one row asks for no repaint, and a move to the next asks for one | `feat(settings): rows and controls answer the pointer` |
 | 9.3 | App Store: the same for cards, tabs and buttons; fix the tab highlight 4 px narrower than its click area | `capsule_app_store/src/store/ui/` | its proofs, and a test that each tab's highlight equals its hit box | `feat(app_store): cards and tabs answer the pointer` |
 | 9.4 | Process Manager: the same for the sidebar and its controls | `capsule_process_manager/src/pm/ui/` | `apps_proofs` or its own crate | `feat(process_manager): controls answer the pointer` |
