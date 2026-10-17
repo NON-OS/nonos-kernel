@@ -39,6 +39,7 @@ The rest of [Widgets, version 2](widgets-v2.md) joins this table as each one lan
 | `Checkbox` | `(on)` | `.label(&str)` | `bool` | a 20 px box, a tick when on, its label right of it |
 | `Radio` | `(selected)` | `.label(&str)` | `bool` | a 20 px ring, a dot when selected, its label right of it |
 | `IconButton` | `(IconId)` | `.kind(Kind)`, `.label(&str)` | `bool` | an 18 px icon in a 36 px square, or beside its label; the body is a `Button` |
+| `Tooltip` | `(text)` | `.below()` | none; `place(anchor, bounds)` gives its `Rect` | one line on `raised`, cut with `…` past 320 px, with a drop shadow inside its box |
 
 ## Later
 
@@ -49,7 +50,6 @@ The rest of [Widgets, version 2](widgets-v2.md) joins this table as each one lan
 | `Menu` | 3 | needs a popup surface and outside-click handling |
 | `Table` | 2 | Process Manager's 7 table files; wants a column model |
 | `Dialog` | 1, the desktop shell | needs focus between buttons |
-| `Tooltip` | 1 to 2 | needs hover delay, so time |
 
 Settings' `chevron.rs` becomes `Row::chevron()`, not a widget of its own.
 

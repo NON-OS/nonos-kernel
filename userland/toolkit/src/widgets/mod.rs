@@ -45,6 +45,7 @@ pub mod surface;
 pub mod switch;
 pub mod tabs;
 pub mod text;
+pub mod tooltip;
 
 pub use crate::decorations::Rect;
 pub use button::{Button, Kind};
@@ -70,3 +71,4 @@ pub use state::State;
 pub use surface::Surface;
 pub use switch::Switch;
 pub use tabs::Tabs;
+pub use tooltip::Tooltip;
