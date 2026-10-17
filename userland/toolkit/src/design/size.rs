@@ -55,6 +55,8 @@ pub const PILL_H: u32 = 26;
 pub const PILL_PAD: u32 = 11;
 /// Widest a tooltip's box grows. A longer text is cut with `…` to fit.
 pub const TOOLTIP_MAX_W: u32 = 320;
+/// Widest a toast's panel grows. A longer text wraps to a second line.
+pub const TOAST_W: u32 = 360;
 /// Diameter of a pill's status dot.
 pub const DOT: u32 = 7;
 /// Width of a switch.

@@ -43,7 +43,7 @@ pub(crate) fn drawn<W: Widget>(w: W, at: Rect) -> Vec<(u32, u32)> {
 }
 
 /// Up to about 256 of the pixels `w` draws, spread evenly through them.
-fn sampled<W: Widget>(w: W, at: Rect) -> impl Iterator<Item = (u32, u32)> {
+pub(crate) fn sampled<W: Widget>(w: W, at: Rect) -> impl Iterator<Item = (u32, u32)> {
     let all = drawn(w, at);
     let step = all.len().div_ceil(256).max(1);
     all.into_iter().step_by(step)

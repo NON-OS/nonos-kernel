@@ -45,6 +45,7 @@ pub mod surface;
 pub mod switch;
 pub mod tabs;
 pub mod text;
+pub mod toast;
 pub mod tooltip;
 
 pub use crate::decorations::Rect;
@@ -71,4 +72,5 @@ pub use state::State;
 pub use surface::Surface;
 pub use switch::Switch;
 pub use tabs::Tabs;
+pub use toast::Toast;
 pub use tooltip::Tooltip;
