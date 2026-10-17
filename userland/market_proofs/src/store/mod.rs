@@ -47,3 +47,8 @@ pub mod refused;
 /* What the catalogue pane says when the market brought nothing back. */
 #[path = "../../../capsule_app_store/src/store/market/failure.rs"]
 pub mod failure;
+
+/* Where the pointer is and what a click there acts on, over a stand-in for
+ * the window's state. */
+pub mod state;
+pub mod ui;

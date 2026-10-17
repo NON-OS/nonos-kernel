@@ -40,7 +40,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, rows: 
         let Some(listing) = state.listings.get(index) else { break };
         let top = y + slot as u32 * (CARD_H + CARD_GAP);
         let fetch = state.fetch_of(listing);
-        card::paint(fb, listing, fetch, (x, top, w), state.scroll + slot == state.cursor);
+        card::paint(fb, listing, fetch, (x, top, w), (state, state.scroll + slot));
     }
 }
 

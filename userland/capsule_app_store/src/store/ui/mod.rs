@@ -25,10 +25,14 @@ mod frame;
 mod gates;
 pub mod geometry;
 mod hex;
+pub mod hover;
+mod hover_look;
 pub mod metrics;
 mod rows;
 mod standing;
 mod status;
+mod tab_strip;
+pub mod target;
 mod tier_path;
 mod wrap;
 

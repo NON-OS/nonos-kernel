@@ -27,21 +27,27 @@ use crate::store::model_weights::MODEL_WEIGHTS;
 use crate::status_wire::Status;
 use crate::store::progress::Progress;
 use crate::store::route_offer::progress_line;
+use crate::store::state::State;
 
 use super::bytes::as_str;
 use super::geometry::{action_rect, remove_rect};
+use super::hover_look::{look, pointed};
 use super::metrics::{CARD_H, CARD_PAD, NAME_PX, SMALL_PX, TILE, TILE_GAP};
+use super::target::Target;
 
+/// The card at `at` in the visible list. The keyboard cursor's card draws
+/// the focus ring, and the card and its buttons draw the pointer's hover and
+/// press.
 pub fn paint(
     fb: &mut PaintBuffer,
     l: &Listing,
     fetch: Option<Status>,
     (x, y, w): (u32, u32, u32),
-    selected: bool,
+    (state, at): (&State, usize),
 ) {
     let r = roles();
-    let look = Look { focused: selected, hovered: selected, ..Look::default() };
-    Card::new().state(look).draw(fb, Rect { x, y, w, h: CARD_H });
+    let card = look(state, |t| t.on_card(at), at == state.cursor);
+    Card::new().state(card).draw(fb, Rect { x, y, w, h: CARD_H });
 
     let tile_y = y + (CARD_H - TILE) / 2;
     fb.blend_rect(x + CARD_PAD, tile_y, TILE, TILE, tint(l.source));
@@ -63,16 +69,18 @@ pub fn paint(
         (None, None) => text::left(fb, text_x, sub, as_str(l.source.origin()), r.muted, SMALL_PX),
     };
 
-    action(fb, l, action_rect(x, y, w));
+    action(fb, l, action_rect(x, y, w), pointed(state, |t| t == Target::Action(at)));
     if l.progress == Progress::Installed {
         let (x, y, w, h) = remove_rect(x, y, w);
-        Button::new("Remove").kind(Kind::Danger).draw(fb, Rect { x, y, w, h });
+        let look = pointed(state, |t| t == Target::Remove(at));
+        Button::new("Remove").kind(Kind::Danger).state(look).draw(fb, Rect { x, y, w, h });
     }
 }
 
 /// The install action, filled rather than lettered where it is the offer:
-/// a coloured word is not obviously a control.
-fn action(fb: &mut PaintBuffer, l: &Listing, (x, y, w, h): (u32, u32, u32, u32)) {
+/// a coloured word is not obviously a control. `look` is the pointer's; a
+/// disabled action ignores it.
+fn action(fb: &mut PaintBuffer, l: &Listing, (x, y, w, h): (u32, u32, u32, u32), look: Look) {
     let (kind, disabled) = match l.progress {
         p if p.uninstalled() && l.ready => (Kind::Primary, false),
         Progress::Installed => (Kind::Primary, false),
@@ -83,7 +91,7 @@ fn action(fb: &mut PaintBuffer, l: &Listing, (x, y, w, h): (u32, u32, u32, u32))
             (Kind::Secondary, false)
         }
     };
-    let look = Look { disabled, ..Look::default() };
+    let look = Look { disabled, ..look };
     let button = Button::new(as_str(l.progress.button(l.ready))).kind(kind).state(look);
     button.draw(fb, Rect { x, y, w, h });
 }

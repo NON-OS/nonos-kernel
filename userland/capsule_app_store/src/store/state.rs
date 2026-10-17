@@ -20,7 +20,10 @@ pub use super::tab::{Tab, TABS};
 
 use alloc::vec::Vec;
 
+use nonos_toolkit::widgets::Pointer;
+
 use super::listing::Listing;
+use super::ui::target::Target;
 
 pub struct State {
     pub listings: Vec<Listing>,
@@ -54,4 +57,8 @@ pub struct State {
     /// tier's install, and when it may be asked again (`fetch_status`).
     pub fetch: Option<crate::status_wire::Status>,
     pub fetch_at_ms: i64,
+    /// The pointer over the content, fed by every move, press and release.
+    pub pointer: Pointer,
+    /// What is under the pointer, so a move repaints only when it changes.
+    pub hover: Target,
 }

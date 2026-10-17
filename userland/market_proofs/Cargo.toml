@@ -19,3 +19,8 @@ path = "src/lib.rs"
 # The encoder writes the well formed indexes the decode proofs damage.
 nonos_marketplace_abi = { path = "../marketplace_abi", features = ["canonical-encode"] }
 nonos_market_proto = { path = "../market_proto" }
+# The shared widgets the window's tab strip is, and the skeleton's
+# EventOutcome its hover answers with, built for the host without the
+# capsule runtime.
+nonos_toolkit = { path = "../toolkit", default-features = false }
+nonos_app_skeleton = { path = "../app_skeleton", default-features = false }

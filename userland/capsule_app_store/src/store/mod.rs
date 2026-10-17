@@ -22,6 +22,7 @@ mod app;
 mod event;
 mod event_actions;
 mod event_click;
+mod event_hover;
 mod event_keys;
 mod event_rows;
 mod event_search;

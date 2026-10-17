@@ -19,27 +19,15 @@
 use nonos_app_skeleton::EventOutcome;
 
 use super::state::{State, TABS};
-use super::ui::chrome::tab_rect;
-use super::ui::metrics::{HEAD_H, PAD_TOP, TAB_H};
+use super::ui::hover::target_at;
+use super::ui::target::Target;
 
-/// The tab strip first, then the list.
+/// The tab strip first, then the list, by the tests the hover names its
+/// target with, so a click acts on what the pointer lit.
 pub fn on_click(state: &mut State, x: i32, y: i32) -> EventOutcome {
-    if x < 0 || y < 0 {
-        return EventOutcome::Idle;
+    match target_at(state, x, y) {
+        Target::Tab(i) if state.set_tab(TABS[i]) => EventOutcome::Repaint,
+        Target::Tab(_) | Target::None => EventOutcome::Idle,
+        card => super::event_rows::on_list_click(state, card),
     }
-    let top = (PAD_TOP + HEAD_H) as i32;
-    if y < top || y >= top + TAB_H as i32 {
-        return super::event_rows::on_list_click(state, x, y);
-    }
-    match hit(x as u32) {
-        Some(i) if state.set_tab(TABS[i]) => EventOutcome::Repaint,
-        _ => EventOutcome::Idle,
-    }
-}
-
-fn hit(x: u32) -> Option<usize> {
-    (0..TABS.len()).find(|&i| {
-        let (left, w) = tab_rect(i);
-        x >= left && x < left + w
-    })
 }

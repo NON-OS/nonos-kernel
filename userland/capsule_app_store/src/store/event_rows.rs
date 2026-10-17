@@ -18,35 +18,24 @@
 
 use nonos_app_skeleton::EventOutcome;
 
-use super::progress::Progress;
 use super::state::State;
-use super::ui::geometry::{list_top, list_w, on_action, on_remove, row_top, slot_at};
-use super::ui::metrics::PAD_X;
+use super::ui::target::Target;
 
-pub fn on_list_click(state: &mut State, x: i32, y: i32) -> EventOutcome {
-    if y < list_top() as i32 || x < PAD_X as i32 {
-        return EventOutcome::Idle;
-    }
-    let width = list_w(state.fb_w);
-    if x >= (PAD_X + width) as i32 {
-        return EventOutcome::Idle;
-    }
-    let Some(slot) = slot_at(y, state.rows) else {
+/// A click on the card at `at` in the visible list, or on one of its
+/// buttons, as `target_at` named it.
+pub fn on_list_click(state: &mut State, card: Target) -> EventOutcome {
+    let (Target::Card(at) | Target::Action(at) | Target::Remove(at)) = card else {
         return EventOutcome::Idle;
     };
-    if state.scroll + slot >= state.visible().len() {
-        return EventOutcome::Idle;
-    }
-    let moved = state.select_slot(slot);
+    let moved = state.select_slot(at - state.scroll);
     // The button does what Enter does: it reads Open once installed, and
     // offers nothing where no NONOS disk can hold the model.
     // Only an installed card shows Remove, so only there is it a click.
-    let installed = state.current().is_some_and(|l| l.progress == Progress::Installed);
-    if installed && on_remove(x, y, PAD_X, row_top(slot), width) {
+    if card == Target::Remove(at) {
         state.asked = Some(super::install::remove(state));
         return EventOutcome::Repaint;
     }
-    if on_action(x, y, PAD_X, row_top(slot), width) {
+    if card == Target::Action(at) {
         state.asked = super::install_primary::primary(state);
         return EventOutcome::Repaint;
     }

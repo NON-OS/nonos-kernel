@@ -29,8 +29,6 @@ pub const PAD_X: u32 = 22;
 pub const PAD_TOP: u32 = 18;
 pub const HEAD_H: u32 = 44;
 pub const TAB_H: u32 = 32;
-pub const TAB_GAP: u32 = 6;
-pub const TAB_PAD_X: u32 = 14;
 /// Air between the tab strip and the first card.
 pub const TAB_TO_LIST: u32 = 10;
 

@@ -18,18 +18,23 @@
 
 use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind, KEY_ESC};
 
-use super::event_click::on_click;
+use super::event_hover::{on_hover, press, rehover};
 use super::event_keys::on_key;
 use super::state::State;
 
 pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
+    if let Some(out) = on_hover(state, &event) {
+        return out;
+    }
     if event.kind == InputKind::ButtonDown {
-        return on_click(state, event.x, event.y);
+        return press(state, event.x, event.y);
     }
     // A wheel travels the list and leaves the selection alone.
     if event.kind == InputKind::Wheel {
         let rows = -(event.delta_y.signum() as isize) * 3;
-        return match state.scroll_by(rows) {
+        let moved = state.scroll_by(rows);
+        rehover(state);
+        return match moved {
             true => EventOutcome::Repaint,
             false => EventOutcome::Idle,
         };
@@ -44,5 +49,7 @@ pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
     if event.code == KEY_ESC && !state.search.active {
         return EventOutcome::Close;
     }
-    on_key(state, event.code)
+    let out = on_key(state, event.code);
+    rehover(state);
+    out
 }

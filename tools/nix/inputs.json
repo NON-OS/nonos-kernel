@@ -3575,9 +3575,14 @@
   "signed": []
  },
  "userland/market_proofs": {
-  "exclude": [],
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
   "include": [
    ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
    "userland/capsule_app_store/src/store/fill_order.rs",
    "userland/capsule_app_store/src/store/listing.rs",
    "userland/capsule_app_store/src/store/market/failure.rs",
@@ -3586,6 +3591,13 @@
    "userland/capsule_app_store/src/store/refused.rs",
    "userland/capsule_app_store/src/store/search.rs",
    "userland/capsule_app_store/src/store/tab.rs",
+   "userland/capsule_app_store/src/store/ui/bytes.rs",
+   "userland/capsule_app_store/src/store/ui/geometry.rs",
+   "userland/capsule_app_store/src/store/ui/hover.rs",
+   "userland/capsule_app_store/src/store/ui/metrics.rs",
+   "userland/capsule_app_store/src/store/ui/tab_strip.rs",
+   "userland/capsule_app_store/src/store/ui/target.rs",
+   "userland/capsule_install/brand/src/scale_rule.rs",
    "userland/capsule_linux/src/linux/install/why.rs",
    "userland/capsule_market/src/install_ready/arch.rs",
    "userland/capsule_market/src/install_ready/checks.rs",
@@ -3597,9 +3609,13 @@
    "userland/capsule_market/src/server/handlers/get_release/write_lp_string.rs",
    "userland/capsule_market/src/server/handlers/install_ready/find_release.rs",
    "userland/capsule_terminal/src/command/builtin/market/wrap.rs",
+   "userland/libc",
    "userland/market_proofs",
    "userland/market_proto",
-   "userland/marketplace_abi"
+   "userland/marketplace_abi",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/toolkit"
   ],
   "md": [],
   "signed": []

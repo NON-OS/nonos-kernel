@@ -18,17 +18,17 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{text, Field, Rect, State as Look, Tabs};
+use nonos_toolkit::widgets::{text, Field, Rect, State as Look};
 
 use crate::store::search::Search;
 use crate::store::state::{State, TABS};
 
 use super::bytes::as_str;
 use super::counter::listed;
-use super::metrics::{
-    BODY_PX, HEAD_H, PAD_TOP, PAD_X, SEARCH_H, SEARCH_W, SMALL_PX, TAB_GAP, TAB_H, TAB_PAD_X,
-    TITLE_PX,
-};
+use super::hover_look::pointed;
+use super::metrics::{BODY_PX, HEAD_H, PAD_TOP, PAD_X, SEARCH_H, SEARCH_W, TITLE_PX};
+use super::tab_strip;
+use super::target::Target;
 
 pub fn head(fb: &mut PaintBuffer, state: &State) {
     let r = roles();
@@ -60,24 +60,9 @@ fn search(fb: &mut PaintBuffer, search: &Search, right: u32) -> u32 {
     SEARCH_W
 }
 
-/// Where each tab sits.
-pub fn tab_rect(index: usize) -> (u32, u32) {
-    let mut x = PAD_X;
-    for tab in TABS.iter().take(index) {
-        x += text::width(as_str(tab.label()), SMALL_PX) + TAB_PAD_X * 2 + TAB_GAP;
-    }
-    let w = text::width(as_str(TABS[index].label()), SMALL_PX) + TAB_PAD_X * 2;
-    (x, w)
-}
-
-/// Each tab is a strip of one, drawn into the box `tab_rect` gives it and a
-/// click is tested against, so the wash and the hit can never part.
+/// The source tabs, one strip across the set, with the tab under the pointer
+/// washed.
 pub fn tabs(fb: &mut PaintBuffer, state: &State) {
-    let y = PAD_TOP + HEAD_H;
-    for (i, tab) in TABS.iter().enumerate() {
-        let (x, w) = tab_rect(i);
-        let label = [as_str(tab.label())];
-        let on = if *tab == state.tab { 0 } else { label.len() };
-        Tabs::new(&label, on).draw(fb, Rect { x, y, w, h: TAB_H });
-    }
+    let hovered = (0..TABS.len()).find(|&i| pointed(state, |t| t == Target::Tab(i)).hovered);
+    tab_strip::draw(fb, state.fb_w, Some(state.tab), hovered);
 }

@@ -42,6 +42,8 @@ impl State {
             route: crate::net::Route::Down(""),
             fetch: None,
             fetch_at_ms: 0,
+            pointer: nonos_toolkit::widgets::Pointer::new(),
+            hover: super::ui::target::Target::None,
         }
     }
 
