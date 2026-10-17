@@ -38,6 +38,7 @@ The rest of [Widgets, version 2](widgets-v2.md) joins this table as each one lan
 | `Column` | `(at)` | `.gap(u32)` | none | nothing; `next(h)` and `rest()` hand out `Rect`s down `at` |
 | `Checkbox` | `(on)` | `.label(&str)` | `bool` | a 20 px box, a tick when on, its label right of it |
 | `Radio` | `(selected)` | `.label(&str)` | `bool` | a 20 px ring, a dot when selected, its label right of it |
+| `IconButton` | `(IconId)` | `.kind(Kind)`, `.label(&str)` | `bool` | an 18 px icon in a 36 px square, or beside its label; the body is a `Button` |
 
 ## Later
 
@@ -46,7 +47,6 @@ The rest of [Widgets, version 2](widgets-v2.md) joins this table as each one lan
 | Widget | Apps today | Why later |
 |---|---|---|
 | `Menu` | 3 | needs a popup surface and outside-click handling |
-| `IconButton` | 3 | needs a settled icon API from `toolkit/src/icons/` |
 | `Table` | 2 | Process Manager's 7 table files; wants a column model |
 | `Dialog` | 1, the desktop shell | needs focus between buttons |
 | `Tooltip` | 1 to 2 | needs hover delay, so time |

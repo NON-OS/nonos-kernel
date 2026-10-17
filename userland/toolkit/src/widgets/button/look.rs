@@ -50,4 +50,10 @@ impl Button<'_> {
             Kind::Danger => look(Some(r.raised), Some(r.danger), r.danger),
         }
     }
+
+    /// The label's ink for the kind and state, for a widget that draws its
+    /// own marks on a button's body.
+    pub(in crate::widgets) fn ink(&self) -> Opaque {
+        self.look().ink
+    }
 }

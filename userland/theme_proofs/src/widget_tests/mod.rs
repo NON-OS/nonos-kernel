@@ -32,6 +32,8 @@ mod field;
 mod field_read;
 mod hide;
 mod hits;
+mod icon_button;
+mod icon_button_read;
 mod label;
 mod legible;
 mod mask;
