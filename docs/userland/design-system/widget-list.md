@@ -31,6 +31,8 @@ and the theme supplies the colour.
 
 ## Later
 
+[Widgets, version 2](widgets-v2.md) specifies every one of these, and adds `Toast`.
+
 | Widget | Apps today | Why later |
 |---|---|---|
 | `Menu` | 3 | needs a popup surface and outside-click handling |
@@ -38,7 +40,7 @@ and the theme supplies the colour.
 | `Table` | 2 | Process Manager's 7 table files; wants a column model |
 | `Dialog` | 1, the desktop shell | needs focus between buttons |
 | `Tooltip` | 1 to 2 | needs hover delay, so time |
-| `Checkbox`, `Radio` | 0 | no app draws one yet |
+| `Checkbox`, `Radio` | 1, File manager's `list_check.rs` | no other app draws one yet |
 | `Column` | none | a one-column stack handing out `Rect`s, after Settings' `walk` |
 
 Settings' `chevron.rs` becomes `Row::chevron()`, not a widget of its own.

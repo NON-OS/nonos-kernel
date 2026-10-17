@@ -6,7 +6,9 @@ no drawing arithmetic of its own.
 
 **Status:** built on `feat/toolkit-design-system`: the roles, sizes, 15 widgets, the theme
 following, every app in [Migration](migration.md) moved over, and Settings' Theme block, where
-the theme and high contrast are chosen. The decision behind it is
+the theme and high contrast are chosen. Round 2, which moves every remaining app onto shared
+widgets and adds hover, press, focus and scale, is specified below and planned in
+[Plan, round 2](plan/README.md). The decision behind it is
 [ADR 0001](../../../adr/0001-toolkit-design-system.md).
 
 ## Goals
@@ -54,3 +56,11 @@ the theme and high contrast are chosen. The decision behind it is
 - [Widget list](widget-list.md): what version 1 holds and what comes later.
 - [Themes](themes.md): how the person's choice reaches every app.
 - [Migration](migration.md): the order apps move over, and when the work is done.
+- Round 2:
+  - [App inventory](app-inventory.md): what each app still draws itself.
+  - [Widgets, version 2](widgets-v2.md): Column, Checkbox, Radio, IconButton, Tooltip, Toast,
+    Menu, Dialog, Table.
+  - [Interaction](interaction.md): hover, press and focus.
+  - [Display scale](scaling.md): turning the scale on.
+  - [Migration, round 2](migration-2.md): the order, the last screens, the bugs, done when.
+  - [Plan, round 2](plan/README.md): phases 9 to 17, step by step.
