@@ -29,7 +29,7 @@ use super::serial::{serial, SCALES};
 use super::toast::{OVER, TEXTS, TWO};
 
 /// A surface that keeps the runs of text drawn on it and paints nothing.
-struct Runs(Vec<String>);
+pub(crate) struct Runs(pub(crate) Vec<String>);
 
 impl Surface for Runs {
     fn fill_rect(&mut self, _: u32, _: u32, _: u32, _: u32, _: u32) {}

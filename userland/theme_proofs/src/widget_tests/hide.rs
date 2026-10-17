@@ -21,6 +21,9 @@
 pub(crate) enum Hide {
     /// A run of text: this one, or a cut of it with `…` at either end.
     Text(&'static str),
+    /// Every run that is a piece of this one, such as each line it wraps
+    /// to, whole or cut with `…` at its end.
+    Within(&'static str),
     /// Every filled circle.
     Dots,
     /// Every icon.
@@ -32,6 +35,9 @@ pub(crate) enum Hide {
 impl Hide {
     /// Whether `drawn`, a run of text, is the one left out.
     pub(crate) fn text(self, drawn: &str) -> bool {
+        if let Hide::Within(run) = self {
+            return run.contains(drawn.strip_suffix('…').unwrap_or(drawn));
+        }
         let Hide::Text(run) = self else { return false };
         let head = drawn.strip_suffix('…').is_some_and(|s| run.starts_with(s));
         drawn == run || head || drawn.strip_prefix('…').is_some_and(|s| run.ends_with(s))

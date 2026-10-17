@@ -61,6 +61,11 @@ pub const TOAST_W: u32 = 360;
 pub const MENU_ROW_H: u32 = 32;
 /// Widest a menu grows. A longer label or shortcut is cut with `…` to fit.
 pub const MENU_MAX_W: u32 = 320;
+/// Widest a dialog's panel grows. A longer body wraps to more lines.
+pub const DIALOG_W: u32 = 440;
+/// Most lines a dialog's body takes. The last is cut with `…` when more
+/// would follow.
+pub const DIALOG_LINES: u32 = 5;
 /// Diameter of a pill's status dot.
 pub const DOT: u32 = 7;
 /// Width of a switch.
