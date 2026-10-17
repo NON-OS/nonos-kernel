@@ -21,8 +21,10 @@
 use alloc::vec::Vec;
 
 use nonos_libc::{ProcStatEntry, ProcStatHeader};
+use nonos_toolkit::widgets::Pointer;
 
 use super::super::security::{Alert, Monitor};
+use super::super::ui::hit::Target;
 use super::system::{Prev, System};
 use super::{Filter, History, Query, Row, Screen, Sort};
 
@@ -66,4 +68,8 @@ pub struct State {
     pub alert_scroll: usize,
     pub alert_visible: usize,
     pub help_open: bool,
+    /// The pointer over the content, fed by every move, press and release.
+    pub pointer: Pointer,
+    /// What is under the pointer, so a move repaints only when it changes.
+    pub hover: Option<Target>,
 }

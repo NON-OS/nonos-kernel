@@ -51,6 +51,8 @@ impl State {
             alert_sel: 0,
             alert_scroll: 0,
             alert_visible: 1,
+            pointer: nonos_toolkit::widgets::Pointer::new(),
+            hover: None,
         };
         state.refresh();
         state

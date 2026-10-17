@@ -32,7 +32,7 @@ use super::sidebar;
 pub fn paint(state: &mut State, fb: &mut PaintBuffer) {
     fb.clear(roles().bg.argb());
     let (w, h) = (fb.width, fb.height);
-    sidebar::paint(fb, state.screen, h, state.refreshes);
+    sidebar::paint(fb, state, h);
     let docked = super::fit::inspector(state.screen, w);
     let rect = chrome::pane_rect(w, h, docked);
     let mut buf = [0u8; 24];

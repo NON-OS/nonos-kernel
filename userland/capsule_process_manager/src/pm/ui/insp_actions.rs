@@ -17,6 +17,10 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::widgets::{Button, Kind, Rect, State as Look};
 
+use crate::pm::state::State;
+
+use super::hit::Target;
+use super::hover_look::pointed;
 use super::insp_geom::btn;
 
 // End Process ends the process at once: the kernel runs no handler for the
@@ -25,7 +29,8 @@ use super::insp_geom::btn;
 // waits for the second. A process this monitor will not end gets no button
 // that looks as if it would: a disabled one says so, and end_selected still
 // refuses. Both are drawn in the box `btn` gives the hit test.
-pub fn paint(fb: &mut PaintBuffer, protected: bool, armed: bool) {
+/// End Process draws the pointer's hover and press; the protected note does not.
+pub fn paint(fb: &mut PaintBuffer, state: &State, protected: bool, armed: bool) {
     let (x, y, w, h) = btn(fb.width, fb.height);
     let at = Rect { x, y, w, h };
     if protected {
@@ -33,6 +38,6 @@ pub fn paint(fb: &mut PaintBuffer, protected: bool, armed: bool) {
         Button::new("Protected: cannot be ended here").state(look).draw(fb, at);
         return;
     }
-    let look = Look { selected: armed, ..Look::default() };
+    let look = Look { selected: armed, ..pointed(state, |t| t == Target::EndProcess) };
     Button::new("End Process").kind(Kind::Danger).state(look).draw(fb, at);
 }

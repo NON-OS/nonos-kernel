@@ -19,6 +19,8 @@ use nonos_toolkit::widgets::{Pill, Rect, State as Look};
 
 use crate::pm::state::{State, FILTERS};
 
+use super::hit::Target;
+use super::hover_look::pointed;
 use super::metrics::{CHIP_GAP, CHIP_H};
 use super::text;
 
@@ -30,7 +32,7 @@ pub use chips_geom::{at, origin, width};
 /// The head band's filter row: each chip a toolkit pill in the box `at`
 /// hit-tests, the pill being exactly as wide as `chip_w`. The active one is
 /// selected, so it wears the accent wash and edge the sidebar's current row
-/// wears.
+/// wears, and the one under the pointer draws its hover and press.
 pub fn paint(fb: &mut PaintBuffer, state: &State) {
     let Some(mut x) = origin(fb.width, state.screen) else {
         return;
@@ -38,7 +40,8 @@ pub fn paint(fb: &mut PaintBuffer, state: &State) {
     let y = chips_geom::top();
     for &filter in FILTERS.iter() {
         let w = chips_geom::chip_w(filter);
-        let look = Look { selected: filter == state.filter, ..Look::default() };
+        let look = pointed(state, |t| t == Target::Filter(filter));
+        let look = Look { selected: filter == state.filter, ..look };
         let pill = Pill::new(text::valid(filter.label())).state(look);
         pill.draw(fb, Rect { x, y, w, h: CHIP_H });
         x += w + CHIP_GAP;

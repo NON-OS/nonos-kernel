@@ -16,9 +16,11 @@
 
 use crate::pm::state::{Screen, State};
 
-use super::super::chrome::Rect;
+use nonos_toolkit::widgets::Rect;
+
 use super::super::matrix_geom;
-use super::super::screens::{overview, sec_geom};
+use super::super::pane_geom::table_rect;
+use super::super::screens::sec_geom;
 use super::super::table_geom::{self, Col, COLS_OVERVIEW};
 use super::Target;
 
@@ -27,7 +29,7 @@ use super::Target;
 pub fn rows_visible(screen: Screen, pane: &Rect) -> usize {
     match screen {
         Screen::Authority => matrix_geom::visible_rows(pane.h),
-        Screen::Overview => table_geom::visible_rows(overview::table_rect(pane).h),
+        Screen::Overview => table_geom::visible_rows(table_rect(pane).h),
         _ => table_geom::visible_rows(pane.h),
     }
 }
@@ -37,7 +39,7 @@ pub fn rows_visible(screen: Screen, pane: &Rect) -> usize {
 /* Overview's table starts below its cards: the click comes off that offset
  * before the table sees it, as the painter added it before drawing. */
 pub fn overview(state: &State, r: &Rect, x: i32, y: i32) -> Option<Target> {
-    let t = overview::table_rect(r);
+    let t = table_rect(r);
     table(state, &t, &COLS_OVERVIEW, x, y - (t.y - r.y) as i32)
 }
 

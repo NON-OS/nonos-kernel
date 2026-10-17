@@ -29,6 +29,7 @@ dependencies = [
  "libm",
  "nonos_app_skeleton",
  "nonos_audio_proto",
+ "nonos_toolkit",
 ]
 
 [[package]]

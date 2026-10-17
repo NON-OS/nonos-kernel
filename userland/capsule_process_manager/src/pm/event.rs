@@ -18,19 +18,27 @@ use nonos_app_skeleton::input::text::is_paste;
 use nonos_app_skeleton::{clipboard_paste_line, EventOutcome, InputEvent, InputKind};
 
 use super::state::{Screen, State};
-use super::ui::hit::{self, Target};
+use super::ui::hit::Target;
+use super::ui::hover::target_at;
 use super::ui::table_geom;
 
 #[path = "event_apply.rs"]
 mod event_apply;
+#[path = "event_hover.rs"]
+mod event_hover;
 #[path = "event_key.rs"]
 mod event_key;
 #[path = "event_scroll.rs"]
 mod event_scroll;
 
+pub use event_hover::rehover;
+
 pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
+    if let Some(out) = event_hover::on_hover(state, &event) {
+        return out;
+    }
     if event.kind == InputKind::ButtonDown {
-        return click(state, event.x, event.y);
+        return event_hover::press(state, event.x, event.y);
     }
     if event.kind == InputKind::Wheel {
         let delta = if event.delta_y > 0 { -3 } else { 3 };
@@ -39,15 +47,20 @@ pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
         } else {
             state.scroll_by(delta);
         }
+        rehover(state);
         return EventOutcome::Repaint;
     }
     if !event.is_key_down() {
         return EventOutcome::Idle;
     }
     if state.query_focused() && is_paste(&event) {
-        return paste(state);
+        let out = paste(state);
+        rehover(state);
+        return out;
     }
-    event_key::key(state, event.code)
+    let out = event_key::key(state, event.code);
+    rehover(state);
+    out
 }
 
 fn paste(state: &mut State) -> EventOutcome {
@@ -65,8 +78,7 @@ fn paste(state: &mut State) -> EventOutcome {
 // pointer, then act on the answer. Not one coordinate is derived here, which is
 // the only reason a click cannot land on something other than what was painted.
 fn click(state: &mut State, x: i32, y: i32) -> EventOutcome {
-    let (w, h) = (state.fb_w, state.fb_h);
-    let Some(target) = hit::at(state, w, h, x, y) else {
+    let Some(target) = target_at(state, x, y) else {
         return EventOutcome::Idle;
     };
     state.focus_search(matches!(&target, Target::Search));

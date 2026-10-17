@@ -16,11 +16,13 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::icons::IconId;
-use nonos_toolkit::widgets::{Field, Rect, State as Look};
+use nonos_toolkit::widgets::{Field, Rect};
 
 use crate::pm::state::{Screen, State};
 
 use super::chips;
+use super::hit::Target;
+use super::hover_look::look;
 use super::metrics::{
     HEAD_H, INSPECTOR_W, PANE_PAD_TOP, PANE_PAD_X, SEARCH_H, SEARCH_META_GAP, SEARCH_MIN_W,
     SEARCH_W,
@@ -46,7 +48,7 @@ pub fn rect(fb_w: u32, screen: Screen) -> (u32, u32, u32, u32) {
 
 /// The toolkit field over the whole box `rect` gives the hit test, drawing
 /// the magnifier inside its own body. The caret is at the end, where typing
-/// adds.
+/// adds. The field draws the pointer's hover while it is not focused.
 pub fn paint(fb: &mut PaintBuffer, state: &State) {
     let (x, y, w, h) = rect(fb.width, state.screen);
     let focused = state.query_focused();
@@ -55,6 +57,6 @@ pub fn paint(fb: &mut PaintBuffer, state: &State) {
         .icon(IconId::SettingsSearch)
         .placeholder(PLACEHOLDER)
         .caret(focused.then_some(query.len()))
-        .state(Look { focused, ..Look::default() })
+        .state(look(state, |t| t == Target::Search, focused))
         .draw(fb, Rect { x, y, w, h });
 }

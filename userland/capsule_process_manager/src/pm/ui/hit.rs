@@ -17,7 +17,7 @@
 use crate::pm::state::{Filter, Screen, State};
 
 use super::table_geom::{Col, COLS_FULL};
-use super::{chips, chrome, insp_geom, nav_geom, search};
+use super::{chips, insp_geom, nav_geom, pane_geom, search};
 
 #[path = "hit_pane.rs"]
 mod hit_pane;
@@ -27,6 +27,7 @@ pub use hit_pane::rows_visible;
 // What the pointer landed on, named in the vocabulary of the surface that drew
 // it. Every variant is produced by the same pure geometry function its painter
 // read, so a target can never name a rect the frame did not draw.
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Target {
     Nav(Screen),
     Sort(Col),
@@ -58,7 +59,7 @@ pub fn at(state: &State, w: u32, h: u32, x: i32, y: i32) -> Option<Target> {
     if inspector && x >= insp_geom::pane_x(w) as i32 {
         return insp_geom::btn_at(w, h, x, y).then_some(Target::EndProcess);
     }
-    let r = chrome::pane_rect(w, h, inspector);
+    let r = pane_geom::pane_rect(w, h, inspector);
     let x = x - r.x as i32;
     let y = y - r.y as i32;
     if x < 0 || y < 0 || x >= r.w as i32 || y >= r.h as i32 {

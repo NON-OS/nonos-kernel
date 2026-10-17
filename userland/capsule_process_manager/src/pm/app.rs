@@ -16,7 +16,7 @@
 
 use nonos_app_skeleton::{App, AppManifest, EventOutcome, InputEvent, PaintBuffer};
 
-use super::event::on_event;
+use super::event::{on_event, rehover};
 use super::manifest::manifest;
 use super::state::State;
 use super::ui::paint::paint;
@@ -51,6 +51,7 @@ impl App for ProcessManager {
         // that only redraws when a number happens to change. One repaint a second
         // of cached glyphs is cheap.
         self.state.refresh();
+        rehover(&mut self.state);
         true
     }
 }

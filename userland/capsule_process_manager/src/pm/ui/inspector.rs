@@ -54,7 +54,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let armed = state.pending_pid != 0 && state.pending_pid == row.pid;
     let protected = state.is_protected(row);
     if y + insp_spark::height() > limit {
-        return insp_actions::paint(fb, protected, armed);
+        return insp_actions::paint(fb, state, protected, armed);
     }
     y = insp_spark::paint(fb, left, y, w, state.history.get(row.pid));
     if y + INSP_FIELD_H <= limit {
@@ -63,7 +63,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
         y = insp_fields::field(fb, left, y, b"Authority", &buf[..n], r.text);
         insp_chips::paint(fb, left, y, w, limit, row.caps);
     }
-    insp_actions::paint(fb, protected, armed);
+    insp_actions::paint(fb, state, protected, armed);
 }
 
 fn heading(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, row: &Row) -> u32 {

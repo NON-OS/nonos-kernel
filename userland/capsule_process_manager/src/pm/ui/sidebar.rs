@@ -16,36 +16,41 @@
 
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::theme::roles;
-use nonos_toolkit::widgets::{NavItem, Rect, Separator};
+use nonos_toolkit::widgets::{NavItem, Rect, Separator, State as Look};
 
 use crate::pm::format::u32_decimal;
-use crate::pm::state::{Screen, SCREENS};
+use crate::pm::state::{Screen, State, SCREENS};
 
 use super::fit::{rail, sidebar_w};
+use super::hit::Target;
+use super::hover_look::pointed;
 use super::icon_table::icon;
 use super::metrics::{BODY_PX, NAV_H, NAV_PAD_X, SIDE_FOOT_H, SIDE_FOOT_LINE, SIDE_FOOT_TOP};
 use super::nav_geom::{row_w, row_x, row_y};
 use super::text;
 
-pub fn paint(fb: &mut PaintBuffer, active: Screen, h: u32, refreshes: u32) {
+/// The sidebar down the window's left side, `h` tall; each entry draws the
+/// pointer's hover and press.
+pub fn paint(fb: &mut PaintBuffer, state: &State, h: u32) {
     let (r, w) = (roles(), sidebar_w(fb.width));
     fb.fill_rect(0, 0, w, h, r.sunken.argb());
     fb.fill_rect(w - 1, 0, 1, h, r.border.argb());
     for (i, screen) in SCREENS.iter().enumerate() {
-        paint_row(fb, *screen, row_y(i), *screen == active);
+        let look = pointed(state, |t| t == Target::Nav(*screen));
+        paint_row(fb, *screen, row_y(i), *screen == state.screen, look);
     }
     /* Folded to its icons there is no room for the sampling line. */
     if !rail(fb.width) {
-        paint_foot(fb, h, refreshes);
+        paint_foot(fb, h, state.refreshes);
     }
 }
 
 /// One entry: the toolkit item over the whole row box `nav_geom` hit-tests,
 /// drawing its own icon and label inside it. Folded, the label is left out.
-fn paint_row(fb: &mut PaintBuffer, screen: Screen, y: u32, active: bool) {
+fn paint_row(fb: &mut PaintBuffer, screen: Screen, y: u32, active: bool, look: Look) {
     let label = if rail(fb.width) { "" } else { text::valid(screen.nav_label()) };
     let at = Rect { x: row_x(), y, w: row_w(fb.width), h: NAV_H };
-    NavItem::new(label).icon(icon(screen)).active(active).draw(fb, at);
+    NavItem::new(label).icon(icon(screen)).active(active).state(look).draw(fb, at);
 }
 
 // Provenance: the refresh counter advances once a second, which is the cheapest

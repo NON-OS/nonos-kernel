@@ -19,6 +19,9 @@ path = "src/lib.rs"
 libm = { version = "0.2", default-features = false }
 # The apps' shared text input: what a pasted line becomes in a field.
 nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
+# The shared widgets the process monitor's hit test boxes and its chips and
+# search field are, built for the host without the capsule runtime.
+nonos_toolkit = { path = "../toolkit", default-features = false }
 # The audio player's bar tells an output fault from a track's by the audio
 # service's own sentences.
 nonos_audio_proto = { path = "../audio_proto" }

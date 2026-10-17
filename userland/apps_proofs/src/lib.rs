@@ -325,14 +325,73 @@ pub mod pm_screen;
 pub mod metrics;
 #[path = "../../capsule_process_manager/src/pm/ui/fit.rs"]
 pub mod pm_fit;
+/// The process monitor's hit test and the hover named by it, mounted as the
+/// capsule has them over a stand-in for its state, under `pm` so the files'
+/// `crate::pm::` and `super::` paths resolve.
+#[path = "."]
 pub mod pm {
+    pub use crate::pm_critical as critical;
+    #[path = "."]
     pub mod state {
-        pub use crate::pm_screen::Screen;
+        pub use crate::pm_screen::{Screen, SCREENS};
+        pub use crate::pm_state::{Row, State};
+        pub use filter::{Filter, FILTERS};
+        pub use sort::Sort;
+        #[path = "../../capsule_process_manager/src/pm/state/filter.rs"]
+        mod filter;
+        #[path = "../../capsule_process_manager/src/pm/state/sort.rs"]
+        mod sort;
+    }
+    #[path = "."]
+    pub mod security {
+        #[path = "../../capsule_process_manager/src/pm/security/sensitive.rs"]
+        pub mod sensitive;
+    }
+    #[path = "."]
+    pub mod ui {
+        pub use crate::metrics;
+        pub use crate::pm_fit as fit;
+        #[path = "../../capsule_process_manager/src/pm/ui/chips.rs"]
+        pub mod chips;
+        #[path = "../../capsule_process_manager/src/pm/ui/hit.rs"]
+        pub mod hit;
+        #[path = "../../capsule_process_manager/src/pm/ui/hover.rs"]
+        pub mod hover;
+        #[path = "../../capsule_process_manager/src/pm/ui/hover_look.rs"]
+        pub mod hover_look;
+        #[path = "../../capsule_process_manager/src/pm/ui/insp_geom.rs"]
+        pub mod insp_geom;
+        #[path = "../../capsule_process_manager/src/pm/ui/matrix_geom.rs"]
+        pub mod matrix_geom;
+        #[path = "../../capsule_process_manager/src/pm/ui/nav_geom.rs"]
+        pub mod nav_geom;
+        #[path = "../../capsule_process_manager/src/pm/ui/pane_geom.rs"]
+        pub mod pane_geom;
+        #[path = "../../capsule_process_manager/src/pm/ui/search.rs"]
+        pub mod search;
+        #[path = "../../capsule_process_manager/src/pm/ui/table_cols.rs"]
+        pub mod table_cols;
+        #[path = "../../capsule_process_manager/src/pm/ui/table_geom.rs"]
+        pub mod table_geom;
+        #[path = "../../capsule_process_manager/src/pm/ui/text.rs"]
+        pub mod text;
+        #[path = "."]
+        pub mod screens {
+            #[path = "../../capsule_process_manager/src/pm/ui/screens/sec_geom.rs"]
+            pub mod sec_geom;
+        }
     }
 }
+pub mod pm_state;
 
 #[cfg(test)]
 mod pm_fit_tests;
+#[cfg(test)]
+mod pm_hover_box_tests;
+#[cfg(test)]
+mod pm_hover_row_tests;
+#[cfg(test)]
+mod pm_hover_tests;
 
 /// The audio player's load, read and decoded a tick at a time.
 #[path = "../../capsule_audio_player/src/loading.rs"]

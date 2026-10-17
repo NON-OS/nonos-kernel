@@ -21,6 +21,8 @@ use nonos_toolkit::theme::roles;
 use crate::pm::state::{Row, State};
 
 use super::chrome::Rect;
+use super::hit::Target;
+use super::hover_look::pointed;
 use super::metrics::{BODY_PX, CELL_PAD_X, ROW_H, ROW_ICON, ROW_ICON_GAP, SEL_BAR_W};
 use super::table_geom::{self, Col};
 use super::{table_cell, text};
@@ -37,6 +39,9 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect, cols: &[Col], row: &
         fb.fill_rect(r.x + 1, y, SEL_BAR_W, ROW_H, c.accent.argb());
     } else if (state.scroll + slot) % 2 == 1 {
         fb.fill_rect(r.x + 1, y, body_w, ROW_H, c.surface.argb());
+    }
+    if pointed(state, |t| t == Target::Row(state.scroll + slot)).hovered {
+        fb.blend_rect(r.x + 1, y, body_w, ROW_H, c.hover_wash.argb());
     }
     for col in cols {
         match col {

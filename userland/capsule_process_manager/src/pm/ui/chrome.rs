@@ -21,9 +21,7 @@ use crate::pm::state::{Screen, State};
 
 use super::chips;
 use super::fit::sidebar_w;
-use super::metrics::{
-    BODY_PX, HEAD_H, INSPECTOR_W, PANE_PAD_TOP, PANE_PAD_X, SEARCH_META_GAP, STATUS_H, TITLE_PX,
-};
+use super::metrics::{BODY_PX, HEAD_H, PANE_PAD_TOP, PANE_PAD_X, SEARCH_META_GAP, TITLE_PX};
 use super::search;
 use super::text;
 
@@ -32,19 +30,7 @@ pub use super::status_bar::paint as status_bar;
 /// The toolkit's box, so a screen painter can hand its rect to a widget.
 pub use nonos_toolkit::widgets::Rect;
 
-// The content box for the active screen: everything right of the sidebar, below
-// the page head, above the status bar, and left of the inspector when one is
-// docked. Every screen painter takes this rect and never recomputes it.
-pub fn pane_rect(fb_w: u32, fb_h: u32, inspector: bool) -> Rect {
-    let right = if inspector { fb_w.saturating_sub(INSPECTOR_W) } else { fb_w };
-    let side = sidebar_w(fb_w);
-    Rect {
-        x: side + PANE_PAD_X,
-        y: PANE_PAD_TOP + HEAD_H,
-        w: right.saturating_sub(side + PANE_PAD_X * 2),
-        h: fb_h.saturating_sub(PANE_PAD_TOP + HEAD_H + STATUS_H + PANE_PAD_X),
-    }
-}
+pub use super::pane_geom::pane_rect;
 
 // The screen name holds the left of the head band, the search field the far
 // right, and the meta line is measured back from the field's left edge, so a
