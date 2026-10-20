@@ -16,16 +16,19 @@
 
 use x86_64::structures::idt::InterruptStackFrame;
 
-use super::context::{log_exception, ExceptionContext};
+use crate::sys::serial::Line;
+
+use super::nmi_record::record;
 use super::nmi_source::{identify_nmi_source, NmiSource};
 
 pub fn handle(frame: InterruptStackFrame) {
     /*
      * The kernel's own NMIs first: a fatal halt of the machine, or a TLB
      * shootdown round re-sent to a cpu that did not take the vector. That
-     * step is NMI-safe; what follows logs, and is reached for an NMI nothing
-     * in the kernel sent, or when a hardware cause is latched in port B
-     * alongside ours, so a coincident parity or channel check is not lost.
+     * step is NMI-safe; what follows counts the NMI and tries the serial
+     * line, and is reached for an NMI nothing in the kernel sent, or when a
+     * hardware cause is latched in port B alongside ours, so a coincident
+     * parity or channel check is not lost.
      */
     if cfg!(feature = "nonos-smp")
         && crate::smp::nmi::on_nmi()
@@ -33,41 +36,24 @@ pub fn handle(frame: InterruptStackFrame) {
     {
         return;
     }
-    let ctx = ExceptionContext::from_frame(&frame);
-    log_exception("NMI", &ctx);
-
+    let rip = frame.instruction_pointer.as_u64();
     let source = identify_nmi_source();
-    handle_nmi_source(source, &ctx);
-}
-
-fn handle_nmi_source(source: NmiSource, _ctx: &ExceptionContext) {
-    match source {
-        NmiSource::MemoryParity => {
-            crate::log::logger::log_critical("NMI: Memory parity error detected");
-            handle_memory_error();
-        }
-        NmiSource::IoChannelCheck => {
-            crate::log::logger::log_critical("NMI: I/O channel check error");
-            handle_io_error();
-        }
-        NmiSource::Watchdog => {
-            crate::log::logger::log_warning!("NMI: Watchdog timeout");
-            handle_watchdog();
-        }
-        NmiSource::Unknown => {
-            crate::log::logger::log_warning!("NMI: Unknown source");
-        }
+    record(source, rip);
+    let mut line = Line::new();
+    line.str(b"NMI ").str(describe(source)).str(b" rip=");
+    if crate::security::is_production_mode() {
+        line.str(b"[ADDR]");
+    } else {
+        line.hex(rip);
     }
+    line.end_try();
 }
 
-fn handle_memory_error() {
-    crate::log::logger::log_critical("Memory subsystem error - system may be unstable");
-}
-
-fn handle_io_error() {
-    crate::log::logger::log_critical("I/O subsystem error - peripheral failure possible");
-}
-
-fn handle_watchdog() {
-    crate::log::logger::log_warning!("System watchdog triggered");
+fn describe(source: NmiSource) -> &'static [u8] {
+    match source {
+        NmiSource::MemoryParity => b"memory parity error, memory subsystem may be unstable",
+        NmiSource::IoChannelCheck => b"I/O channel check, peripheral failure possible",
+        NmiSource::Watchdog => b"watchdog timeout",
+        NmiSource::Unknown => b"unknown source",
+    }
 }

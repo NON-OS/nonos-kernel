@@ -27,6 +27,7 @@ pub mod floating_point;
 pub mod gpf;
 pub mod machine_check;
 pub mod nmi;
+pub mod nmi_record;
 mod nmi_source;
 pub mod opcode;
 pub mod overflow;

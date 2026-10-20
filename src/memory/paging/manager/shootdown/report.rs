@@ -29,6 +29,8 @@ pub(super) fn report_stuck() {
     head.str(b" va=").hex(REQ_VA.load(Ordering::Acquire));
     head.str(b" pages=").dec(REQ_PAGES.load(Ordering::Acquire) as u64);
     head.end();
+    #[cfg(target_arch = "x86_64")]
+    report_unclaimed_nmis();
     for cpu in 0..crate::smp::MAX_CPUS {
         if !crate::smp::cpu_is_online(cpu) {
             continue;
@@ -71,4 +73,14 @@ pub(super) fn report_stuck() {
         };
         l.end();
     }
+}
+
+#[cfg(target_arch = "x86_64")]
+fn report_unclaimed_nmis() {
+    let nmi = crate::interrupts::handlers::exceptions::nmi_record::nmi_counts();
+    let mut nl = crate::sys::serial::Line::new();
+    nl.str(b"[SMP] nmi unclaimed parity=").dec(nmi.memory_parity);
+    nl.str(b" iochk=").dec(nmi.io_channel_check).str(b" watchdog=").dec(nmi.watchdog);
+    nl.str(b" unknown=").dec(nmi.unknown).str(b" last_rip=").hex(nmi.last_rip);
+    nl.end();
 }

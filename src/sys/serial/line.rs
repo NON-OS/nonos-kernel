@@ -101,6 +101,10 @@ impl Line {
     pub fn end(&self) {
         println(&self.buf[..self.len]);
     }
+
+    pub fn end_try(&self) -> bool {
+        super::core::try_write_line(&self.buf[..self.len])
+    }
 }
 
 #[cfg(target_arch = "aarch64")]

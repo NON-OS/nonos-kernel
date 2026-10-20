@@ -65,6 +65,16 @@ pub fn write_byte(ch: u8) {
     crate::arch::console::write_byte(ch);
 }
 
+pub fn try_write_line(bytes: &[u8]) -> bool {
+    let Some(_guard) = SERIAL_LOCK.try_lock() else {
+        return false;
+    };
+    for &ch in bytes.iter().chain(b"\r\n") {
+        write_byte(ch);
+    }
+    true
+}
+
 pub fn is_available() -> bool {
     crate::arch::console::is_available()
 }
