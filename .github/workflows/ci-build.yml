@@ -66,7 +66,7 @@ jobs:
         run: |
           mkdir -p ci-reports/build
           cp result/nonos-build.json "ci-reports/build/nonos-build-${{ matrix.name }}.json" 2>/dev/null || true
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: always()
         with:
           name: nonos-build-${{ matrix.name }}
@@ -226,7 +226,7 @@ jobs:
         run: nix develop --command cargo run --release --manifest-path nonos-verify/Cargo.toml -- build
       - name: Upload build reports
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: ci-reports-build
           path: ci-reports/
