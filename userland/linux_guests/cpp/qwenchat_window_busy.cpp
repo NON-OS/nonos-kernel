@@ -10,6 +10,12 @@ double busy_now() {
     return duration<double>(steady_clock::now().time_since_epoch()).count();
 }
 
+static bool scrolled(Busy &b, const std::vector<Key> &keys) {
+    bool moved = false;
+    for (Key k : keys) moved = ui_scroll_key(*b.w, *b.v, k) || moved;
+    return moved;
+}
+
 bool busy_stop(void *to) {
     Busy &b = *(Busy *)to;
     std::vector<Key> keys;
@@ -17,7 +23,8 @@ bool busy_stop(void *to) {
     ui_redraw_resized(*b.w, *b.v);
     for (Key k : keys)
         if (k.code == 0x1B) return true;
-    /* Other keys wait for the answer: typing ahead is not kept. */
+    /* Scroll keys move the view; other keys wait for the answer: typing ahead is not kept. */
+    if (scrolled(b, keys)) ui_draw(*b.w, *b.v), wl_present(*b.w);
     const double t = busy_now();
     if (t - b.shown < 1.0) return false;
     b.shown = t;

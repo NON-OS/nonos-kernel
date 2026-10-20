@@ -1,6 +1,7 @@
 /* qwenui: what qwenchat's window shows, drawn into its buffer. */
 #pragma once
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "qwenwl.h"
@@ -16,9 +17,23 @@ struct View {
     std::string input;
     std::string status; /* right of the header: loading, thinking, speed */
     bool thinks = false; /* the model can think aloud: /think and /nothink */
+    size_t back = 0;     /* lines scrolled up from the newest; 0 follows the conversation */
 };
 
+/* NONOS key codes the bridge forwards unchanged; hand-synced with
+ * userland/app_skeleton/src/input/keys.rs. */
+static const uint32_t KEY_UP = 0x1201, KEY_DOWN = 0x1202, KEY_HOME = 0x1205, KEY_END = 0x1206;
+static const uint32_t KEY_PAGE_UP = 0x1207, KEY_PAGE_DOWN = 0x1208;
+
 void ui_draw(Wl &w, const View &v);
+/* The conversation as drawn lines, each with its colour, oldest first. */
+std::vector<std::pair<std::string, uint32_t>> ui_lines(const Wl &w, const View &v);
+/* How many lines the conversation area holds; 0 for a window too small. */
+size_t ui_fit(const Wl &w);
+/* The first line shown: `back` lines up from the newest, held in range. */
+size_t ui_from(size_t lines, size_t fit, size_t back);
+/* Up, Down, Page Up/Down, Home, End and the wheel move `back`; false for any other key. */
+bool ui_scroll_key(const Wl &w, View &v, Key k);
 /* Drawn again and shown when the window took a new size (wl_resize). */
 void ui_redraw_resized(Wl &w, const View &v);
 /* Text in the atlas's cells at (x, y), clipped to the buffer. */

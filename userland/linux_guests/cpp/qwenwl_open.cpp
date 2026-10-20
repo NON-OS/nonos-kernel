@@ -68,9 +68,9 @@ bool wl_open(Wl &w, int width, int height, const char *title) {
         Req b(REG, 0);
         wl_send(w, b.u32(g[i]).str(WANT[i]).u32(ver[i]).u32(id[i]));
     }
-    Req s(COMP, 0), xs(XDG, 2), top(XSURF, 1), t(TOP, 2), app(TOP, 3), kb(SEAT, 1), c(SURF, 6);
+    Req s(COMP, 0), xs(XDG, 2), top(XSURF, 1), t(TOP, 2), app(TOP, 3), kb(SEAT, 1), ptr(SEAT, 0), c(SURF, 6);
     wl_send(w, s.u32(SURF)), wl_send(w, xs.u32(XSURF).u32(SURF)), wl_send(w, top.u32(TOP));
     wl_send(w, t.str(title)), wl_send(w, app.str("nonos.qwenchat"));
-    wl_send(w, kb.u32(KBD)), wl_send(w, c);
+    wl_send(w, kb.u32(KBD)), wl_send(w, ptr.u32(PTR)), wl_send(w, c);
     return wl_buffer(w, w.w, w.h, w.pool, w.buf, w.px, w.memfd);
 }

@@ -7,9 +7,10 @@
 
 /*
  * xdg_wm_base.ping, xdg_toplevel.configure, xdg_surface.configure,
- * xdg_toplevel.close, key. A configure's size (F11 or the window made full
- * screen, and back) is taken before its ack, so the next present is the
- * frame drawn at that size; 0 by 0 is the size the window opened at.
+ * xdg_toplevel.close, key, wheel (a vertical wl_pointer.axis). A configure's
+ * size (F11 or the window made full screen, and back) is taken before its
+ * ack, so the next present is the frame drawn at that size; 0 by 0 is the
+ * size the window opened at.
  */
 bool wl_poll(Wl &w, std::vector<Key> &keys) {
     uint32_t object;
@@ -31,6 +32,9 @@ bool wl_poll(Wl &w, std::vector<Key> &keys) {
             w.closed = true;
         } else if (object == KBD && op == 3 && wl_word(body, 12) == 1) {
             keys.push_back(Key{wl_word(body, 8)});
+        } else if (object == PTR && op == 4 && wl_word(body, 4) == 0 && wl_word(body, 8) != 0) {
+            const int32_t value = (int32_t)wl_word(body, 8), notches = value / (10 << 8);
+            keys.push_back(Key{0, notches ? notches : (value > 0) - (value < 0)});
         }
     }
     return !w.closed;

@@ -9,7 +9,10 @@
  * answered by busy_stop, which the compute asks while it runs. */
 static void to_window(void *to, const char *piece, size_t n, bool thought) {
     Busy *b = (Busy *)to;
+    const size_t before = b->v->back ? ui_lines(*b->w, *b->v).size() : 0;
     if (!thought) b->v->said.back().text.append(piece, n);
+    const size_t after = b->v->back ? ui_lines(*b->w, *b->v).size() : 0;
+    if (after > before) b->v->back += after - before;
     ui_draw(*b->w, *b->v), wl_present(*b->w);
 }
 
@@ -17,6 +20,7 @@ static bool answer(const ChatArgs &a, Chat &c, Wl &w, View &v) {
     std::string said = v.input + "\n";
     v.said.push_back({true, v.input}), v.said.push_back({false, ""});
     v.input.clear();
+    v.back = 0;
     Busy &b = *(Busy *)c.stop_to;
     b.doing = "answering", b.since = b.shown = busy_now();
     v.status = "answering, Esc stops";
@@ -54,6 +58,7 @@ static bool thinking_word(Chat &c, View &v) {
 
 /* Esc clears the line, and on an empty line closes the window. */
 bool window_key(const ChatArgs &a, Chat &c, Wl &w, View &v, Key k) {
+    if (ui_scroll_key(w, v, k)) return !((Busy *)c.stop_to)->quit;
     if (k.code == 0x0D && closing(v.input)) return false;
     if (k.code == 0x1B && v.input.empty()) return false;
     if (k.code == 0x0D && thinking_word(c, v)) return true;

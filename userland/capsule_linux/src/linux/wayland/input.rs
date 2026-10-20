@@ -28,10 +28,10 @@ use nonos_libc::mk_ipc_recv_from;
 use crate::linux::guest::Guest;
 
 use super::input_key::key;
-use super::input_send::{button, motion};
+use super::input_send::{axis, button, motion};
 
-/// Key down and up, absolute pointer, button down and up.
-const KINDS: u32 = 0x6B;
+/// Key down and up, absolute pointer, wheel, button down and up.
+const KINDS: u32 = 0x7B;
 const OWN_INBOX: u64 = 0;
 const NOWAIT: u64 = 1;
 const NINP_MAGIC: u32 = 0x4E49_4E50;
@@ -73,6 +73,7 @@ fn deliver(guest: &mut Guest, event: &InputEvent) {
         InputKind::KeyDown => key(guest, event.code, 1),
         InputKind::KeyUp => key(guest, event.code, 0),
         InputKind::PointerAbs => motion(guest, event.x, event.y),
+        InputKind::Wheel => axis(guest, event.x, event.y, event.delta_y),
         InputKind::ButtonDown => button(guest, event.code, 1),
         InputKind::ButtonUp => button(guest, event.code, 0),
         _ => {}

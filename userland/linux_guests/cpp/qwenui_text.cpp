@@ -47,5 +47,6 @@ void ui_wipe(Wl &w, View &v) {
     if (!v.input.empty()) memset(&v.input[0], 0, v.input.size());
     v.said.clear();
     v.input.clear();
+    v.back = 0;
     memset(w.px, 0, (size_t)w.w * w.h * 4);
 }

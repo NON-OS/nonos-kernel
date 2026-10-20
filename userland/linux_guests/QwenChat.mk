@@ -63,6 +63,15 @@ nonos-mk-qwenresize-check:
 	@$(CXX) -std=c++17 -Wall -Wextra $(QWENRESIZE_SRC) -o $(TARGET_DIR)/qwenresize-check
 	@$(TARGET_DIR)/qwenresize-check
 
+# qwenchat's conversation scrolls with Up, Down, Page Up/Down, Home, End and the
+# wheel, which arrives as wl_pointer.axis over a socketpair (cpp/qwenscroll_check.cpp).
+QWENSCROLL_SRC := $(addprefix $(LINUX_GUESTS_DIR)/cpp/,qwenscroll_check.cpp qwenui_scroll.cpp qwenui_draw.cpp \
+	qwenui_text.cpp qwenwl_loop.cpp qwenwl_open.cpp qwenwl_resize.cpp qwenwl_wire.cpp qwenwl_event.cpp)
+.PHONY: nonos-mk-qwenscroll-check
+nonos-mk-qwenscroll-check:
+	@$(CXX) -std=c++17 -Wall -Wextra $(QWENSCROLL_SRC) -o $(TARGET_DIR)/qwenscroll-check
+	@$(TARGET_DIR)/qwenscroll-check
+
 # The tier qwenchat offers when one does not fit: the next clearly smaller,
 # never a same-sized twin, held to the shortfall (cpp/qwensmaller_check.cpp).
 .PHONY: nonos-mk-qwensmaller-check

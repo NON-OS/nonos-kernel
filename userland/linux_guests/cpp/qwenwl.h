@@ -39,6 +39,7 @@ struct Req {
 /* A key the user pressed: a NONOS key code, which for text is the character. */
 struct Key {
     uint32_t code;
+    int32_t wheel = 0; /* Wheel notches, Wayland sign: positive toward the newest. */
 };
 
 bool wl_send(Wl &w, Req &r);

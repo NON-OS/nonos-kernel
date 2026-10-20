@@ -40,6 +40,23 @@ void ui_redraw_resized(Wl &w, const View &v) {
     ui_draw(w, v), wl_present(w);
 }
 
+std::vector<std::pair<std::string, uint32_t>> ui_lines(const Wl &w, const View &v) {
+    const size_t cols = (w.w - 2 * PAD) / CELL_W - 6;
+    std::vector<std::pair<std::string, uint32_t>> lines;
+    for (const Said &s : v.said) {
+        std::vector<std::string> body = ui_wrap(s.text, cols);
+        for (size_t i = 0; i < body.size(); i++)
+            lines.push_back({(i ? "      " : s.user ? "you   " : "qwen  ") + body[i], s.user ? CYAN : INK});
+        lines.push_back({"", INK});
+    }
+    return lines;
+}
+
+size_t ui_fit(const Wl &w) {
+    const int top = HEAD + PAD, bottom = w.h - FOOT - BOXH - PAD;
+    return bottom > top ? (size_t)((bottom - top) / CELL_H) : 0;
+}
+
 void ui_draw(Wl &w, const View &v) {
     ui_fill(w, 0, 0, w.w, w.h, BG);
     ui_fill(w, 0, 0, w.w, HEAD, BAND);
@@ -52,16 +69,10 @@ void ui_draw(Wl &w, const View &v) {
     else if ((long)cells(status) > room) status = status.substr(0, room - 3) + "...";
     ui_text(w, w.w - PAD - (int)cells(status) * CELL_W, (HEAD - CELL_H) / 2, status, CYAN);
     const size_t cols = (w.w - 2 * PAD) / CELL_W - 6;
-    std::vector<std::pair<std::string, uint32_t>> lines;
-    for (const Said &s : v.said) {
-        std::vector<std::string> body = ui_wrap(s.text, cols);
-        for (size_t i = 0; i < body.size(); i++)
-            lines.push_back({(i ? "      " : s.user ? "you   " : "qwen  ") + body[i], s.user ? CYAN : INK});
-        lines.push_back({"", INK});
-    }
-    const int top = HEAD + PAD, bottom = w.h - FOOT - BOXH - PAD;
-    const size_t fit = (bottom - top) / CELL_H;
-    size_t from = lines.size() > fit ? lines.size() - fit : 0;
+    std::vector<std::pair<std::string, uint32_t>> lines = ui_lines(w, v);
+    const int top = HEAD + PAD;
+    const size_t fit = ui_fit(w);
+    size_t from = ui_from(lines.size(), fit, v.back);
     for (size_t i = from; i < lines.size(); i++)
         ui_text(w, PAD, top + (int)(i - from) * CELL_H, lines[i].first, lines[i].second);
     const int by = w.h - FOOT - BOXH;

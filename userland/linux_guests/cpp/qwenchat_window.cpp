@@ -47,8 +47,11 @@ int chat_window(const ChatArgs &a) {
         v.said.push_back({false, why});
         v.status = window_not_opened(c.err);
         ui_draw(w, v), wl_present(w);
-        for (keys.clear(); wl_poll(w, keys) && !escaped(keys); usleep(50000))
+        for (keys.clear(); wl_poll(w, keys) && !escaped(keys); usleep(50000)) {
+            for (Key k : keys)
+                if (ui_scroll_key(w, v, k)) ui_draw(w, v), wl_present(w);
             keys.clear(), ui_redraw_resized(w, v);
+        }
         ui_wipe(w, v), wl_close(w);
         return c.err == ENOMEM ? 4 : 1;
     }
