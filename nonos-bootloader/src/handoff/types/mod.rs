@@ -22,6 +22,7 @@ mod evidence;
 mod framebuffer;
 mod handoff;
 mod install;
+mod layout;
 mod memory;
 mod security;
 mod system;

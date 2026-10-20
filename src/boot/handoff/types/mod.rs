@@ -21,6 +21,7 @@ pub mod firmware;
 pub mod framebuffer;
 pub mod handoff;
 pub mod info;
+mod layout;
 pub mod memory;
 pub mod security;
 
