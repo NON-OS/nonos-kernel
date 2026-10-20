@@ -30,19 +30,19 @@ impl ArchOps for X86_64 {
     fn halt() -> ! {
         loop {
             unsafe {
-                asm!("cli; hlt", options(nomem, nostack, preserves_flags));
+                asm!("cli; hlt", options(nostack, preserves_flags));
             }
         }
     }
 
     #[inline(always)]
     unsafe fn enable_interrupts() {
-        asm!("sti", options(nomem, nostack, preserves_flags));
+        asm!("sti", options(nostack, preserves_flags));
     }
 
     #[inline(always)]
     unsafe fn disable_interrupts() {
-        asm!("cli", options(nomem, nostack, preserves_flags));
+        asm!("cli", options(nostack, preserves_flags));
     }
 
     #[inline(always)]

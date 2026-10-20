@@ -26,11 +26,11 @@ use core::arch::asm;
 pub fn idle_cpu() {
     if crate::arch::x86_64::interrupt::apic::idle_timer::halt_safe() {
         unsafe {
-            asm!("sti; hlt", options(nomem, nostack));
+            asm!("sti; hlt", options(nostack));
         }
     } else {
         unsafe {
-            asm!("sti", options(nomem, nostack));
+            asm!("sti", options(nostack));
         }
         for _ in 0..4096 {
             core::hint::spin_loop();
@@ -41,7 +41,7 @@ pub fn idle_cpu() {
     // locks; returning with interrupts still enabled lets the timer ISR
     // land inside the caller's next lock section and spin-deadlock the core.
     unsafe {
-        asm!("cli", options(nomem, nostack));
+        asm!("cli", options(nostack));
     }
 }
 

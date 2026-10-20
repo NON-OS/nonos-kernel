@@ -38,7 +38,7 @@ pub(super) fn ap_idle_loop(cpu_id: u32) -> ! {
          * window is closed again by the wait below on every path.
          */
         unsafe {
-            core::arch::asm!("cli", options(nostack, nomem));
+            core::arch::asm!("cli", options(nostack));
         }
 
         /*

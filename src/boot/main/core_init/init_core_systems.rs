@@ -48,7 +48,7 @@ pub fn init_core_systems() {
     // microkernel boot path does not bring up keyboard/mouse rings;
     // input is owned by future capsule migration (input capsule).
     unsafe {
-        asm!("sti", options(nomem, nostack));
+        asm!("sti", options(nostack));
     }
     serial::println(b"[NONOS] Interrupts enabled");
     super::super::init_memory_encryption();

@@ -25,7 +25,7 @@ use super::parser;
 pub fn reboot() -> AcpiResult<()> {
     let fadt = parser::with_data(|d| d.fadt).flatten();
     // SAFETY: CLI only masks maskable interrupts on this CPU.
-    unsafe { core::arch::asm!("cli", options(nomem, nostack)) };
+    unsafe { core::arch::asm!("cli", options(nostack)) };
     reset_sequence(&mut PortBus, fadt.as_ref());
     // SAFETY: loading a zero-limit IDT and raising #BP makes the CPU fail to
     // deliver the exception, then the double fault, and shut down, which

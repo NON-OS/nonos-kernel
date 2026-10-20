@@ -19,14 +19,14 @@ use core::arch::asm;
 #[inline]
 pub fn cli() {
     unsafe {
-        asm!("cli", options(nomem, nostack, preserves_flags));
+        asm!("cli", options(nostack, preserves_flags));
     }
 }
 
 #[inline]
 pub fn sti() {
     unsafe {
-        asm!("sti", options(nomem, nostack, preserves_flags));
+        asm!("sti", options(nostack, preserves_flags));
     }
 }
 

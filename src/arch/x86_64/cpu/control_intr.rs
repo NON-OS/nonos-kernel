@@ -33,14 +33,14 @@ pub fn hlt() {
 #[inline]
 pub fn cli() {
     unsafe {
-        asm!("cli", options(nomem, nostack));
+        asm!("cli", options(nostack));
     }
 }
 
 #[inline]
 pub fn sti() {
     unsafe {
-        asm!("sti", options(nomem, nostack));
+        asm!("sti", options(nostack));
     }
 }
 

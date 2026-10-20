@@ -40,7 +40,7 @@ pub(super) fn halt_forever() -> ! {
     // spurious wake-ups (an NMI can break a single hlt) by re-halting
     // immediately. Both insns are nomem/nostack — we touch neither.
     unsafe {
-        asm!("cli", options(nomem, nostack));
+        asm!("cli", options(nostack));
     }
     loop {
         unsafe {

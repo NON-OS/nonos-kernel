@@ -35,20 +35,20 @@ pub(crate) fn wait_for_interrupt() {
         // SAFETY: sti/hlt/cli touch no memory and the STI shadow closes the
         // window between unmasking and halting.
         unsafe {
-            core::arch::asm!("sti", "hlt", "cli", options(nomem, nostack));
+            core::arch::asm!("sti", "hlt", "cli", options(nostack));
         }
         return;
     }
 
     // SAFETY: unmasking so the pending wake can land, then remasking below.
     unsafe {
-        core::arch::asm!("sti", options(nomem, nostack));
+        core::arch::asm!("sti", options(nostack));
     }
     for _ in 0..SPIN_ROUNDS {
         core::hint::spin_loop();
     }
     // SAFETY: restores the masked state the caller was in.
     unsafe {
-        core::arch::asm!("cli", options(nomem, nostack));
+        core::arch::asm!("cli", options(nostack));
     }
 }

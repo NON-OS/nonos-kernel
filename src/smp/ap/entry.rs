@@ -34,7 +34,7 @@ pub unsafe extern "C" fn ap_entry(cpu_id: u32) {
     if !CPU_DESCRIPTORS[cpu_id as usize].boot_claim.ap_enter() {
         loop {
             // SAFETY: eK@nonos.systems - masks and halts this CPU only.
-            unsafe { core::arch::asm!("cli", "hlt", options(nostack, nomem)) };
+            unsafe { core::arch::asm!("cli", "hlt", options(nostack)) };
         }
     }
     // Before anything on this AP reads the time.
