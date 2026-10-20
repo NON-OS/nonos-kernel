@@ -952,7 +952,7 @@ volatile = { version = "0.6", default-features = false }
 smoltcp = { version = "0.11", default-features = false, features = ["alloc", "socket-raw", "socket-udp", "socket-tcp", "proto-ipv4", "proto-ipv6", "medium-ethernet"] }
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]
-x86_64 = { version = "0.14", default-features = false, features = ["abi_x86_interrupt", "instructions"] }
+x86_64 = { version = "0.15", default-features = false, features = ["abi_x86_interrupt", "instructions"] }
 
 [build-dependencies]
 blake3        = { version = "1.5",  default-features = false }
