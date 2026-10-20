@@ -26,6 +26,8 @@ pub mod pte_flags {
     pub const DIRTY: u64 = 1 << 6;
     pub const HUGE_PAGE: u64 = 1 << 7;
     pub const GLOBAL: u64 = 1 << 8;
+    pub const PAT_4K: u64 = 1 << 7;
+    pub const PAT_HUGE: u64 = 1 << 12;
     pub const NO_EXECUTE: u64 = 1 << 63;
 
     pub const ADDR_MASK: u64 = 0x000F_FFFF_FFFF_F000;

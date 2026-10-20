@@ -40,3 +40,8 @@ pub fn flush_tlb_pcid(pcid: u16) {
         flush_tlb();
     }
 }
+
+pub fn flush_tlb_everywhere(pcid: u16) {
+    flush_tlb_pcid(pcid);
+    crate::memory::paging::manager::flush_tlb_all_smp(crate::memory::paging::manager::ASID_KERNEL);
+}

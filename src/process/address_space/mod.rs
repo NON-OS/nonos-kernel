@@ -16,6 +16,7 @@
 
 mod api;
 mod fork;
+mod frame_ref;
 pub mod lifecycle;
 mod ops;
 mod pcid;
