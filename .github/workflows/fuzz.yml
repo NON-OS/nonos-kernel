@@ -75,7 +75,7 @@ jobs:
           rustup toolchain install "${channel}" --profile minimal
           cargo install --locked cargo-fuzz --version 0.13.2
       - name: Restore the corpus
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: ${{ matrix.crate }}/fuzz/corpus/${{ matrix.target }}
           key: fuzz-corpus-${{ matrix.target }}-${{ github.run_id }}
