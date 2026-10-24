@@ -230,7 +230,7 @@ dependencies = [
 [[package]]
 name = "nonos-stark"
 version = "0.1.0"
-source = "git+https://github.com/NON-OS/STARKs.git?branch=main#a41bb8bb0dacfea614acc6fb500d0b96abd78d2b"
+source = "git+https://github.com/NON-OS/STARKs.git?branch=main#a47d23ae969e23b5f841e30b49a1d483a80a6b02"
 dependencies = [
  "blake3",
 ]
@@ -238,7 +238,7 @@ dependencies = [
 [[package]]
 name = "nox_verify"
 version = "0.1.0"
-source = "git+https://github.com/NON-OS/STARKs.git?branch=main#a41bb8bb0dacfea614acc6fb500d0b96abd78d2b"
+source = "git+https://github.com/NON-OS/STARKs.git?branch=main#a47d23ae969e23b5f841e30b49a1d483a80a6b02"
 dependencies = [
  "nonos-stark",
 ]

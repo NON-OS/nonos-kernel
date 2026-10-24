@@ -46,11 +46,11 @@
     "starks": {
       "flake": false,
       "locked": {
-        "lastModified": 1790935371,
-        "narHash": "sha256-cmxSYBoVPTHndrRVT6Rb+n2HhjzTBuCk5EHEGwomFrA=",
+        "lastModified": 1791031358,
+        "narHash": "sha256-OfjPzzF0F3vjTjEx6SFwt2P6kCP4XM2J/rY8qcJEd2Y=",
         "owner": "NON-OS",
         "repo": "STARKs",
-        "rev": "a41bb8bb0dacfea614acc6fb500d0b96abd78d2b",
+        "rev": "a47d23ae969e23b5f841e30b49a1d483a80a6b02",
         "type": "github"
       },
       "original": {

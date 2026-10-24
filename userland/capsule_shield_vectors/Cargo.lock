@@ -98,7 +98,7 @@ checksum = "ce5d3ddc6d3fa000eb1536d85e147bfe31aacaba692ed6a876f95cb7c855be78"
 [[package]]
 name = "nonos-stark"
 version = "0.1.0"
-source = "git+https://github.com/NON-OS/STARKs.git?branch=main#a41bb8bb0dacfea614acc6fb500d0b96abd78d2b"
+source = "git+https://github.com/NON-OS/STARKs.git?branch=main#a47d23ae969e23b5f841e30b49a1d483a80a6b02"
 dependencies = [
  "blake3",
  "rayon",
@@ -121,7 +121,7 @@ version = "0.3.0"
 [[package]]
 name = "nox_prover"
 version = "0.1.0"
-source = "git+https://github.com/NON-OS/STARKs.git?branch=main#a41bb8bb0dacfea614acc6fb500d0b96abd78d2b"
+source = "git+https://github.com/NON-OS/STARKs.git?branch=main#a47d23ae969e23b5f841e30b49a1d483a80a6b02"
 dependencies = [
  "stark_proofs",
 ]
@@ -155,7 +155,7 @@ checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
 [[package]]
 name = "stark_proofs"
 version = "0.1.0"
-source = "git+https://github.com/NON-OS/STARKs.git?branch=main#a41bb8bb0dacfea614acc6fb500d0b96abd78d2b"
+source = "git+https://github.com/NON-OS/STARKs.git?branch=main#a47d23ae969e23b5f841e30b49a1d483a80a6b02"
 dependencies = [
  "nonos-stark",
 ]
